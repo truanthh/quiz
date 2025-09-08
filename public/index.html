@@ -1,14 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
+<html>
+<head>
+    <title> Home Quiz </title>
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title></title>
-    <link href="css/style.css" rel="stylesheet">
-  </head>
-  <body>
-  
-    <h1> HELLO BLYAT </h1>
-
-  </body>
+</head>
+<body>
+    <h1>Добро пожаловать в Home Quiz!</h1>
+    <p>u работает успешно! 🎉</p>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Подключаемся к серверу
+        const socket = io();
+        
+        // Проверка подключения
+        socket.on('connect', () => {
+            console.log('Подключено к серверу!');
+        });
+    </script>
+</body>
 </html>
