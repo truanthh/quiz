@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
 import { io } from "socket.io-client";
-import LoginView from "/views/LoginView";
+import LoginView from "@/views/LoginView.vue";
 
 const msg = ref("");
 // const socket = inject('socket');
@@ -25,7 +25,7 @@ function handleClick() {
 }
 
 onMounted(() => {
-  socket.value = io(VITE_SERVER_ADDRESS);
+  socket.value = io(import.meta.env.VITE_SERVER_ADDRESS);
 
   socket.value.on("connect", () => {
     status.value = "Подключено к серверу";
@@ -50,7 +50,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <LoginView v-if="mainStore.isAuth()" />
+  <router-view></router-view>
 </template>
 
 <style scoped>

@@ -3,8 +3,9 @@ import { defineStore } from "pinia";
 
 export const mainStore = defineStore("mainStore", () => {
   const isAuth = ref(false);
+  const role = ref("");
 
   const connectionInfo = ref({});
 
-  return { count, doubleCount, increment };
+  return { isAuth, connectionInfo, role };
 });
