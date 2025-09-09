@@ -1,59 +1,56 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
-import { io } from "socket.io-client"
+import { io } from "socket.io-client";
+import LoginView from "/views/LoginView";
 
-const msg = ref('');
+const msg = ref("");
 // const socket = inject('socket');
 
-const status = ref("Не подключено")
-const socket = ref(null)
+const status = ref("Не подключено");
+const socket = ref(null);
 
-const connectionInfo = ref(null)
+const connectionInfo = ref(null);
 
-function handleClick(){
+function handleClick() {
   if (socket.value && socket.value.connected) {
-    socket.value.emit('send-msg', {
+    socket.value.emit("send-msg", {
       msg: msg.value,
-      timestamp: new Date().toLocaleTimeString()
-    })
-    console.log('📤 Сообщение отправлено')
+      timestamp: new Date().toLocaleTimeString(),
+    });
+    console.log("Сообщение отправлено");
   } else {
-    console.log('⚠️ Нет подключения к серверу')
+    console.log("Нет подключения к серверу");
   }
   msg.value = "";
 }
 
 onMounted(() => {
-  socket.value = io('http://192.168.1.75:3000')
-  
-  socket.value.on('connect', () => {
-    status.value = 'Подключено к серверу'
-    console.log('✅ Подключено к серверу')
-  })
+  socket.value = io(VITE_SERVER_ADDRESS);
 
-  socket.value.on('disconnect', () => {
-    status.value = 'Отключено от сервера'
-    console.log('❌ Отключено от сервера')
-  })
+  socket.value.on("connect", () => {
+    status.value = "Подключено к серверу";
+    console.log("Подключено к серверу");
+  });
 
-  socket.value.on('connection-established', (data) => {
+  socket.value.on("disconnect", () => {
+    status.value = "Отключено от сервера";
+    console.log("Отключено от сервера");
+  });
+
+  socket.value.on("connection-established", (data) => {
     connectionInfo.value = data;
-  })
-})
+  });
+});
 
 onUnmounted(() => {
-  if(socket.value){
-    socket.value.disconnect()
+  if (socket.value) {
+    socket.value.disconnect();
   }
-})
+});
 </script>
 
 <template>
-  <div class="connectionInfo" v-if="connectionInfo"> {{ connectionInfo.clientId }} </div>
-  <h2 v-else> no connection </h2>
-  <h1>GUESS THE SONG GAME</h1>
-  <input type="text" v-model="msg"> </input>
-  <button @click.prevent="handleClick"> click! </button>
+  <LoginView v-if="mainStore.isAuth()" />
 </template>
 
 <style scoped>
@@ -68,7 +65,7 @@ button {
   margin: 10px;
   cursor: pointer;
 }
-.connectionInfo{
+.connectionInfo {
   font-size: 16px;
   font-weight: bold;
 }
