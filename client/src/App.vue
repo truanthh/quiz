@@ -53,20 +53,34 @@ onUnmounted(() => {
   <router-view></router-view>
 </template>
 
-<style scoped>
-.app {
-  text-align: center;
-  padding: 20px;
-  font-family: Arial, sans-serif;
+<style lang="scss">
+@use "./styles/global.scss";
+
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialised;
+  -moz-osx-font-smoothing: grayscale;
 }
-button {
-  padding: 15px 30px;
-  font-size: 18px;
-  margin: 10px;
-  cursor: pointer;
-}
-.connectionInfo {
-  font-size: 16px;
-  font-weight: bold;
+.content {
+  // width: 100%;
+  max-width: 1700px;
+  margin-left: calc(300px + 50px);
+  // margin-right: 300px;
+  padding: 30px;
+  transition: 0.2s;
+  overflow-y: auto;
+  &_full {
+    margin-left: 100px;
+  }
+  button {
+    padding: 15px 30px;
+    font-size: 18px;
+    margin: 10px;
+    cursor: pointer;
+  }
+  .connectionInfo {
+    font-size: 16px;
+    font-weight: bold;
+  }
 }
 </style>

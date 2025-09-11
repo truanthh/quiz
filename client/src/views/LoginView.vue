@@ -4,9 +4,11 @@ import { useRouter } from "vue-router";
 import { mainStore } from "../stores/mainStore";
 
 const router = useRouter();
+const store = mainStore();
+
+const nickname = ref("");
 const password = ref("");
 const error = ref("");
-const store = mainStore();
 
 const handleLogin = () => {
   if (password.value === "player") {
@@ -24,15 +26,24 @@ const handleLogin = () => {
 };
 </script>
 <template>
-  <div class="login">
-    <h1>Подключиться к викторине</h1>
-    <input
-      @keyup.enter="handleLogin"
-      v-model="password"
-      placeholder="Введите пароль"
-      type="password"
-    />
-    <button @click="handleLogin">Войти</button>
-    <p v-if="error" class="error">{{ error }}</p>
+  <div class="login__container">
+    <h1>Home quiz</h1>
+    <input></input>
   </div>
 </template>
+<style scoped>
+.login__container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+h1 {
+  font-weight: bold;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.7);
+  margin-bottom: 20px;
+}
+</style>
