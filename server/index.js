@@ -37,8 +37,8 @@ io.on("connection", (socket) => {
 
   // Присоединение к игре
   socket.on("join-game", (data) => {
-    // socket.join(data.gameId);
-    // socket.to(data.gameId).emit("player-joined", data.playerName);
+    socket.join(data.gameId);
+    socket.to(data.gameId).emit("player-joined", data.playerName);
   });
 
   // Отправка ответа
@@ -49,6 +49,10 @@ io.on("connection", (socket) => {
     //   player: data.playerName,
     //   answer: data.answer,
     // });
+  });
+
+  socket.on("login", (data) => {
+    console.log(`${data.playerName}${data.password}`);
   });
 
   // Запуск таймера
