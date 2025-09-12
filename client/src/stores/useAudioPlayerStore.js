@@ -1,6 +1,8 @@
+import { defineStore } from "pinia";
 import { ref, computed, onMounted, onUnmounted } from "vue";
 
-export function audioPlayerComposable() {
+export const useAudioPlayerStore = defineStore("audioPlayer", () => {
+  // Состояние плеера
   const isPlaying = ref(false);
   const currentTrackIndex = ref(0);
   const volume = ref(2.0);
@@ -14,47 +16,30 @@ export function audioPlayerComposable() {
 
   const currentTrack = computed(() => tracks.value[currentTrackIndex.value]);
 
-  // not a state
-  function initializeAudioPlayer() {
-    // tracks.value = tracksRef;
-    onMounted(async () => {
-      const audioContext = new (window.AudioContext ||
-        window.webkitAudioContext)();
-      console.log(audioContext);
-      const gainNode = audioContext.createGain();
-      gainNode.gain.value = volume.value;
+  function initialize(audioElement) {
+    const audioContext = new (window.AudioContext ||
+      window.webkitAudioContext)();
+    const gainNode = audioContext.createGain();
+    gainNode.gain.value = volume.value;
 
-      const audioElement = window.document.getElementById("audioPlayer");
+    const source = audioContext.createMediaElementSource(audioElement);
+    source.connect(gainNode);
+    gainNode.connect(audioContext.destination);
 
-      // Подключение аудио графа
-      const source = audioContext.createMediaElementSource(audioElement);
-      source.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      audioElementRef.value = audioElement;
-      audioContextRef.value = audioContext;
-      gainNodeRef.value = gainNode;
-      audioElement.addEventListener("ended", nextTrack);
-      audioElement.addEventListener("timeupdate", trackTime);
-    });
-
-    onUnmounted(() => {
-      if (audioContextRef.value) {
-        audioContextRef.value.close();
-      }
-
-      audioElement.removeEventListener("ended", nextTrack);
-      audioElement.removeEventListener("timeupdate", trackTime);
-    });
+    setAudioRefs(audioElement, audioContext, gainNode);
   }
 
-  // function delay(time) {
-  //   return new Promise((res) => {
-  //     setTimeout(() => {
-  //       res(new (window.AudioContext || window.webkitAudioContext())());
-  //     }, time);
-  //   });
-  // }
+  function destroyIfExists() {
+    if (audioContextRef.value) {
+      audioContextRef.value.close();
+    }
+  }
+
+  function setAudioRefs(element, context, gainNode) {
+    audioElementRef.value = element;
+    audioContextRef.value = context;
+    gainNodeRef.value = gainNode;
+  }
 
   async function play() {
     if (!audioElementRef.value) return;
@@ -118,34 +103,15 @@ export function audioPlayerComposable() {
   }
 
   function setTracks(newTracks) {
+    // console.log(`settings tracks to ${JSON.stringify(newTracks)}`);
     tracks.value = newTracks;
   }
 
-  // // Загрузка и воспроизведение трека
-  // function loadAndPlayTrack() {
-  //   if (!audioPlayer.value) return;
-  //
-  //   const wasPlaying = isPlaying.value;
-  //
-  //   // Пауза текущего трека
-  //   audioPlayer.value.pause();
-  //   isPlaying.value = false;
-  //
-  //   // Загрузка нового трека
-  //   audioPlayer.value.src = tracks.value[currentTrackIndex.value].src;
-  //
-  //   // Переподключение аудио узлов
-  //   setupAudioNode();
-  //
-  //   // Воспроизведение если был играющим
-  //   if (wasPlaying) {
-  //     setTimeout(() => playPause(), 100);
-  //   }
-  // }
-
   function trackTime() {
-    currentTime.value = formatTime(Math.trunc(audioPlayer.value.currentTime));
-    duration.value = audioPlayer.value.duration;
+    currentTime.value = formatTime(
+      Math.trunc(audioElementRef.value.currentTime),
+    );
+    duration.value = audioElementRef.value.duration;
   }
 
   function formatTime(seconds) {
@@ -172,6 +138,9 @@ export function audioPlayerComposable() {
     currentTime,
 
     // Actions
+    initialize,
+    destroyIfExists,
+    setAudioRefs,
     play,
     pause,
     playPause,
@@ -180,6 +149,6 @@ export function audioPlayerComposable() {
     nextTrack,
     previousTrack,
     setTracks,
-    initializeAudioPlayer,
+    trackTime,
   };
-}
+});

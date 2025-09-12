@@ -1,70 +1,60 @@
 <script setup>
-import { ref, onMounted, useTemplateRef } from "vue";
-import { audioPlayerComposable } from "../composables/audioPlayerComposable.js";
-import { mainStore } from "../stores/mainStore";
+import { ref, onMounted, onUnmounted } from "vue";
+import { useAudioPlayerStore } from "../stores/useAudioPlayerStore.js";
 
-const store = mainStore();
+const audioPlayerElement = ref(null);
+const audioPlayer = useAudioPlayerStore();
 
-const {
-  // State
-  isPlaying,
-  currentTrackIndex,
-  volume,
-  tracks,
-
-  // Getters
-  currentTrack,
-  currentTime,
-
-  // Actions
-  setAudioRefs,
-  play,
-  pause,
-  playPause,
-  setVolume,
-  changeTrack,
-  nextTrack,
-  previousTrack,
-  setTracks,
-  initializeAudioPlayer,
-} = audioPlayerComposable();
-
-// Список треков
-const content = ref([
+const tracks = ref([
   { name: "Трек 1", src: "/lucidity.mp3" },
   { name: "Трек 2", src: "/stk.mp3" },
   { name: "Трек 3", src: "/stop.mp3" },
 ]);
 
-initializeAudioPlayer();
+audioPlayer.setTracks(tracks.value);
+
+onMounted(() => {
+  audioPlayer.initialize(audioPlayerElement.value);
+
+  audioPlayerElement.value.addEventListener("ended", audioPlayer.nextTrack);
+  audioPlayerElement.value.addEventListener(
+    "timeupdate",
+    audioPlayer.trackTime,
+  );
+});
+
+onUnmounted(() => {
+  audioPlayer.destroyIfExists();
+
+  audioPlayerElement.value.removeEventListener("ended", audioPlayer.nextTrack);
+  audioPlayerElement.value.removeEventListener(
+    "timeupdate",
+    audioPlayer.trackTime,
+  );
+});
 </script>
 
 <template>
   <div class="audio-player">
-    <div class="displayTime">{{ currentTime }}</div>
+    <div class="displayTime">{{ audioPlayer.currentTime }}</div>
     <!-- <div class="track-info"> -->
-    <!--   Сейчас играет: {{ tracks[currentTrackIndex].name }} -->
+    <!--   Сейчас играет: {{ audioPlayer.tracks[currentTrackIndex].name }} -->
     <!-- </div> -->
 
     <div class="controls">
-      <button @click="prevTrack" class="control-btn">⏮</button>
+      <button @click="audioPlayer.prevTrack" class="control-btn">⏮</button>
 
-      <button @click="playPause" class="control-btn play-pause">
-        {{ isPlaying ? "⏸️" : "▶️" }}
+      <button @click="audioPlayer.playPause" class="control-btn play-pause">
+        {{ audioPlayer.isPlaying ? "⏸️" : "▶️" }}
       </button>
 
-      <button @click="nextTrack" class="control-btn">⏭</button>
-    </div>
-
-    <div class="volume-controls">
-      <button @click="volumeDown" class="volume-btn">🔉</button>
-      <button @click="volumeUp" class="volume-btn">🔊</button>
+      <button @click="audioPlayer.nextTrack" class="control-btn">⏭</button>
     </div>
 
     <!-- <div class="track-list"> -->
     <!--   <h3>Плейлист:</h3> -->
     <!--   <div -->
-    <!--     v-for="(track, index) in tracks" -->
+    <!--     v-for="(track, index) in audioPlayer.tracks" -->
     <!--     :key="index" -->
     <!--     @click=" -->
     <!--       currentTrackIndex = index; -->
@@ -72,15 +62,14 @@ initializeAudioPlayer();
     <!--     " -->
     <!--     :class="['track-item', { active: index === currentTrackIndex }]" -->
     <!--   > -->
-    <!--     {{ track.name }} -->
+    <!--     {{ audioPlayer.track.name }} -->
     <!--   </div> -->
     <!-- </div> -->
 
     <audio
-      :src="tracks[0]"
-      ref="audioPlayer"
+      :src="audioPlayer.currentTrack.src"
+      ref="audioPlayerElement"
       preload="auto"
-      id="audioPlayer"
     ></audio>
   </div>
 </template>
