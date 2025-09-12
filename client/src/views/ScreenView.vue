@@ -1,147 +1,50 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted, useTemplateRef } from "vue";
+import { audioPlayerComposable } from "../composables/audioPlayerComposable.js";
+import { mainStore } from "../stores/mainStore";
 
-const audioContext = ref(null);
-const audioPlayer = ref(null);
-const gainNode = ref(null);
-const isPlaying = ref(false);
-const currentTrackIndex = ref(0);
+const store = mainStore();
 
-const currentTime = ref("00:00");
-const duration = ref(0);
+const {
+  // State
+  isPlaying,
+  currentTrackIndex,
+  volume,
+  tracks,
+
+  // Getters
+  currentTrack,
+  currentTime,
+
+  // Actions
+  setAudioRefs,
+  play,
+  pause,
+  playPause,
+  setVolume,
+  changeTrack,
+  nextTrack,
+  previousTrack,
+  setTracks,
+  initializeAudioPlayer,
+} = audioPlayerComposable();
 
 // Список треков
-const tracks = ref([
+const content = ref([
   { name: "Трек 1", src: "/lucidity.mp3" },
   { name: "Трек 2", src: "/stk.mp3" },
   { name: "Трек 3", src: "/stop.mp3" },
 ]);
 
-// Инициализация аудио контекста
-onMounted(() => {
-  audioContext.value = new (window.AudioContext || window.webkitAudioContext)();
-  gainNode.value = audioContext.value.createGain();
-  gainNode.value.gain.value = 2.0;
-
-  setupAudioNode();
-});
-
-// Настройка аудио узлов
-function setupAudioNode() {
-  if (!audioPlayer.value) return;
-
-  const track = audioContext.value.createMediaElementSource(audioPlayer.value);
-  track.connect(gainNode.value);
-  gainNode.value.connect(audioContext.value.destination);
-}
-
-// Воспроизведение/пауза
-async function playPause() {
-  if (!audioPlayer.value || !audioContext.value) return;
-
-  try {
-    if (audioContext.value.state === "suspended") {
-      await audioContext.value.resume();
-    }
-
-    if (isPlaying.value) {
-      audioPlayer.value.pause();
-    } else {
-      await audioPlayer.value.play();
-    }
-
-    isPlaying.value = !isPlaying.value;
-  } catch (error) {
-    console.error("Audio error:", error);
-  }
-}
-
-// Следующий трек
-function nextTrack() {
-  currentTrackIndex.value = (currentTrackIndex.value + 1) % tracks.value.length;
-  loadAndPlayTrack();
-}
-
-// Предыдущий трек
-function prevTrack() {
-  currentTrackIndex.value =
-    (currentTrackIndex.value - 1 + tracks.value.length) % tracks.value.length;
-  loadAndPlayTrack();
-}
-
-// Загрузка и воспроизведение трека
-function loadAndPlayTrack() {
-  if (!audioPlayer.value) return;
-
-  const wasPlaying = isPlaying.value;
-
-  // Пауза текущего трека
-  audioPlayer.value.pause();
-  isPlaying.value = false;
-
-  // Загрузка нового трека
-  audioPlayer.value.src = tracks.value[currentTrackIndex.value].src;
-
-  // Переподключение аудио узлов
-  setupAudioNode();
-
-  // Воспроизведение если был играющим
-  if (wasPlaying) {
-    setTimeout(() => playPause(), 100);
-  }
-}
-
-// Увеличение громкости
-function volumeUp() {
-  if (gainNode.value) {
-    gainNode.value.gain.value = Math.min(gainNode.value.gain.value + 0.5, 10.0);
-  }
-}
-
-// Уменьшение громкости
-function volumeDown() {
-  if (gainNode.value) {
-    gainNode.value.gain.value = Math.max(gainNode.value.gain.value - 0.5, 0.0);
-  }
-}
-
-function trackTime() {
-  currentTime.value = formatTime(Math.trunc(audioPlayer.value.currentTime));
-  duration.value = audioPlayer.value.duration;
-}
-
-function formatTime(seconds) {
-  let sec = seconds;
-  let min = 0;
-
-  if (seconds > 59) {
-    min = Math.floor(seconds / 60);
-    sec = sec % 60;
-  }
-
-  return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
-}
-
-// Автопереход к следующему треку
-onMounted(() => {
-  if (audioPlayer.value) {
-    audioPlayer.value.addEventListener("ended", nextTrack);
-    audioPlayer.value.addEventListener("timeupdate", trackTime);
-  }
-});
-
-onBeforeUnmount(() => {
-  audioPlayer.value.removeEventListener("ended", nextTrack);
-  audioPlayer.value.removeEventListener("timeupdate", trackTime);
-});
+initializeAudioPlayer();
 </script>
 
 <template>
   <div class="audio-player">
     <div class="displayTime">{{ currentTime }}</div>
-    <div class="track-info">
-      Сейчас играет: {{ tracks[currentTrackIndex].name }}
-    </div>
+    <!-- <div class="track-info"> -->
+    <!--   Сейчас играет: {{ tracks[currentTrackIndex].name }} -->
+    <!-- </div> -->
 
     <div class="controls">
       <button @click="prevTrack" class="control-btn">⏮</button>
@@ -158,25 +61,26 @@ onBeforeUnmount(() => {
       <button @click="volumeUp" class="volume-btn">🔊</button>
     </div>
 
-    <div class="track-list">
-      <h3>Плейлист:</h3>
-      <div
-        v-for="(track, index) in tracks"
-        :key="index"
-        @click="
-          currentTrackIndex = index;
-          loadAndPlayTrack();
-        "
-        :class="['track-item', { active: index === currentTrackIndex }]"
-      >
-        {{ track.name }}
-      </div>
-    </div>
+    <!-- <div class="track-list"> -->
+    <!--   <h3>Плейлист:</h3> -->
+    <!--   <div -->
+    <!--     v-for="(track, index) in tracks" -->
+    <!--     :key="index" -->
+    <!--     @click=" -->
+    <!--       currentTrackIndex = index; -->
+    <!--       loadAndPlayTrack(); -->
+    <!--     " -->
+    <!--     :class="['track-item', { active: index === currentTrackIndex }]" -->
+    <!--   > -->
+    <!--     {{ track.name }} -->
+    <!--   </div> -->
+    <!-- </div> -->
 
     <audio
-      :src="tracks[currentTrackIndex].src"
+      :src="tracks[0]"
       ref="audioPlayer"
       preload="auto"
+      id="audioPlayer"
     ></audio>
   </div>
 </template>

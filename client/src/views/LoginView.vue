@@ -7,8 +7,8 @@ import { io } from "socket.io-client";
 const router = useRouter();
 const store = mainStore();
 
-const playerName = ref("");
-const password = ref("");
+const playerName = ref("screen");
+const password = ref("screen");
 // const error = ref("");
 
 // const handleLogin(playerName, password){

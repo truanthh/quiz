@@ -46,5 +46,17 @@ export const mainStore = defineStore("mainStore", () => {
     console.log("pausing track!");
   };
 
-  return { socket, initSocket, login, isAuth, connectionInfo, playerInfo };
+  const debug = (el) => {
+    console.log(el);
+  };
+
+  return {
+    socket,
+    initSocket,
+    login,
+    isAuth,
+    connectionInfo,
+    playerInfo,
+    debug,
+  };
 });
