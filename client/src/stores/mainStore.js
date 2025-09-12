@@ -5,10 +5,11 @@ import { io } from "socket.io-client";
 export const mainStore = defineStore("mainStore", () => {
   const socket = ref(null);
 
-  // const connectionStatus = ref("Не подключено");
   const connectionInfo = ref({});
+  // const connectionStatus = ref("Не подключено");
 
   const isAuth = ref(false);
+  const playerInfo = ref({});
 
   const initSocket = () => {
     socket.value = io(import.meta.env.VITE_SERVER_ADDRESS);
@@ -25,37 +26,25 @@ export const mainStore = defineStore("mainStore", () => {
       connectionInfo.value.status = "Отключено от сервера";
       console.log("Отключено от сервера");
     });
+
+    socket.value.on("login-successful", (data) => {
+      // console.log("login success");
+      playerInfo.value.id = data.id;
+      playerInfo.value.playerName = data.playerName;
+    });
+
+    socket.value.on("pause-track-confirm", () => {
+      pauseTrack();
+    });
   };
 
-  // const handleLogin = (playerName, password) => {
-  //   const notValidMsg = "Неверный логин/пароль";
-  //
-  //   if (!isLoginDataValid(playerName, password)) {
-  //     error.value = notValidMsg;
-  //     return;
-  //   }
-  //
-  //   if (password === "player") {
-  //     store.isAuth = true;
-  //     router.push("/player");
-  //   } else if (password === "screen") {
-  //     store.isAuth = true;
-  //     router.push("/screen");
-  //     // } else if (password.value === "admin") {
-  //   } else if (password === "") {
-  //     store.isAuth = true;
-  //     router.push("/admin");
-  //   } else {
-  //     error.value = notValidMsg;
-  //   }
-  // };
-  //
-  // function isLoginDataValid(playerName, password) {
-  //   // uncomment on prod
-  //   // if (playerName.length < 2) return false;
-  //
-  //   return true;
-  // }
+  const login = (playerName) => {
+    socket.value.emit("login", { playerName: playerName });
+  };
 
-  return { socket, initSocket, connectionInfo, isAuth };
+  const pauseTrack = () => {
+    console.log("pausing track!");
+  };
+
+  return { socket, initSocket, login, isAuth, connectionInfo, playerInfo };
 });

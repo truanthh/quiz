@@ -23,13 +23,14 @@ const handleLogin = (playerName, password) => {
   }
 
   if (password === "player") {
+    store.login(playerName);
     store.isAuth = true;
     router.push("/player");
-  } else if (password === "screen") {
+  } else if (playerName === "screen" && password === "screen") {
     store.isAuth = true;
     router.push("/screen");
     // } else if (password.value === "admin") {
-  } else if (password === "") {
+  } else if (playerName === "" && password === "") {
     store.isAuth = true;
     router.push("/admin");
   } else {
