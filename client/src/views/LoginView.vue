@@ -40,7 +40,7 @@ const handleLogin = (playerName, password) => {
 
 function isLoginDataValid(playerName, password) {
   // uncomment on prod
-  // if (playerName.length < 2) return false;
+  if (playerName.length < 2 || playerName.length > 10) return false;
 
   return true;
 }

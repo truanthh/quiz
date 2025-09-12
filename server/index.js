@@ -1,13 +1,19 @@
-// server/index.js
-const express = require("express");
-const http = require("http");
-const socketIo = require("socket.io");
-const cors = require("cors");
-const path = require("path");
+import express from "express";
+import { createServer } from "http";
+import { Server as socketIo } from "socket.io";
+import cors from "cors";
+import path from "path";
+import { v4 as uuidv4 } from "uuid";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const id = uuidv4();
 
 const app = express();
-const server = http.createServer(app);
-const io = socketIo(server, {
+const server = createServer(app);
+const io = new socketIo(server, {
   cors: {
     origin: "*", // Для разработки
     methods: ["GET", "POST"],
@@ -36,9 +42,14 @@ io.on("connection", (socket) => {
   });
 
   // Присоединение к игре
-  socket.on("join-game", (data) => {
-    socket.join(data.gameId);
-    socket.to(data.gameId).emit("player-joined", data.playerName);
+  // socket.on("join-game", (data) => {
+  //   socket.join(data.gameId);
+  //   socket.to(data.gameId).emit("player-joined", data.playerName);
+  // });
+
+  socket.on("pause-track", (data) => {
+    // if(data.playerName = )
+    socket.broadcast.emit("pause-track-confirm");
   });
 
   // Отправка ответа
@@ -52,7 +63,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("login", (data) => {
-    console.log(`${data.playerName}${data.password}`);
+    socket.emit("login-successful", { id: id, playerName: data.playerName });
   });
 
   // Запуск таймера

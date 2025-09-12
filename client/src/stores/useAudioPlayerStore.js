@@ -9,7 +9,6 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
   const tracks = ref([]);
   const currentTime = ref("00:00");
   const duration = ref(0);
-
   const audioElementRef = ref(null);
   const audioContextRef = ref(null);
   const gainNodeRef = ref(null);
