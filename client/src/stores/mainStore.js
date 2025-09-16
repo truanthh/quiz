@@ -4,23 +4,24 @@ import { io } from "socket.io-client";
 import { useAudioPlayerStore } from "./useAudioPlayerStore.js";
 
 export const mainStore = defineStore("mainStore", () => {
-  const audioPlayer = useAudioPlayerStore();
   const socket = ref(null);
-
   const connectionInfo = ref({});
-  // const connectionStatus = ref("Не подключено");
-
+  const user = ref({});
   const isAuth = ref(false);
-  const playerInfo = ref({});
+
+  const audioPlayer = useAudioPlayerStore();
 
   const initSocket = () => {
-    socket.value = io(import.meta.env.VITE_SERVER_ADDRESS);
+    socket.value = io(import.meta.env.VITE_SERVER_ADDRESS, {
+      auth: { token: localStorage.getItem("token") },
+    });
 
     socket.value.on("connection-established", (data) => {
       connectionInfo.value = data;
     });
 
-    socket.value.on("connect", () => {
+    socket.value.on("connect", (data) => {
+      connectionInfo.value = data;
       console.log("Подключено к серверу");
     });
 
@@ -29,36 +30,86 @@ export const mainStore = defineStore("mainStore", () => {
       console.log("Отключено от сервера");
     });
 
-    socket.value.on("login-successful", (data) => {
-      // console.log("login success");
-      playerInfo.value.id = data.id;
-      playerInfo.value.playerName = data.playerName;
-    });
+    // socket.value.on("login-successful", waitForLogin);
 
     socket.value.on("pause-track-confirm", () => {
-      console.log("pausing track is confirmed!");
+      audioPlayer.pause();
+    });
+
+    socket.value.on("play-track-confirm", () => {
+      audioPlayer.play();
+    });
+
+    socket.value.on("play-pause-track-confirm", (time) => {
+      audioPlayer.updateTime(time);
       audioPlayer.playPause();
     });
   };
 
-  const login = (playerName) => {
-    socket.value.emit("login", { playerName: playerName });
+  function waitForLogin() {
+    return new Promise((res, rej) => {
+      const timer = setTimeout(() => {
+        rej(new Error("login timeout"));
+      }, 5000);
+
+      const eventHandler = (payload) => {
+        clearTimeout(timer);
+        user.value.token = payload.token;
+        localStorage.setItem("token", payload.token);
+        user.value.name = payload.name;
+        user.value.role = payload.role;
+        isAuth.value = true;
+        res();
+      };
+
+      socket.value.once("login-successful", eventHandler);
+    });
+  }
+
+  const login = (payload) => {
+    socket.value.emit("login", payload);
   };
 
-  const pauseTrack = (playerName) => {
-    socket.value.emit("pause-track", { playerName: playerName });
+  const pauseTrack = () => {
+    if (!isReadyToAnswer.value) {
+      isReadyToAnswer.value = true;
+      socket.value.emit("pause-track", {
+        ...user.value,
+        timePaused: audioPlayer.currentTime,
+      });
+    }
   };
 
+  const playTrack = () => {
+    socket.value.emit("play-track", {
+      ...user.value,
+      timePaused: audioPlayer.currentTime,
+    });
+  };
+
+  const playPause = () => {
+    socket.value.emit("play-pause-track", {
+      ...user.value,
+      timePaused: audioPlayer.currentTime,
+    });
+  };
+
+  const isQuestionActive = ref(false);
+
+  const isReadyToAnswer = ref(false);
   const debug = (el) => {};
 
   return {
+    login,
     socket,
     initSocket,
-    login,
     isAuth,
     connectionInfo,
-    playerInfo,
+    user,
     debug,
     pauseTrack,
+    playTrack,
+    playPause,
+    waitForLogin,
   };
 });

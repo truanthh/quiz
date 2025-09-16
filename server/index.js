@@ -9,8 +9,6 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const id = uuidv4();
-
 const app = express();
 const server = createServer(app);
 const io = new socketIo(server, {
@@ -31,45 +29,88 @@ app.use(cors());
 app.use(express.json());
 // app.use(express.static("public"));
 
+const user = { socketId: "", connectedAt: "" };
+const users = {};
+const usersReadyToAnswer = [];
+
+let isPlaying = false;
+let time = "00:00";
+
 // Обработка подключений
 io.on("connection", (socket) => {
-  console.log("Подключился:", socket.id);
+  let token = socket.handshake.auth.token;
+  console.log(`Подключился: socket: ${socket.id} token: ${token}`);
+
+  if (token) {
+    if (users[token]) {
+      users[token].socketId = socket.id;
+      console.log(`got user, logging in... ${JSON.stringify(users[token])}`);
+      socket.emit("login-successful", { ...users[token], token: token });
+    } else {
+      console.log("token is irrelevant, log in normally");
+    }
+  }
+
+  // only new user
+  socket.on("login", (payload) => {
+    // generating new token and creating new user
+    token = uuidv4();
+    users[token] = {};
+    users[token].role = payload.role;
+    users[token].name = payload.userName;
+    users[token].socketId = socket.id;
+    users[token].connectedAt = socket.connectedAt;
+    console.log(
+      `
+      ---------------------------
+      registered new user:\n
+      role: ${users[token].role}\n
+      name: ${users[token].name}\n
+      token: ${token}\n
+      socketId: ${users[token].socketId}
+      ---------------------------
+      `,
+    );
+    console.log(`logging in...`);
+    socket.emit("login-successful", { ...users[token], token: token });
+  });
 
   socket.emit("connection-established", {
     message: "Подключение успешно",
-    clientId: socket.id,
+    socketId: socket.id,
     connectedAt: new Date().toLocaleString(),
   });
 
-  // Присоединение к игре
-  // socket.on("join-game", (data) => {
-  //   socket.join(data.gameId);
-  //   socket.to(data.gameId).emit("player-joined", data.playerName);
-  // });
+  socket.on("pause-track", (user) => {
+    // const targetSocketId = users[targetUserId];
 
-  socket.on("pause-track", (data) => {
-    // if(data.playerName = )
     socket.broadcast.emit("pause-track-confirm");
+    // if (targetSocketId) {
+    //   io.to(targetSocketId).emit('your_event', data);
+    // };
+    usersReadyToAnswer.push(user);
   });
 
-  // Отправка ответа
-  socket.on("send-msg", (data) => {
-    // Сохраняем ответ и рассылаем остальным
-    console.log(`${data.timestamp}: ${data.msg}`);
-    // io.to(data.gameId).emit("new-answer", {
-    //   player: data.playerName,
-    //   answer: data.answer,
-    // });
+  socket.on("play-track", (user) => {
+    console.log("pressing play!");
+    socket.broadcast.emit("play-track-confirm");
+    // const targetSocketId = users[targetUserId];
+    // if (targetSocketId) {
+    //   io.to(targetSocketId).emit('your_event', data);
+    // };
   });
 
-  socket.on("login", (data) => {
-    socket.emit("login-successful", { id: id, playerName: data.playerName });
+  socket.on("play-pause-track", (user) => {
+    console.log(`pressing play-pause, time: ${user.timePaused}`);
+    socket.broadcast.emit("play-pause-track-confirm", {
+      timePaused: user.timePaused,
+    });
   });
 
   // Запуск таймера
-  socket.on("start-timer", (data) => {
-    io.to(data.gameId).emit("timer-start", data.duration);
-  });
+  // socket.on("start-timer", (data) => {
+  //   io.to(data.gameId).emit("timer-start", data.duration);
+  // });
 
   socket.on("disconnect", () => {
     console.log("Отключился:", socket.id);

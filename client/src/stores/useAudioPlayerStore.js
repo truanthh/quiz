@@ -8,6 +8,7 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
   const volume = ref(2.0);
   const tracks = ref([]);
   const currentTime = ref("00:00");
+  const localTime = ref("00:00");
   const duration = ref(0);
   const audioElementRef = ref(null);
   const audioContextRef = ref(null);
@@ -113,6 +114,10 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
     duration.value = audioElementRef.value.duration;
   }
 
+  function updateTime(time) {
+    localTime.value = time;
+  }
+
   function formatTime(seconds) {
     let sec = seconds;
     let min = 0;
@@ -149,5 +154,7 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
     previousTrack,
     setTracks,
     trackTime,
+    updateTime,
+    localTime,
   };
 });

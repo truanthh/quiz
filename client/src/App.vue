@@ -25,7 +25,7 @@ onUnmounted(() => {
 <style lang="scss">
 @use "./styles/global.scss";
 .debugInfo {
-  font-size: 16px;
+  font-size: 14px;
   color: green;
   margin-top: 10px;
 }

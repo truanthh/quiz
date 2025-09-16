@@ -39,7 +39,7 @@ router.beforeEach((to, from, next) => {
   const store = mainStore();
 
   if (to.meta.requiresAuth && !store.isAuth) {
-    next("/"); // Перенаправляем на логин
+    next("/");
   } else {
     next();
   }

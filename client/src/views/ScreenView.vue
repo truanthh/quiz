@@ -6,9 +6,9 @@ const audioPlayerElement = ref(null);
 const audioPlayer = useAudioPlayerStore();
 
 const tracks = ref([
-  { name: "Трек 1", src: "/lucidity.mp3" },
-  { name: "Трек 2", src: "/stk.mp3" },
-  { name: "Трек 3", src: "/stop.mp3" },
+  { name: "Трек 1", src: "/zvezda.mp3" },
+  // { name: "Трек 2", src: "/stk.mp3" },
+  // { name: "Трек 3", src: "/stop.mp3" },
 ]);
 
 audioPlayer.setTracks(tracks.value);
