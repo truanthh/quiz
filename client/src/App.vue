@@ -1,11 +1,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
 import LoginView from "@/views/LoginView.vue";
-import { mainStore } from "./stores/mainStore.js";
+import { mainStore } from "@/stores/mainStore";
 
 const store = mainStore();
-
-// const socket = inject('socket');
 
 onMounted(() => {
   store.initSocket();

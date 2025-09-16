@@ -33,8 +33,15 @@ const user = { socketId: "", connectedAt: "" };
 const users = {};
 const usersReadyToAnswer = [];
 
-let isPlaying = false;
-let time = "00:00";
+// player state
+const player = {
+  isPlaying: false,
+  currentTrackIndex: 0,
+  duration: 0,
+  currentTime: 0,
+  volume: 2.0,
+  tracks: [],
+};
 
 // Обработка подключений
 io.on("connection", (socket) => {
@@ -100,12 +107,17 @@ io.on("connection", (socket) => {
     // };
   });
 
-  socket.on("play-pause-track", (user) => {
-    console.log(`pressing play-pause, time: ${user.timePaused}`);
-    socket.broadcast.emit("play-pause-track-confirm", {
-      timePaused: user.timePaused,
-    });
+  socket.on("update-server-time", (currentTime) => {
+    player.currentTime = currentTime;
+    socket.broadcast.emit("update-client-time", currentTime);
   });
+
+  // socket.on("play-pause-track", (user) => {
+  //   console.log(`pressing play-pause, time: ${user.timePaused}`);
+  //   socket.broadcast.emit("play-pause-track-confirm", {
+  //     timePaused: user.timePaused,
+  //   });
+  // });
 
   // Запуск таймера
   // socket.on("start-timer", (data) => {

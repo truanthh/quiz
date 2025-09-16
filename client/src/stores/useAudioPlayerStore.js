@@ -2,19 +2,21 @@ import { defineStore } from "pinia";
 import { ref, computed, onMounted, onUnmounted } from "vue";
 
 export const useAudioPlayerStore = defineStore("audioPlayer", () => {
-  // Состояние плеера
+  // state to sync
   const isPlaying = ref(false);
   const currentTrackIndex = ref(0);
   const volume = ref(2.0);
   const tracks = ref([]);
-  const currentTime = ref("00:00");
-  const localTime = ref("00:00");
   const duration = ref(0);
+  const currentTime = ref("00:00");
+
+  // need tracks and id and we are good
+  const currentTrack = computed(() => tracks.value[currentTrackIndex.value]);
+
+  // state only on screen page
   const audioElementRef = ref(null);
   const audioContextRef = ref(null);
   const gainNodeRef = ref(null);
-
-  const currentTrack = computed(() => tracks.value[currentTrackIndex.value]);
 
   function initialize(audioElement) {
     const audioContext = new (window.AudioContext ||
@@ -107,15 +109,11 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
     tracks.value = newTracks;
   }
 
-  function trackTime() {
+  function updateTime() {
     currentTime.value = formatTime(
       Math.trunc(audioElementRef.value.currentTime),
     );
-    duration.value = audioElementRef.value.duration;
-  }
-
-  function updateTime(time) {
-    localTime.value = time;
+    // duration.value = audioElementRef.value.duration;
   }
 
   function formatTime(seconds) {
@@ -153,8 +151,6 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
     nextTrack,
     previousTrack,
     setTracks,
-    trackTime,
     updateTime,
-    localTime,
   };
 });

@@ -17,19 +17,13 @@ function handleClick() {
 }
 
 const isp = ref(false);
-
-watch(audioPlayer.isPlaying, (newValue) => {
-  if (newValue) {
-    isp.value = true;
-  }
-});
 </script>
 <template>
   <div class="playerView__container">
     <div class="playerView__nickname">{{ store.user.name }}</div>
     <div class="playerView__nickname">{{ isPlaying }}</div>
     <div class="playerView__nickname">{{ isp }}</div>
-    <div class="playerView__nickname">{{ audioPlayer.localTime }}</div>
+    <div class="playerView__nickname">{{ audioPlayer.currentTime }}</div>
     <button
       :class="
         !isPlaying ? 'playerView__mainButton' : 'playerView__mainButton_glowing'

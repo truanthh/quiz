@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useAudioPlayerStore } from "../stores/useAudioPlayerStore.js";
+import { mainStore } from "../stores/mainStore";
 
 const audioPlayerElement = ref(null);
 const audioPlayer = useAudioPlayerStore();
@@ -13,13 +14,18 @@ const tracks = ref([
 
 audioPlayer.setTracks(tracks.value);
 
+// emits on every second change
+watch(audioPlayer.currentTime, (newTime) => {
+  store.socket.emit("update-server-time", newTime);
+});
+
 onMounted(() => {
   audioPlayer.initialize(audioPlayerElement.value);
 
   audioPlayerElement.value.addEventListener("ended", audioPlayer.nextTrack);
   audioPlayerElement.value.addEventListener(
     "timeupdate",
-    audioPlayer.trackTime,
+    audioPlayer.updateTime,
   );
 });
 
@@ -29,7 +35,7 @@ onUnmounted(() => {
   audioPlayerElement.value.removeEventListener("ended", audioPlayer.nextTrack);
   audioPlayerElement.value.removeEventListener(
     "timeupdate",
-    audioPlayer.trackTime,
+    audioPlayer.updateTime,
   );
 });
 </script>
@@ -44,7 +50,7 @@ onUnmounted(() => {
     <div class="controls">
       <button @click="audioPlayer.prevTrack" class="control-btn">⏮</button>
 
-      <button @click="audioPlayer.playPause" class="control-btn play-pause">
+      <button @click="store.playPause" class="control-btn play-pause">
         {{ audioPlayer.isPlaying ? "⏸️" : "▶️" }}
       </button>
 

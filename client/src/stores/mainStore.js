@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { defineStore } from "pinia";
 import { io } from "socket.io-client";
 import { useAudioPlayerStore } from "./useAudioPlayerStore.js";
@@ -22,12 +22,14 @@ export const mainStore = defineStore("mainStore", () => {
 
     socket.value.on("connect", (data) => {
       connectionInfo.value = data;
-      console.log("Подключено к серверу");
     });
 
     socket.value.on("disconnect", () => {
       connectionInfo.value.status = "Отключено от сервера";
-      console.log("Отключено от сервера");
+    });
+
+    socket.value.on("update-client-time", (newTime) => {
+      audioPlayer.currentTime = newTime;
     });
 
     // socket.value.on("login-successful", waitForLogin);
@@ -41,7 +43,6 @@ export const mainStore = defineStore("mainStore", () => {
     });
 
     socket.value.on("play-pause-track-confirm", (time) => {
-      audioPlayer.updateTime(time);
       audioPlayer.playPause();
     });
   };
@@ -75,7 +76,6 @@ export const mainStore = defineStore("mainStore", () => {
       isReadyToAnswer.value = true;
       socket.value.emit("pause-track", {
         ...user.value,
-        timePaused: audioPlayer.currentTime,
       });
     }
   };
@@ -83,7 +83,6 @@ export const mainStore = defineStore("mainStore", () => {
   const playTrack = () => {
     socket.value.emit("play-track", {
       ...user.value,
-      timePaused: audioPlayer.currentTime,
     });
   };
 
