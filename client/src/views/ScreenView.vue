@@ -3,11 +3,13 @@ import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useAudioPlayerStore } from "../stores/useAudioPlayerStore.js";
 import { mainStore } from "../stores/mainStore";
 
+const store = mainStore();
+
 const audioPlayerElement = ref(null);
 const audioPlayer = useAudioPlayerStore();
 
 const tracks = ref([
-  { name: "Трек 1", src: "/zvezda.mp3" },
+  { name: "Трек 1", src: "/lamar.mp3" },
   // { name: "Трек 2", src: "/stk.mp3" },
   // { name: "Трек 3", src: "/stop.mp3" },
 ]);

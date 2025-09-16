@@ -34,17 +34,26 @@ export const mainStore = defineStore("mainStore", () => {
 
     // socket.value.on("login-successful", waitForLogin);
 
-    socket.value.on("pause-track-confirm", () => {
+    socket.value.on("pause-track-confirm", (state) => {
+      audioPlayer.isPlaying = state.isPlaying;
+      audioPlayer.currentTime = state.currentTime;
       audioPlayer.pause();
     });
 
-    socket.value.on("play-track-confirm", () => {
+    socket.value.on("play-track-confirm", (state) => {
+      audioPlayer.isPlaying = state.isPlaying;
+      audioPlayer.currentTime = state.currentTime;
       audioPlayer.play();
     });
 
     socket.value.on("play-pause-track-confirm", (time) => {
       audioPlayer.playPause();
     });
+
+    socket.value.on("update-player-state", (state) => {
+      audioPlayer.isPlaying = state.isPlaying;
+      audioPlayer.currentTime = state.currentTime;
+    })
   };
 
   function waitForLogin() {

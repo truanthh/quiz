@@ -33,8 +33,8 @@ const user = { socketId: "", connectedAt: "" };
 const users = {};
 const usersReadyToAnswer = [];
 
-// player state
-const player = {
+// audioPlayer state
+const audioPlayer = {
   isPlaying: false,
   currentTrackIndex: 0,
   duration: 0,
@@ -42,6 +42,8 @@ const player = {
   volume: 2.0,
   tracks: [],
 };
+
+let screenSocketId;
 
 // Обработка подключений
 io.on("connection", (socket) => {
@@ -51,6 +53,9 @@ io.on("connection", (socket) => {
   if (token) {
     if (users[token]) {
       users[token].socketId = socket.id;
+      if(users[token].role === "screen"){
+        screenSocketId = socket.id;
+      }
       console.log(`got user, logging in... ${JSON.stringify(users[token])}`);
       socket.emit("login-successful", { ...users[token], token: token });
     } else {
@@ -67,6 +72,9 @@ io.on("connection", (socket) => {
     users[token].name = payload.userName;
     users[token].socketId = socket.id;
     users[token].connectedAt = socket.connectedAt;
+    if(payload.role === "screen"){
+      screenSocketId = socket.id;
+    }
     console.log(
       `
       ---------------------------
@@ -89,26 +97,35 @@ io.on("connection", (socket) => {
   });
 
   socket.on("pause-track", (user) => {
-    // const targetSocketId = users[targetUserId];
-
-    socket.broadcast.emit("pause-track-confirm");
-    // if (targetSocketId) {
-    //   io.to(targetSocketId).emit('your_event', data);
-    // };
-    usersReadyToAnswer.push(user);
+    audioPlayer.isPlaying = false;
+    socket.to(screenSocketId).emit("pause-track-confirm");
+    const usersArray = Object.entries(users).map(([key, value]) => ({
+      id: key,
+      ...value
+    }));
+    const bla = usersArray.filter((user) => user.role === "player" && user.socketId !== screenSocketId).map((user) => user.socketId);
+    console.log(bla)
+    socket.to(bla)
+      .emit("update-player-state", audioPlayer);
+    // usersReadyToAnswer.push(user);
   });
 
   socket.on("play-track", (user) => {
-    console.log("pressing play!");
-    socket.broadcast.emit("play-track-confirm");
-    // const targetSocketId = users[targetUserId];
-    // if (targetSocketId) {
-    //   io.to(targetSocketId).emit('your_event', data);
-    // };
+    audioPlayer.isPlaying = true;
+    socket.to(screenSocketId).emit("play-track-confirm");
+    const usersArray = Object.entries(users).map(([key, value]) => ({
+      id: key,
+      ...value
+    }));
+    const bla = usersArray.filter((user) => user.role === "player" && user.socketId !== screenSocketId).map((user) => user.socketId);
+    console.log(bla)
+    socket.to(bla)
+      .emit("update-player-state", audioPlayer);
+    // usersReadyToAnswer.push(user);
   });
 
   socket.on("update-server-time", (currentTime) => {
-    player.currentTime = currentTime;
+    audioPlayer.currentTime = currentTime;
     socket.broadcast.emit("update-client-time", currentTime);
   });
 

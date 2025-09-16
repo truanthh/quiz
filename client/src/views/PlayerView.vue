@@ -13,7 +13,11 @@ const { isPlaying } = storeToRefs(audioPlayer);
 
 function handleClick() {
   debugLog.value = `CLICKING! ${counter.value++}`;
-  store.playPause();
+  if(!audioPlayer.isPlaying){
+    store.playTrack();
+  }else{
+    store.pauseTrack();
+  }
 }
 
 const isp = ref(false);
