@@ -9,25 +9,17 @@ const audioPlayer = useAudioPlayerStore();
 const debugLog = ref("");
 const counter = ref(0);
 
-const { isPlaying } = storeToRefs(audioPlayer);
+const { isPlaying, currentTime } = storeToRefs(audioPlayer);
 
 function handleClick() {
-  debugLog.value = `CLICKING! ${counter.value++}`;
-  if(!audioPlayer.isPlaying){
-    store.playTrack();
-  }else{
-    store.pauseTrack();
-  }
+  store.socket.emit("play-track", store.user);
 }
-
-const isp = ref(false);
 </script>
 <template>
   <div class="playerView__container">
     <div class="playerView__nickname">{{ store.user.name }}</div>
     <div class="playerView__nickname">{{ isPlaying }}</div>
-    <div class="playerView__nickname">{{ isp }}</div>
-    <div class="playerView__nickname">{{ audioPlayer.currentTime }}</div>
+    <div class="playerView__nickname">{{ currentTime }}</div>
     <button
       :class="
         !isPlaying ? 'playerView__mainButton' : 'playerView__mainButton_glowing'

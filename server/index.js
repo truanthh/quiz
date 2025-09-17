@@ -53,7 +53,7 @@ io.on("connection", (socket) => {
   if (token) {
     if (users[token]) {
       users[token].socketId = socket.id;
-      if(users[token].role === "screen"){
+      if (users[token].role === "screen") {
         screenSocketId = socket.id;
       }
       console.log(`got user, logging in... ${JSON.stringify(users[token])}`);
@@ -72,7 +72,7 @@ io.on("connection", (socket) => {
     users[token].name = payload.userName;
     users[token].socketId = socket.id;
     users[token].connectedAt = socket.connectedAt;
-    if(payload.role === "screen"){
+    if (payload.role === "screen") {
       screenSocketId = socket.id;
     }
     console.log(
@@ -97,35 +97,38 @@ io.on("connection", (socket) => {
   });
 
   socket.on("pause-track", (user) => {
-    audioPlayer.isPlaying = false;
-    socket.to(screenSocketId).emit("pause-track-confirm");
-    const usersArray = Object.entries(users).map(([key, value]) => ({
-      id: key,
-      ...value
-    }));
-    const bla = usersArray.filter((user) => user.role === "player" && user.socketId !== screenSocketId).map((user) => user.socketId);
-    console.log(bla)
-    socket.to(bla)
-      .emit("update-player-state", audioPlayer);
+    // audioPlayer.isPlaying = false;
+    // socket.to(screenSocketId).emit("pause-track-confirm");
+    // const usersArray = Object.entries(users).map(([key, value]) => ({
+    //   id: key,
+    //   ...value
+    // }));
+    // const bla = usersArray.filter((user) => user.role === "player" && user.socketId !== screenSocketId).map((user) => user.socketId);
+    // console.log(bla)
+    // socket.to(bla)
+    //   .emit("update-player-state", audioPlayer);
     // usersReadyToAnswer.push(user);
   });
 
   socket.on("play-track", (user) => {
     audioPlayer.isPlaying = true;
     socket.to(screenSocketId).emit("play-track-confirm");
-    const usersArray = Object.entries(users).map(([key, value]) => ({
-      id: key,
-      ...value
-    }));
-    const bla = usersArray.filter((user) => user.role === "player" && user.socketId !== screenSocketId).map((user) => user.socketId);
-    console.log(bla)
-    socket.to(bla)
-      .emit("update-player-state", audioPlayer);
+    console.log("player is now playing!");
+    // const usersArray = Object.entries(users).map(([key, value]) => ({
+    //   id: key,
+    //   ...value
+    // }));
+    // const bla = usersArray.filter((user) => user.role === "player" && user.socketId !== screenSocketId).map((user) => user.socketId);
+    // console.log(bla)
+    // socket.to(bla)
+    //   .emit("update-player-state", audioPlayer);
     // usersReadyToAnswer.push(user);
   });
 
   socket.on("update-server-time", (currentTime) => {
+    console.log(`new time ${currentTime}`);
     audioPlayer.currentTime = currentTime;
+    //broadcasted to everyone but screen
     socket.broadcast.emit("update-client-time", currentTime);
   });
 

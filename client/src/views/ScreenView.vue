@@ -9,7 +9,7 @@ const audioPlayerElement = ref(null);
 const audioPlayer = useAudioPlayerStore();
 
 const tracks = ref([
-  { name: "Трек 1", src: "/lamar.mp3" },
+  { name: "Трек 1", src: "/lucidity.mp3" },
   // { name: "Трек 2", src: "/stk.mp3" },
   // { name: "Трек 3", src: "/stop.mp3" },
 ]);
@@ -22,6 +22,9 @@ watch(audioPlayer.currentTime, (newTime) => {
 });
 
 onMounted(() => {
+  store.socket.on("play-track-confirm", audioPlayer.play);
+  store.socket.on("pause-track-confirm", audioPlayer.pause);
+
   audioPlayer.initialize(audioPlayerElement.value);
 
   audioPlayerElement.value.addEventListener("ended", audioPlayer.nextTrack);

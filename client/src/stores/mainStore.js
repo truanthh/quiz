@@ -28,32 +28,33 @@ export const mainStore = defineStore("mainStore", () => {
       connectionInfo.value.status = "Отключено от сервера";
     });
 
+    // this we only receive on everyone but screen
     socket.value.on("update-client-time", (newTime) => {
       audioPlayer.currentTime = newTime;
     });
 
     // socket.value.on("login-successful", waitForLogin);
 
-    socket.value.on("pause-track-confirm", (state) => {
-      audioPlayer.isPlaying = state.isPlaying;
-      audioPlayer.currentTime = state.currentTime;
-      audioPlayer.pause();
-    });
+    // socket.value.on("pause-track-confirm", (state) => {
+    //   audioPlayer.isPlaying = state.isPlaying;
+    //   audioPlayer.currentTime = state.currentTime;
+    //   audioPlayer.pause();
+    // });
 
-    socket.value.on("play-track-confirm", (state) => {
-      audioPlayer.isPlaying = state.isPlaying;
-      audioPlayer.currentTime = state.currentTime;
-      audioPlayer.play();
-    });
+    // socket.value.on("play-track-confirm", (state) => {
+    //   audioPlayer.isPlaying = state.isPlaying;
+    //   audioPlayer.currentTime = state.currentTime;
+    //   audioPlayer.play();
+    // });
 
-    socket.value.on("play-pause-track-confirm", (time) => {
-      audioPlayer.playPause();
-    });
+    // socket.value.on("play-pause-track-confirm", (time) => {
+    //   audioPlayer.playPause();
+    // });
 
-    socket.value.on("update-player-state", (state) => {
-      audioPlayer.isPlaying = state.isPlaying;
-      audioPlayer.currentTime = state.currentTime;
-    })
+    // socket.value.on("update-player-state", (state) => {
+    //   audioPlayer.isPlaying = state.isPlaying;
+    //   audioPlayer.currentTime = state.currentTime;
+    // });
   };
 
   function waitForLogin() {
