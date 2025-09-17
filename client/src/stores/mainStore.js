@@ -79,18 +79,14 @@ export const mainStore = defineStore("mainStore", () => {
   };
 
   const pauseTrack = () => {
-    if (!isReadyToAnswer.value) {
-      isReadyToAnswer.value = true;
-      socket.value.emit("pause-track", {
-        ...user.value,
-      });
-    }
+    // if (!isReadyToAnswer.value) {
+    //   isReadyToAnswer.value = true;
+    socket.value.emit("pause-track", user.value);
+    // }
   };
 
   const playTrack = () => {
-    socket.value.emit("play-track", {
-      ...user.value,
-    });
+    socket.value.emit("play-track", user.value);
   };
 
   const playPause = () => {

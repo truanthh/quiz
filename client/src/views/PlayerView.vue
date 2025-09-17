@@ -8,7 +8,6 @@ const debugLog = ref("");
 const counter = ref(0);
 
 const currentTime = ref("00:00");
-const isPlaying = ref("00:00");
 const isPlaying = false;
 
 function updateClientTime(seconds) {
@@ -29,7 +28,7 @@ function formatTime(seconds) {
 }
 
 function handleClick() {
-  store.socket.emit("play-track", store.user);
+  store.socket.emit("pause-track", store.user);
 }
 
 onMounted(() => {

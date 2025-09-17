@@ -110,18 +110,20 @@ io.on("connection", (socket) => {
     // usersReadyToAnswer.push(user);
   });
 
+  // if track is being played, either screen sent it, or admin,
+  // players can only pause track when they presumably know the answer
   socket.on("play-track", (user) => {
     audioPlayer.isPlaying = true;
-    socket.to(screenSocketId).emit("play-track-confirm");
-    console.log("player is now playing!");
+    // socket.to(screenSocketId).emit("play-track-confirm");
+    console.log("audioplayer is now playing!");
     // const usersArray = Object.entries(users).map(([key, value]) => ({
     //   id: key,
-    //   ...value
+    //   ...value,
     // }));
-    // const bla = usersArray.filter((user) => user.role === "player" && user.socketId !== screenSocketId).map((user) => user.socketId);
-    // console.log(bla)
-    // socket.to(bla)
-    //   .emit("update-player-state", audioPlayer);
+    // const players = usersArray
+    //   .filter((user) => user.role === "player")
+    //   .map((user) => user.socketId);
+    // socket.to(players).emit("update-audioplayer-state", audioPlayer);
     // usersReadyToAnswer.push(user);
   });
 

@@ -58,7 +58,7 @@ onUnmounted(() => {
     <div class="controls">
       <button @click="audioPlayer.prevTrack" class="control-btn">⏮</button>
 
-      <button @click="store.playPause" class="control-btn play-pause">
+      <button @click="audioPlayer.play" class="control-btn play-pause">
         {{ audioPlayer.isPlaying ? "⏸️" : "▶️" }}
       </button>
 
