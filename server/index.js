@@ -97,7 +97,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("pause-track", (user) => {
-    // audioPlayer.isPlaying = false;
+    audioPlayer.isPlaying = false;
     // socket.to(screenSocketId).emit("pause-track-confirm");
     // const usersArray = Object.entries(users).map(([key, value]) => ({
     //   id: key,
