@@ -129,7 +129,7 @@ io.on("connection", (socket) => {
     console.log(`new time ${currentTime}`);
     audioPlayer.currentTime = currentTime;
     //broadcasted to everyone but screen
-    socket.broadcast.emit("update-client-time", currentTime);
+    socket.broadcast.emit("update-client-time", audioPlayer.currentTime);
   });
 
   // socket.on("play-pause-track", (user) => {

@@ -1,4 +1,5 @@
 <script setup>
+import { storeToRefs } from "pinia";
 import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useAudioPlayerStore } from "../stores/useAudioPlayerStore.js";
 import { mainStore } from "../stores/mainStore";
@@ -8,8 +9,10 @@ const store = mainStore();
 const audioPlayerElement = ref(null);
 const audioPlayer = useAudioPlayerStore();
 
+const { currentTimeSeconds } = storeToRefs(audioPlayer);
+
 const tracks = ref([
-  { name: "Трек 1", src: "/lucidity.mp3" },
+  { name: "Трек 1", src: "/zvezda.mp3" },
   // { name: "Трек 2", src: "/stk.mp3" },
   // { name: "Трек 3", src: "/stop.mp3" },
 ]);
@@ -17,7 +20,7 @@ const tracks = ref([
 audioPlayer.setTracks(tracks.value);
 
 // emits on every second change
-watch(audioPlayer.currentTime, (newTime) => {
+watch(currentTimeSeconds, (newTime) => {
   store.socket.emit("update-server-time", newTime);
 });
 
@@ -47,7 +50,7 @@ onUnmounted(() => {
 
 <template>
   <div class="audio-player">
-    <div class="displayTime">{{ audioPlayer.currentTime }}</div>
+    <div class="displayTime">{{ audioPlayer.currentTimeString }}</div>
     <!-- <div class="track-info"> -->
     <!--   Сейчас играет: {{ audioPlayer.tracks[currentTrackIndex].name }} -->
     <!-- </div> -->

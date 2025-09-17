@@ -1,19 +1,40 @@
 <script setup>
-import { ref, watch } from "vue";
-import { storeToRefs } from "pinia";
+import { ref, onMounted } from "vue";
+// import { storeToRefs } from "pinia";
 import { mainStore } from "../stores/mainStore.js";
-import { useAudioPlayerStore } from "../stores/useAudioPlayerStore.js";
 
 const store = mainStore();
-const audioPlayer = useAudioPlayerStore();
 const debugLog = ref("");
 const counter = ref(0);
 
-const { isPlaying, currentTime } = storeToRefs(audioPlayer);
+const currentTime = ref("00:00");
+const isPlaying = ref("00:00");
+const isPlaying = false;
+
+function updateClientTime(seconds) {
+  console.log(`current time is ${seconds}`);
+  currentTime.value = formatTime(seconds);
+}
+
+function formatTime(seconds) {
+  let sec = seconds;
+  let min = 0;
+
+  if (seconds > 59) {
+    min = Math.floor(seconds / 60);
+    sec = sec % 60;
+  }
+
+  return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
+}
 
 function handleClick() {
   store.socket.emit("play-track", store.user);
 }
+
+onMounted(() => {
+  store.socket.on("update-client-time", updateClientTime);
+});
 </script>
 <template>
   <div class="playerView__container">

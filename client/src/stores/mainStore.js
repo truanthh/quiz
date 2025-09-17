@@ -29,9 +29,6 @@ export const mainStore = defineStore("mainStore", () => {
     });
 
     // this we only receive on everyone but screen
-    socket.value.on("update-client-time", (newTime) => {
-      audioPlayer.currentTime = newTime;
-    });
 
     // socket.value.on("login-successful", waitForLogin);
 

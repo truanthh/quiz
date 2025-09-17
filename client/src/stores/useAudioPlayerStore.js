@@ -8,7 +8,8 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
   const volume = ref(2.0);
   const tracks = ref([]);
   const duration = ref(0);
-  const currentTime = ref("00:00");
+  const currentTimeString = ref("00:00");
+  const currentTimeSeconds = ref(0);
 
   // need tracks and id and we are good
   const currentTrack = computed(() => tracks.value[currentTrackIndex.value]);
@@ -110,13 +111,13 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
   }
 
   function updateTime() {
-    currentTime.value = formatTime(
-      Math.trunc(audioElementRef.value.currentTime),
-    );
-    // duration.value = audioElementRef.value.duration;
+    let timeSeconds = Math.trunc(audioElementRef.value.currentTime);
+
+    currentTimeSeconds.value = timeSeconds;
+    currentTimeString.value = secondsToString(timeSeconds);
   }
 
-  function formatTime(seconds) {
+  function secondsToString(seconds) {
     let sec = seconds;
     let min = 0;
 
@@ -137,7 +138,8 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
 
     // Getters
     currentTrack,
-    currentTime,
+    currentTimeString,
+    currentTimeSeconds,
 
     // Actions
     initialize,
@@ -152,5 +154,6 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
     previousTrack,
     setTracks,
     updateTime,
+    secondsToString,
   };
 });
