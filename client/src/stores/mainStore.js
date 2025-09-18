@@ -1,4 +1,4 @@
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 import { defineStore } from "pinia";
 import { io } from "socket.io-client";
 import { useAudioPlayerStore } from "./useAudioPlayerStore.js";
@@ -7,7 +7,11 @@ export const mainStore = defineStore("mainStore", () => {
   const socket = ref(null);
   const connectionInfo = ref({});
   const user = ref({});
+  const users = ref([]);
   const isAuth = ref(false);
+  const currentUserAnswering = computed(() => {
+    return users.value[0]?.name;
+  });
 
   const audioPlayer = useAudioPlayerStore();
 
@@ -29,12 +33,9 @@ export const mainStore = defineStore("mainStore", () => {
       connectionInfo.value.status = "Отключено от сервера";
     });
 
-    // socket.value.on("login-successful", waitForLogin);
-
-    // socket.value.on("update-player-state", (state) => {
-    //   audioPlayer.isPlaying = state.isPlaying;
-    //   audioPlayer.currentTime = state.currentTime;
-    // });
+    socket.value.on("update-users-data-all-clients", (users) => {
+      users.value = [...users];
+    });
   };
 
   function waitForLogin() {
@@ -62,10 +63,7 @@ export const mainStore = defineStore("mainStore", () => {
   };
 
   const pauseTrack = () => {
-    // if (!isReadyToAnswer.value) {
-    //   isReadyToAnswer.value = true;
     socket.value.emit("pause-track", user.value);
-    // }
     audioPlayer.pause();
   };
 
@@ -81,8 +79,10 @@ export const mainStore = defineStore("mainStore", () => {
     isAuth,
     connectionInfo,
     user,
+    users,
     debug,
     pauseTrack,
     waitForLogin,
+    currentUserAnswering,
   };
 });

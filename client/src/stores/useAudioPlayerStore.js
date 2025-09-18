@@ -85,13 +85,8 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
 
     currentTrackIndex.value = index;
     if (audioElementRef.value) {
-      const wasPlaying = isPlaying.value;
       pause();
       audioElementRef.value.src = tracks.value[index].src;
-
-      if (wasPlaying) {
-        setTimeout(() => play(), 100);
-      }
     }
   }
 
@@ -129,6 +124,10 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
     return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
   }
 
+  function getTracks() {
+    return tracks.value;
+  }
+
   return {
     // State
     isPlaying,
@@ -140,6 +139,7 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
     currentTrack,
     currentTimeString,
     currentTimeSeconds,
+    getTracks,
 
     // Actions
     initialize,
