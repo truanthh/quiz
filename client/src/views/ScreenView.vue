@@ -9,10 +9,13 @@ const store = mainStore();
 const audioPlayerElement = ref(null);
 const audioPlayer = useAudioPlayerStore();
 
-const { currentTimeSeconds } = storeToRefs(audioPlayer);
+const { currentTimeSeconds, isPlaying } = storeToRefs(audioPlayer);
 
 const tracks = ref([
-  { name: "Трек 1", src: "/zvezda.mp3" },
+  {
+    name: "Трек 1",
+    src: "/System_Of_A_Down_-_Violent_Pornography_(TheMP3.Info).mp3",
+  },
   // { name: "Трек 2", src: "/stk.mp3" },
   // { name: "Трек 3", src: "/stop.mp3" },
 ]);
@@ -25,8 +28,9 @@ watch(currentTimeSeconds, (newTime) => {
 });
 
 onMounted(() => {
-  store.socket.on("play-track-confirm", audioPlayer.play);
-  store.socket.on("pause-track-confirm", audioPlayer.pause);
+  store.socket.on("track-is-playing", audioPlayer.play);
+  store.socket.on("track-is-paused-by-player", audioPlayer.pause);
+  store.socket.on("track-is-paused-by-admin", audioPlayer.pause);
 
   audioPlayer.initialize(audioPlayerElement.value);
 
@@ -51,18 +55,19 @@ onUnmounted(() => {
 <template>
   <div class="audio-player">
     <div class="displayTime">{{ audioPlayer.currentTimeString }}</div>
-    <!-- <div class="track-info"> -->
-    <!--   Сейчас играет: {{ audioPlayer.tracks[currentTrackIndex].name }} -->
-    <!-- </div> -->
+    <div class="trackInfo">
+      <div class="trackInfo__name"></div>
+      {{}}
+    </div>
 
     <div class="controls">
-      <button @click="audioPlayer.prevTrack" class="control-btn">⏮</button>
+      <button @click="" class="control-btn">⏮</button>
 
-      <button @click="audioPlayer.play" class="control-btn play-pause">
-        {{ audioPlayer.isPlaying ? "⏸️" : "▶️" }}
+      <button @click="" class="control-btn play-pause">
+        {{ isPlaying ? "⏸️" : "▶️" }}
       </button>
 
-      <button @click="audioPlayer.nextTrack" class="control-btn">⏭</button>
+      <button @click="" class="control-btn">⏭</button>
     </div>
 
     <!-- <div class="track-list"> -->

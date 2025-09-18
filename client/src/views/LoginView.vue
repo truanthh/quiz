@@ -9,9 +9,6 @@ const store = mainStore();
 
 const userName = ref("");
 const role = ref("player");
-// const password = ref("");
-const error = ref("");
-const error2 = ref("");
 
 const isAdmin = computed(() => {
   return role.value !== "player";
@@ -24,17 +21,10 @@ onMounted(async () => {
   }
 });
 
-// watch(store.isAuth, (isAuthenticated) => {
-//   if (isAuthenticated) {
-//     router.replace(`/${store.user.role}`);
-//     error2.value = store.user;
-//   }
-// });
-
 const handleLogin = async () => {
   const notValidMsg = "Придумайте никнейм получше";
 
-  if (!isLoginDataValid(userName)) {
+  if (role.value === "player" && !isLoginDataValid(userName.value)) {
     error.value = notValidMsg;
     return;
   }
@@ -51,7 +41,6 @@ const handleLogin = async () => {
 const userRolePinia = ref("NOROLE");
 
 function isLoginDataValid(userName) {
-  // uncomment on prod
   if (userName.length < 2 || userName.length > 10) return false;
 
   return true;
@@ -61,9 +50,6 @@ function isLoginDataValid(userName) {
   <div class="login__container">
     <div class="login__form">
       <h1>Home quiz</h1>
-      <p class="error">is auth? {{ store.isAuth }}</p>
-      <p class="error">user role pinia? {{ userRolePinia }}</p>
-      <button @click="handleDebug">debug</button>
       <select class="login__form__input" v-model="role" id="roleSelect">
         <option value="player" selected>player</option>
         <option value="screen">screen</option>
@@ -76,13 +62,6 @@ function isLoginDataValid(userName) {
         type="text"
         :disabled="isAdmin"
       />
-      <!-- <input -->
-      <!--   class="login__form__input" -->
-      <!--   @keyup.enter="handleLogin(userName, password)" -->
-      <!--   v-model="password" -->
-      <!--   placeholder="Пароль" -->
-      <!--   type="password" -->
-      <!-- /> -->
       <button class="elegant-btn-minimal" @click="handleLogin">Войти</button>
       <div class="debugInfo">{{ store.connectionInfo.message }}</div>
       <div class="debugInfo">{{ store.connectionInfo.connectedAt }}</div>

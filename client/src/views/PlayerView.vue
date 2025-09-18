@@ -8,7 +8,7 @@ const debugLog = ref("");
 const counter = ref(0);
 
 const currentTime = ref("00:00");
-const isPlaying = false;
+const isPlaying = ref(false);
 
 function updateClientTime(seconds) {
   console.log(`current time is ${seconds}`);
@@ -28,18 +28,25 @@ function formatTime(seconds) {
 }
 
 function handleClick() {
+  isPlaying.value = false;
   store.socket.emit("pause-track", store.user);
 }
 
 onMounted(() => {
   store.socket.on("update-client-time", updateClientTime);
+  store.socket.on("track-is-paused-by-admin", (audioPlayerState) => {
+    isPlaying.value = audioPlayerState.isPlaying;
+  });
+  store.socket.on("track-is-playing", (audioPlayerState) => {
+    isPlaying.value = audioPlayerState.isPlaying;
+  });
 });
 </script>
 <template>
   <div class="playerView__container">
-    <div class="playerView__nickname">{{ store.user.name }}</div>
-    <div class="playerView__nickname">{{ isPlaying }}</div>
-    <div class="playerView__nickname">{{ currentTime }}</div>
+    <div class="debugInfoo">
+      {{ store.user.name }} {{ isPlaying }} {{ currentTime }}
+    </div>
     <button
       :class="
         !isPlaying ? 'playerView__mainButton' : 'playerView__mainButton_glowing'
@@ -55,6 +62,12 @@ onMounted(() => {
   </div>
 </template>
 <style lang="scss" scoped>
+.debugInfoo {
+  font-size: 14px;
+  color: green;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
 .playerView {
   &__container {
     height: 100%;
@@ -68,19 +81,27 @@ onMounted(() => {
     font-size: 26px;
     margin-bottom: 60px;
   }
-  // &__mainButton {
-  //   display: flex;
-  //   height: 230px;
-  //   width: 230px;
-  //   cursor: pointer;
-  //   color: white;
-  //   background: red;
-  //   border-radius: 50%;
-  //   border: 1px solid black;
-  // }
   &__mainButton {
-    width: 170px;
-    height: 170px;
+    display: flex;
+    height: 200px;
+    width: 200px;
+    cursor: pointer;
+    color: white;
+    background: pink;
+    border-radius: 50%;
+    border: 1px solid black;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    outline: none;
+  }
+  &__mainButton_glowing {
+    width: 180px;
+    height: 180px;
     border-radius: 50%;
     background: #90ee90;
     border: none;
@@ -90,24 +111,30 @@ onMounted(() => {
     position: relative;
     transition: all 0.3s ease;
     transform: scale(1.05);
-    &_glowing {
-      &::after {
-        content: "";
-        position: absolute;
-        top: -10px;
-        left: -10px;
-        right: -10px;
-        bottom: -10px;
-        border-radius: 50%;
-        // background: rgba(255, 0, 0, 0.3);
-        background: #90ee90;
-        animation: smoke-pulse 3s infinite ease-in-out;
-        z-index: -1;
-      }
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    outline: none;
+    &::after {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      right: -10px;
+      bottom: -10px;
+      border-radius: 50%;
+      // background: rgba(255, 0, 0, 0.3);
+      background: #90ee90;
+      animation: smoke-pulse 3s infinite ease-in-out;
+      z-index: -1;
+    }
 
-      &:hover::after {
-        animation: smoke-pulse 1s infinite ease-in-out;
-      }
+    &:hover::after {
+      animation: smoke-pulse 1s infinite ease-in-out;
     }
   }
 

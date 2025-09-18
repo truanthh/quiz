@@ -11,6 +11,7 @@ export const mainStore = defineStore("mainStore", () => {
 
   const audioPlayer = useAudioPlayerStore();
 
+  // presumably only connection stuff here
   const initSocket = () => {
     socket.value = io(import.meta.env.VITE_SERVER_ADDRESS, {
       auth: { token: localStorage.getItem("token") },
@@ -28,25 +29,7 @@ export const mainStore = defineStore("mainStore", () => {
       connectionInfo.value.status = "Отключено от сервера";
     });
 
-    // this we only receive on everyone but screen
-
     // socket.value.on("login-successful", waitForLogin);
-
-    // socket.value.on("pause-track-confirm", (state) => {
-    //   audioPlayer.isPlaying = state.isPlaying;
-    //   audioPlayer.currentTime = state.currentTime;
-    //   audioPlayer.pause();
-    // });
-
-    // socket.value.on("play-track-confirm", (state) => {
-    //   audioPlayer.isPlaying = state.isPlaying;
-    //   audioPlayer.currentTime = state.currentTime;
-    //   audioPlayer.play();
-    // });
-
-    // socket.value.on("play-pause-track-confirm", (time) => {
-    //   audioPlayer.playPause();
-    // });
 
     // socket.value.on("update-player-state", (state) => {
     //   audioPlayer.isPlaying = state.isPlaying;
@@ -83,17 +66,7 @@ export const mainStore = defineStore("mainStore", () => {
     //   isReadyToAnswer.value = true;
     socket.value.emit("pause-track", user.value);
     // }
-  };
-
-  const playTrack = () => {
-    socket.value.emit("play-track", user.value);
-  };
-
-  const playPause = () => {
-    socket.value.emit("play-pause-track", {
-      ...user.value,
-      timePaused: audioPlayer.currentTime,
-    });
+    audioPlayer.pause();
   };
 
   const isQuestionActive = ref(false);
@@ -110,8 +83,6 @@ export const mainStore = defineStore("mainStore", () => {
     user,
     debug,
     pauseTrack,
-    playTrack,
-    playPause,
     waitForLogin,
   };
 });

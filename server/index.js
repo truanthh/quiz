@@ -44,6 +44,18 @@ const audioPlayer = {
 };
 
 let screenSocketId;
+let adminSocketId;
+let playersSocketIds = [];
+
+function setRoleGroupSocketIds(token) {
+  if (users[token].role === "screen") {
+    screenSocketId = users[token].socketId;
+  } else if (users[token].role === "admin") {
+    adminSocketId = users[token].socketId;
+  } else if (users[token].role === "player") {
+    playersSocketIds.push(users[token].socketId);
+  }
+}
 
 // Обработка подключений
 io.on("connection", (socket) => {
@@ -53,9 +65,7 @@ io.on("connection", (socket) => {
   if (token) {
     if (users[token]) {
       users[token].socketId = socket.id;
-      if (users[token].role === "screen") {
-        screenSocketId = socket.id;
-      }
+      setRoleGroupSocketIds(token);
       console.log(`got user, logging in... ${JSON.stringify(users[token])}`);
       socket.emit("login-successful", { ...users[token], token: token });
     } else {
@@ -72,9 +82,7 @@ io.on("connection", (socket) => {
     users[token].name = payload.userName;
     users[token].socketId = socket.id;
     users[token].connectedAt = socket.connectedAt;
-    if (payload.role === "screen") {
-      screenSocketId = socket.id;
-    }
+    setRoleGroupSocketIds(token);
     console.log(
       `
       ---------------------------
@@ -96,41 +104,33 @@ io.on("connection", (socket) => {
     connectedAt: new Date().toLocaleString(),
   });
 
+  // track can only be paused by player or admin
+  // added admin condition just in case
   socket.on("pause-track", (user) => {
+    console.log(`track is paused by ${user.role}`);
     audioPlayer.isPlaying = false;
-    // socket.to(screenSocketId).emit("pause-track-confirm");
-    // const usersArray = Object.entries(users).map(([key, value]) => ({
-    //   id: key,
-    //   ...value
-    // }));
-    // const bla = usersArray.filter((user) => user.role === "player" && user.socketId !== screenSocketId).map((user) => user.socketId);
-    // console.log(bla)
-    // socket.to(bla)
-    //   .emit("update-player-state", audioPlayer);
-    // usersReadyToAnswer.push(user);
+    if (user.role === "player") {
+      socket
+        .to([screenSocketId, adminSocketId])
+        .emit("track-is-paused-by-player", audioPlayer);
+    } else if (user.role === "admin") {
+      socket.broadcast.emit("track-is-paused-by-admin", audioPlayer);
+    }
   });
 
   // if track is being played, either screen sent it, or admin,
-  // players can only pause track when they presumably know the answer
+  // players can not set track to play
+  // so we need to send event to everyone but the sender
   socket.on("play-track", (user) => {
+    console.log(`track is set to play by ${user.role}`);
     audioPlayer.isPlaying = true;
-    // socket.to(screenSocketId).emit("play-track-confirm");
-    console.log("audioplayer is now playing!");
-    // const usersArray = Object.entries(users).map(([key, value]) => ({
-    //   id: key,
-    //   ...value,
-    // }));
-    // const players = usersArray
-    //   .filter((user) => user.role === "player")
-    //   .map((user) => user.socketId);
-    // socket.to(players).emit("update-audioplayer-state", audioPlayer);
-    // usersReadyToAnswer.push(user);
+    socket.broadcast.emit("track-is-playing", audioPlayer);
   });
 
+  //broadcasted to everyone but screen
   socket.on("update-server-time", (currentTime) => {
     console.log(`new time ${currentTime}`);
     audioPlayer.currentTime = currentTime;
-    //broadcasted to everyone but screen
     socket.broadcast.emit("update-client-time", audioPlayer.currentTime);
   });
 
