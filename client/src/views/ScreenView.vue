@@ -1,8 +1,12 @@
 <script setup>
-import { storeToRefs } from "pinia";
 import { ref, onMounted, onUnmounted, watch, computed } from "vue";
+import { storeToRefs } from "pinia";
 import { useAudioPlayerStore } from "../stores/useAudioPlayerStore.js";
 import { mainStore } from "../stores/mainStore";
+import BaseTable from "../components/Table/BaseTable.vue";
+import TableRow from "../components/Table/TableRow.vue";
+import TableColumn from "../components/Table/TableColumn.vue";
+import tracksData from "../../tracks.json";
 
 const store = mainStore();
 
@@ -20,52 +24,16 @@ const trackName = ref("");
 const isTrackArtistShown = ref(false);
 const isTrackNameShown = ref(false);
 
-const { currentTimeSeconds, isPlaying, tracks } = storeToRefs(audioPlayer);
+const {
+  currentTimeSeconds,
+  currentTimeString,
+  currentTrackIndex,
+  currentTrack,
+  isPlaying,
+  tracks,
+} = storeToRefs(audioPlayer);
 
-const songs = ref([
-  {
-    artist: "КИНО",
-    name: "Последний Герой",
-    src: "/V._Coj_Kino_-_Poslednij_geroj_(TheMP3.Info).mp3",
-  },
-  {
-    artist: "КИНО",
-    name: "Закрой за мной дверь, я ухожу",
-    src: "/Kino_-_Zakroj_za_mnoj_dver_(TheMP3.Info).mp3",
-  },
-  {
-    artist: "КИНО",
-    name: "Кончится лето",
-    src: "/KINO_-_Konchitsya_leto_(TheMP3.Info).mp3",
-  },
-  {
-    artist: "Queen",
-    name: "Show must go on",
-    src: "/Queen_-_The_Show_Must_Go_On_(TheMP3.Info).mp3",
-  },
-  {
-    artist: "Кино",
-    name: "Звезда по имени солнце",
-    src: "/zvezda.mp3",
-  },
-  {
-    artist: "Аквариум",
-    name: "Сестра",
-    src: "Aquarium_-_Sestra_(TheMP3.Info).mp3",
-  },
-  {
-    artist: "Кукрыниксы",
-    name: "Надежда",
-    src: "/Kukryniksy_-_Nadezhda_(TheMP3.Info).mp3",
-  },
-  {
-    artist: "Queen",
-    name: "Another one bites the dust",
-    src: "/asdasd.mp3",
-  },
-]);
-
-audioPlayer.setTracks(songs.value);
+audioPlayer.setTracks(tracksData.tracks);
 
 // emits on every second change
 watch(currentTimeSeconds, (newTime) => {
@@ -106,124 +74,148 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="screen__container">
-    <div class="screen__topPart"></div>
-    <div class="screen__topPart__leftPart">
-      <audio
-        :src="audioPlayer.currentTrack.src"
-        ref="audioPlayerElement"
-        preload="auto"
-      ></audio>
-      <div class="screen__topPart__leftPart__displayTime">
-        {{ audioPlayer.currentTimeString }}
-      </div>
-      <div class="screen__topPart__leftPart__userAnswering">
-        {{ currentUserAnswering }}
-      </div>
-      <div class="screen__topPart__leftPart__controls">
-        <!-- <button @click="" class="control-btn">⏮</button> -->
-
-        <button @click="" class="">
-          {{ isPlaying ? "⏸️" : "▶️" }}
-        </button>
-        <!-- <button @click="" class="control-btn">⏭</button> -->
-      </div>
-    </div>
-    <div class="screen__topPart__rightPart">
-      <div class="screen__topPart__rightPart__usersTable"></div>
-    </div>
-    <div class="screen__bottomPart">
-      <div class="screen__bottomPart__trackInfo">
-        <div
-          v-if="isTrackArtistShown"
-          class="screen__bottomPart__trackInfo__trackArtist"
-        >
-          {{ trackArtist }}
+  <div class="screenView__container">
+    <div class="screenView__left"></div>
+    <div class="screenView__mid">
+      <div class="screenView__mid__empty"></div>
+      <div class="screenView__mid__main">
+        <div class="screenView__mid__main__status">
+          <div class="screenView__mid__main__status__questionNumber">
+            <span class="text__questionNumber">
+              #{{ currentTrackIndex + 1 }}</span
+            >
+          </div>
+          <div class="screenView__mid__main__status__clock">
+            <span class="text__clock"> {{ currentTimeString }}</span>
+          </div>
+          <div class="screenView__mid__main__status__pointsChange">
+            <span class="text__pointsChange"> +100 </span>
+          </div>
         </div>
-        <div
-          v-if="isTrackArtistShown"
-          class="screen__bottomPart__trackInfo__trackName"
-        >
-          {{ trackName }}
+        <div class="screenView__mid__main__artist">
+          {{ currentTrack.artist }}
+        </div>
+        <div class="screenView__mid__main__song">
+          {{ currentTrack.name }}
         </div>
       </div>
+      <div class="screenView__mid__usersTable">
+        <base-table :headers :columnsTemplate>
+          <table-row
+            v-for="user in usersSorted"
+            :key="user.token"
+            :columnsTemplate
+          >
+            <table-column>
+              {{ user.name }}
+            </table-column>
+            <table-column>
+              {{ user.points }}
+            </table-column>
+          </table-row>
+        </base-table>
+      </div>
     </div>
+    <div class="screenView__right"></div>
   </div>
 </template>
 <style lang="scss" scoped>
-.screen {
+.screenView {
   &__container {
     display: flex;
-    width: 100%;
-    height: 30%;
-    margin: 0 auto;
-    padding: 20px;
-    font-family: Arial, sans-serif;
-    justify-content: space-between;
-    &__topPart {
-      display: flex;
-      &__leftPart {
-        display: flex;
-        flex-direction: column;
-        width: 50%;
-        &__displayTime {
-          font-weight: bold;
-          font-size: 80px;
-          font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-          line-height: 1.5;
-          color: rgba(0, 0, 0, 0.7);
-        }
-        &__controls {
-          display: flex;
-          justify-content: center;
-          gap: 15px;
-          margin-bottom: 15px;
-          &__playPauseButton {
-            background: #4caf50;
-            color: white;
-          }
-        }
-        &__userAnswering {
-          display: flex;
-          justify-content: center;
-          font-size: 80px;
-          font-weight: bold;
-          color: green;
-        }
-      }
-      &__rightPart {
-        display: flex;
-        flex-direction: column;
-        width: 50%;
-        &__usersTable {
-          display: flex;
-          width: 100%;
-          height: 100%;
-          font-size: 18px;
-          font-weight: bold;
-        }
-      }
-    }
-    &__bottomPart {
-      display: flex;
+    height: 100%;
+  }
+  &__left {
+    display: flex;
+    height: 100%;
+    width: 18%;
+    // background-color: pink;
+  }
+  &__mid {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 64%;
+    // background-color: gray;
+    &__empty {
       width: 100%;
+      height: 10%;
+    }
+    &__main {
+      display: flex;
       flex-direction: column;
-      &__trackInfo {
+      // background-color: green;
+      gap: 20px;
+      width: 100%;
+      height: 50%;
+      &__status {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        &__trackArtist {
-          font-size: 120px;
-          font-weight: bold;
-          text-align: center;
+        position: relative;
+        &__questionNumber {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          // background-color: lightgray;
+          width: 20%;
         }
-        &__trackName {
-          font-size: 120px;
-          font-weight: bold;
-          text-align: center;
+        &__clock {
+          display: flex;
+          width: 50%;
+          justify-content: center;
+          // background-color: orange;
+        }
+        &__pointsChange {
+          display: flex;
+          width: 30%;
+          justify-content: center;
+          align-items: center;
+          // background-color: khaki;
+          padding-right: 4%;
         }
       }
+      &__artist {
+        display: flex;
+        flex-direction: column;
+        font-size: 60px;
+        font-weight: bold;
+        justify-content: start;
+        align-items: center;
+        // background-color: yellow;
+      }
+      &__song {
+        display: flex;
+        flex-direction: column;
+        font-size: 50px;
+        font-weight: bold;
+        justify-content: start;
+        align-items: center;
+        // background-color: yellow;
+      }
     }
+  }
+  &__right {
+    display: flex;
+    height: 100%;
+    width: 18%;
+    // background-color: pink;
+  }
+}
+
+.text {
+  &__questionNumber {
+    font-size: 70px;
+    font-weight: bold;
+  }
+  &__clock {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: bold;
+    font-size: 90px;
+  }
+  &__pointsChange {
+    font-size: 90px;
+    font-weight: bold;
   }
 }
 </style>

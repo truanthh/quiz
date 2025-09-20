@@ -12,6 +12,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "fs": "^0.0.1-security",
+    "node-id3": "^0.2.9",
     "path": "^0.12.7",
     "pinia": "^3.0.3",
     "sass": "^1.92.1",
