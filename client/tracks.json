@@ -1,156 +1,56 @@
 {
-  "generated": "2025-09-20T09:05:58.639Z",
-  "totalTracks": 66,
+  "generated": "2025-09-26T16:58:11.480Z",
+  "totalTracks": 26,
   "tracks": [
     {
-      "artist": "099_София Ротару",
-      "name": "Хуторянка",
+      "artist": "Eros Ramasotti & Tina Terner",
+      "name": "Cose della vita",
       "album": "",
       "year": "",
       "genre": "",
-      "src": "/music/099_София Ротару - Хуторянка.mp3",
+      "src": "/music/Eros Ramasotti & Tina Terner - Cose della vita.mp3",
       "posterImg": "/posters/default.jpg",
-      "filename": "099_София Ротару - Хуторянка.mp3"
+      "filename": "Eros Ramasotti & Tina Terner - Cose della vita.mp3"
     },
     {
-      "artist": "A-ha",
-      "name": "Take on me' A-ha 1985",
-      "album": "Hunting High and Low",
-      "year": "2010",
-      "genre": "Pop;Lounge",
-      "src": "/music/A-ha - Take on me' A-ha 1985.mp3",
-      "posterImg": "/posters/poster_1758359158330_4pmff.jpg",
-      "filename": "A-ha - Take on me' A-ha 1985.mp3"
+      "artist": "Eros Ramazzotti/Cher",
+      "name": "Più che puoi",
+      "album": "",
+      "year": "",
+      "genre": "",
+      "src": "/music/Eros Ramazzotti, Cher - Più che puoi.mp3",
+      "posterImg": "/posters/default.jpg",
+      "filename": "Eros Ramazzotti, Cher - Più che puoi.mp3"
     },
     {
-      "artist": "A.Celentano",
-      "name": "Litaliano",
-      "album": "L'Italiano",
-      "year": "1983",
-      "genre": "Pop;Soundtrack",
-      "src": "/music/A.Celentano - Litaliano.mp3",
-      "posterImg": "/posters/poster_1758359158335_gc791h.jpg",
-      "filename": "A.Celentano - Litaliano.mp3"
+      "artist": "Franz Schubert",
+      "name": "Ave Maria",
+      "album": "",
+      "year": "",
+      "genre": "",
+      "src": "/music/Franz Schubert - Ave Maria.mp3",
+      "posterImg": "/posters/default.jpg",
+      "filename": "Franz Schubert - Ave Maria.mp3"
     },
     {
-      "artist": "Adriano Celentano",
-      "name": "Susanna (Susanna)(Remastered)",
-      "album": "Unicamentecelentano",
+      "artist": "Gorillaz",
+      "name": "DARE",
+      "album": "The Singles Collection 2001-2011",
       "year": "2011",
       "genre": "Pop",
-      "src": "/music/Adriano Celentano - Susanna (Susanna) (Remastered).mp3",
-      "posterImg": "/posters/poster_1758359158341_q74jlt.jpg",
-      "filename": "Adriano Celentano - Susanna (Susanna) (Remastered).mp3"
+      "src": "/music/Gorillaz - DARE.mp3",
+      "posterImg": "/posters/poster_1758905891407_4g34dd.jpg",
+      "filename": "Gorillaz - DARE.mp3"
     },
     {
-      "artist": "Avicii",
-      "name": "Wake Me Up",
-      "album": "True",
-      "year": "2013",
-      "genre": "Dance",
-      "src": "/music/Avicii - Wake Me Up(1).mp3",
-      "posterImg": "/posters/poster_1758359158346_yk5oul.jpg",
-      "filename": "Avicii - Wake Me Up(1).mp3"
-    },
-    {
-      "artist": "Beyoncé",
-      "name": "Halo",
-      "album": "",
-      "year": "",
-      "genre": "",
-      "src": "/music/Beyoncé - Halo.mp3",
-      "posterImg": "/posters/default.jpg",
-      "filename": "Beyoncé - Halo.mp3"
-    },
-    {
-      "artist": "Christina Aguilera",
-      "name": "Fighter",
-      "album": "",
-      "year": "",
-      "genre": "",
-      "src": "/music/Christina Aguilera - Fighter.mp3",
-      "posterImg": "/posters/default.jpg",
-      "filename": "Christina Aguilera - Fighter.mp3"
-    },
-    {
-      "artist": "Christina Aguilera",
-      "name": "Hurt",
-      "album": "",
-      "year": "",
-      "genre": "",
-      "src": "/music/Christina Aguilera - Hurt.mp3",
-      "posterImg": "/posters/default.jpg",
-      "filename": "Christina Aguilera - Hurt.mp3"
-    },
-    {
-      "artist": "Daddy Yankee",
-      "name": "Gasolina",
-      "album": "Reggaeton Old School",
-      "year": "2018",
-      "genre": "Ethnic;Reggaeton",
-      "src": "/music/Daddy Yankee - Gasolina.mp3",
-      "posterImg": "/posters/poster_1758359158366_z8ykue.jpg",
-      "filename": "Daddy Yankee - Gasolina.mp3"
-    },
-    {
-      "artist": "Drake",
-      "name": "Hotline Bling",
-      "album": "Views",
-      "year": "2016",
+      "artist": "Gorillaz/De La Soul",
+      "name": "Feel Good Inc.",
+      "album": "Demon Days",
+      "year": "2005",
       "genre": "Rap",
-      "src": "/music/Drake - Hotline Bling.mp3",
-      "posterImg": "/posters/poster_1758359158373_mog9wv.jpg",
-      "filename": "Drake - Hotline Bling.mp3"
-    },
-    {
-      "artist": "Eminem",
-      "name": "Rap God",
-      "album": "The Marshall Mathers LP2",
-      "year": "2013",
-      "genre": "Rap",
-      "src": "/music/Eminem - Rap God.mp3",
-      "posterImg": "/posters/poster_1758359158380_84e2n9.jpg",
-      "filename": "Eminem - Rap God.mp3"
-    },
-    {
-      "artist": "Eminem/Juice WRLD",
-      "name": "Godzilla",
-      "album": "Music To Be Murdered By - Side B",
-      "year": "2020",
-      "genre": "Rap",
-      "src": "/music/Eminem feat. Juice WRLD - Godzilla.mp3",
-      "posterImg": "/posters/poster_1758359158384_y9gvu9.jpg",
-      "filename": "Eminem feat. Juice WRLD - Godzilla.mp3"
-    },
-    {
-      "artist": "Eminem/50 Cent/Cashis/Lloyd Banks",
-      "name": "You Don't Know",
-      "album": "Eminem Presents The Re-Up",
-      "year": "2006",
-      "genre": "Hip-hop",
-      "src": "/music/Eminem, 50 Cent, Cashis, Lloyd Banks - You Don't Know.mp3",
-      "posterImg": "/posters/poster_1758359158390_80vg0d.jpg",
-      "filename": "Eminem, 50 Cent, Cashis, Lloyd Banks - You Don't Know.mp3"
-    },
-    {
-      "artist": "Evane Scene#",
-      "name": "BRING ME TO LIFE",
-      "album": "Fallen",
-      "year": "2003",
-      "genre": "Rock",
-      "src": "/music/Evane Scene# - BRING ME TO LIFE.mp3",
-      "posterImg": "/posters/poster_1758359158394_kyvtqp.jpg",
-      "filename": "Evane Scene# - BRING ME TO LIFE.mp3"
-    },
-    {
-      "artist": "Evane Scenes",
-      "name": "My Immortal",
-      "album": "Fallen",
-      "year": "2003",
-      "genre": "Rock",
-      "src": "/music/Evane Scenes - My Immortal.mp3",
-      "posterImg": "/posters/poster_1758359158400_mck1g.jpg",
-      "filename": "Evane Scenes - My Immortal.mp3"
+      "src": "/music/Gorillaz, De La Soul - Feel Good Inc..mp3",
+      "posterImg": "/posters/poster_1758905891409_m9xx3k.jpg",
+      "filename": "Gorillaz, De La Soul - Feel Good Inc..mp3"
     },
     {
       "artist": "Iggi Pop",
@@ -163,504 +63,204 @@
       "filename": "Iggi Pop - In The Death Car.mp3"
     },
     {
-      "artist": "Johann Sebastian Bach",
-      "name": "Toccata and Fugue in D Minor, BWV 565",
-      "album": "New Year's Resolution 2014: Learn About Classical Music with 50 Songs by Beethoven, Bach, Mozart, Tchaikovsky & More",
-      "year": "2013",
-      "genre": "Classical;Opera",
-      "src": "/music/Johann Sebastian Bach - Toccata and Fugue in D Minor, BWV 565.mp3",
-      "posterImg": "/posters/default.jpg",
-      "filename": "Johann Sebastian Bach - Toccata and Fugue in D Minor, BWV 565.mp3"
+      "artist": "Katherine Jenkins/Kiri Te Kanawa/Philharmonia Orchestra/Anthony Inglis",
+      "name": "Delibes: The Flower Duet (From \"Lakmé\")",
+      "album": "Serenade",
+      "year": "2006",
+      "genre": "Classical",
+      "src": "/music/Katherine Jenkins, Kiri Te Kanawa, Philharmonia Orchestra, Anthony Inglis - Delibes_ The Flower Duet (From _Lakmé_).mp3",
+      "posterImg": "/posters/poster_1758905891414_w1e25.jpg",
+      "filename": "Katherine Jenkins, Kiri Te Kanawa, Philharmonia Orchestra, Anthony Inglis - Delibes_ The Flower Duet (From _Lakmé_).mp3"
     },
     {
-      "artist": "Lil Jon/DJ Snake",
-      "name": "Turn Down for What",
-      "album": "",
-      "year": "",
-      "genre": "",
-      "src": "/music/Lil Jon, DJ Snake - Turn Down for What.mp3",
-      "posterImg": "/posters/default.jpg",
-      "filename": "Lil Jon, DJ Snake - Turn Down for What.mp3"
-    },
-    {
-      "artist": "Lucenzo/Don Omar",
-      "name": "Danza Kuduro",
-      "album": "Danza Kuduro 2019",
-      "year": "2019",
-      "genre": "Latin",
-      "src": "/music/Lucenzo feat. Don Omar - Danza Kuduro.mp3",
-      "posterImg": "/posters/poster_1758359158418_d2555.jpg",
-      "filename": "Lucenzo feat. Don Omar - Danza Kuduro.mp3"
-    },
-    {
-      "artist": "Luciano Pavarotti",
-      "name": "Torna a Surriento",
-      "album": "The Big Luciano",
-      "year": "2010",
-      "genre": "Opera",
-      "src": "/music/Luciano Pavarotti - Torna a Surriento.mp3",
-      "posterImg": "/posters/poster_1758359158421_1a6gm.jpg",
-      "filename": "Luciano Pavarotti - Torna a Surriento.mp3"
-    },
-    {
-      "artist": "Michel Teló",
-      "name": "Ai Se Eu Te Pego",
-      "album": "Só Sucesso 40+",
-      "year": "2019",
-      "genre": "Ethnic",
-      "src": "/music/Michel Teló - Ai Se Eu Te Pego.mp3",
-      "posterImg": "/posters/poster_1758359158426_0m8kx.jpg",
-      "filename": "Michel Teló - Ai Se Eu Te Pego.mp3"
-    },
-    {
-      "artist": "No Doubt",
-      "name": "Dont Speak",
-      "album": "The Singles Collection",
-      "year": "2003",
+      "artist": "Metallica",
+      "name": "Nothing Else Matters",
+      "album": "Metallica",
+      "year": "1991",
       "genre": "Pop",
-      "src": "/music/No Doubt - Dont Speak.mp3",
-      "posterImg": "/posters/poster_1758359158431_e8dp1l.jpg",
-      "filename": "No Doubt - Dont Speak.mp3"
+      "src": "/music/Metallica - Nothing Else Matters.mp3",
+      "posterImg": "/posters/poster_1758905891418_btxjgf.jpg",
+      "filename": "Metallica - Nothing Else Matters.mp3"
     },
     {
-      "artist": "OST 5 элемент",
-      "name": "песня оперной дивы",
-      "album": "Le cinquième élément",
-      "year": "1997",
-      "genre": "Soundtrack",
-      "src": "/music/OST 5 элемент - песня оперной дивы.mp3",
-      "posterImg": "/posters/poster_1758359158436_60p5eg.jpg",
-      "filename": "OST 5 элемент - песня оперной дивы.mp3"
-    },
-    {
-      "artist": "Post Malone/Quavo",
-      "name": "Congratulations",
-      "album": "Stoney",
-      "year": "2016",
-      "genre": "Hip-hop",
-      "src": "/music/Post Malone feat. Quavo - Congratulations.mp3",
-      "posterImg": "/posters/poster_1758359158441_l6h17c.jpg",
-      "filename": "Post Malone feat. Quavo - Congratulations.mp3"
-    },
-    {
-      "artist": "Shantel",
-      "name": "Disco Boy",
-      "album": "",
-      "year": "",
-      "genre": "",
-      "src": "/music/Shantel - Disco Boy.mp3",
-      "posterImg": "/posters/default.jpg",
-      "filename": "Shantel - Disco Boy.mp3"
-    },
-    {
-      "artist": "Shantel",
-      "name": "Disco Partizani",
-      "album": "",
-      "year": "",
-      "genre": "",
-      "src": "/music/Shantel - Disco Partizani.mp3",
-      "posterImg": "/posters/default.jpg",
-      "filename": "Shantel - Disco Partizani.mp3"
-    },
-    {
-      "artist": "Sia",
-      "name": "Cheap Thrills",
-      "album": "",
-      "year": "",
-      "genre": "",
-      "src": "/music/Sia - Cheap Thrills.mp3",
-      "posterImg": "/posters/default.jpg",
-      "filename": "Sia - Cheap Thrills.mp3"
-    },
-    {
-      "artist": "System of a Down",
-      "name": "Aerials",
-      "album": "",
-      "year": "",
-      "genre": "",
-      "src": "/music/System of a Down - Aerials.mp3",
-      "posterImg": "/posters/default.jpg",
-      "filename": "System of a Down - Aerials.mp3"
-    },
-    {
-      "artist": "System Of A Down",
-      "name": "Chop Suey!",
-      "album": "",
-      "year": "",
-      "genre": "",
-      "src": "/music/System Of A Down - Chop Suey!.mp3",
-      "posterImg": "/posters/default.jpg",
-      "filename": "System Of A Down - Chop Suey!.mp3"
-    },
-    {
-      "artist": "System Of A Down",
-      "name": "Toxicity",
-      "album": "",
-      "year": "",
-      "genre": "",
-      "src": "/music/System Of A Down - Toxicity.mp3",
-      "posterImg": "/posters/default.jpg",
-      "filename": "System Of A Down - Toxicity.mp3"
-    },
-    {
-      "artist": "W. Mozart",
-      "name": "Allegro",
-      "album": "A little nihgt serenade ",
-      "year": "2020",
-      "genre": "Classical;Instrumental",
-      "src": "/music/W. Mozart - Allegro.mp3",
-      "posterImg": "/posters/poster_1758359158466_xn2fc9.jpg",
-      "filename": "W. Mozart - Allegro.mp3"
-    },
-    {
-      "artist": "Алла Пугачёва",
-      "name": "Арлекино",
-      "album": "Арлекино и другие",
-      "year": "1979",
-      "genre": "Pop",
-      "src": "/music/Алла Пугачёва - Арлекино.mp3",
-      "posterImg": "/posters/poster_1758359158471_wtapq.jpg",
-      "filename": "Алла Пугачёва - Арлекино.mp3"
-    },
-    {
-      "artist": "Алла Пугачёва",
-      "name": "Мадам Брошкина",
-      "album": "Речной трамвайчик",
-      "year": "2001",
-      "genre": "Pop",
-      "src": "/music/Алла Пугачёва - Мадам Брошкина.mp3",
-      "posterImg": "/posters/poster_1758359158475_gdcr6.jpg",
-      "filename": "Алла Пугачёва - Мадам Брошкина.mp3"
-    },
-    {
-      "artist": "Алла Пугачёва",
-      "name": "Миллион алых роз",
-      "album": "Миллион роз",
-      "year": "1983",
-      "genre": "Pop",
-      "src": "/music/Алла Пугачёва - Миллион алых роз.mp3",
-      "posterImg": "/posters/poster_1758359158481_nui9i.jpg",
-      "filename": "Алла Пугачёва - Миллион алых роз.mp3"
-    },
-    {
-      "artist": "Алла Пугачёва",
-      "name": "Позвони Мне Позвони",
-      "album": "Роберт Рождественский: Эхо любви",
-      "year": "1998",
-      "genre": "Pop",
-      "src": "/music/Алла Пугачёва - Позвони Мне Позвони.mp3",
-      "posterImg": "/posters/poster_1758359158485_mvy7hu.jpg",
-      "filename": "Алла Пугачёва - Позвони Мне Позвони.mp3"
-    },
-    {
-      "artist": "Алла Пугачёва",
-      "name": "Позови меня с собой",
-      "album": "Да!",
-      "year": "1998",
-      "genre": "Pop",
-      "src": "/music/Алла Пугачёва - Позови меня с собой.mp3",
-      "posterImg": "/posters/poster_1758359158490_emlakp.jpg",
-      "filename": "Алла Пугачёва - Позови меня с собой.mp3"
-    },
-    {
-      "artist": "В бой идут одни старики",
-      "name": "Смуглянка-молдованка",
-      "album": "Антология, Часть №4",
-      "year": "2019",
-      "genre": "Pop",
-      "src": "/music/В бой идут одни старики - Смуглянка-молдованка.mp3",
-      "posterImg": "/posters/poster_1758359158493_es0zeq.jpg",
-      "filename": "В бой идут одни старики - Смуглянка-молдованка.mp3"
-    },
-    {
-      "artist": "Дельфин",
-      "name": "Весна",
-      "album": "Звезда",
-      "year": "2004",
-      "genre": "Alternative",
-      "src": "/music/Дельфин - Весна.mp3",
-      "posterImg": "/posters/poster_1758359158498_921t.jpg",
-      "filename": "Дельфин - Весна.mp3"
-    },
-    {
-      "artist": "Иванушки International",
-      "name": "Тополиный пух",
-      "album": "",
-      "year": "",
-      "genre": "",
-      "src": "/music/Иванушки International - Тополиный пух.mp3",
-      "posterImg": "/posters/poster_1758359158503_fskrd8.jpg",
-      "filename": "Иванушки International - Тополиный пух.mp3"
-    },
-    {
-      "artist": "Иванушки International",
-      "name": "Тучи",
-      "album": "25 тополиных лет",
-      "year": "2021",
-      "genre": "Pop",
-      "src": "/music/Иванушки International - Тучи.mp3",
-      "posterImg": "/posters/poster_1758359158507_fduq03.jpg",
-      "filename": "Иванушки International - Тучи.mp3"
-    },
-    {
-      "artist": "Кукрыниксы",
-      "name": "Надежда",
-      "album": "Артист",
-      "year": "2016",
-      "genre": "Rock",
-      "src": "/music/Кукрыниксы - Надежда.mp3",
-      "posterImg": "/posters/poster_1758359158530_u2wmoe.jpg",
-      "filename": "Кукрыниксы - Надежда.mp3"
-    },
-    {
-      "artist": "Ласковый май",
-      "name": "Белые розы",
-      "album": "",
-      "year": "",
-      "genre": "",
-      "src": "/music/Ласковый май - Белые розы.mp3",
-      "posterImg": "/posters/default.jpg",
-      "filename": "Ласковый май - Белые розы.mp3"
-    },
-    {
-      "artist": "Ласковый май",
-      "name": "Розовый вечер",
-      "album": "",
-      "year": "",
-      "genre": "",
-      "src": "/music/Ласковый май - Розовый вечер.mp3",
-      "posterImg": "/posters/default.jpg",
-      "filename": "Ласковый май - Розовый вечер.mp3"
-    },
-    {
-      "artist": "Ласковый май",
-      "name": "Седая ночь",
-      "album": "",
-      "year": "",
-      "genre": "",
-      "src": "/music/Ласковый май - Седая ночь.mp3",
-      "posterImg": "/posters/default.jpg",
-      "filename": "Ласковый май - Седая ночь.mp3"
-    },
-    {
-      "artist": "Ласковый май [mp3xa.cc]",
-      "name": "Детство",
-      "album": "",
-      "year": "",
-      "genre": "",
-      "src": "/music/Ласковый май [mp3xa.cc] - Детство.mp3",
-      "posterImg": "/posters/default.jpg",
-      "filename": "Ласковый май [mp3xa.cc] - Детство.mp3"
-    },
-    {
-      "artist": "Ласковый май [mp3xa.cc]",
-      "name": "Лето",
-      "album": "Памяти Юрию Шатунову",
-      "year": "2023",
-      "genre": "Pop",
-      "src": "/music/Ласковый май [mp3xa.cc] - Лето.mp3",
-      "posterImg": "/posters/poster_1758359158551_ynpqg.jpg",
-      "filename": "Ласковый май [mp3xa.cc] - Лето.mp3"
-    },
-    {
-      "artist": "Ленинград",
-      "name": "WWW",
-      "album": "Ленинград: Лучшее!",
-      "year": "2014",
-      "genre": "Rock",
-      "src": "/music/Ленинград - WWW.mp3",
-      "posterImg": "/posters/poster_1758359158554_p3nqji.jpg",
-      "filename": "Ленинград - WWW.mp3"
-    },
-    {
-      "artist": "Ленинград",
-      "name": "Супер Гуд",
-      "album": "Второй Магаданский...",
-      "year": "2003",
-      "genre": "Rock",
-      "src": "/music/Ленинград - Супер Гуд.mp3",
-      "posterImg": "/posters/poster_1758359158558_mu5kea.jpg",
-      "filename": "Ленинград - Супер Гуд.mp3"
-    },
-    {
-      "artist": "Лицей",
-      "name": "Осень",
-      "album": "Открытый занавес",
-      "year": "1996",
-      "genre": "Pop",
-      "src": "/music/Лицей - Осень.mp3",
-      "posterImg": "/posters/poster_1758359158563_uj0avl.jpg",
-      "filename": "Лицей - Осень.mp3"
-    },
-    {
-      "artist": "Ляпис Трубецкой",
-      "name": "Ау",
-      "album": "Лучшее. Часть 1: Любовь и романтика",
-      "year": "2016",
-      "genre": "Rock",
-      "src": "/music/Ляпис Трубецкой - Ау.mp3",
-      "posterImg": "/posters/poster_1758359158568_4zpnaf.jpg",
-      "filename": "Ляпис Трубецкой - Ау.mp3"
-    },
-    {
-      "artist": "Ляпис Трубецкой",
-      "name": "В платье белом",
-      "album": "Лучшее за все годы",
-      "year": "2016",
-      "genre": "Rock;Soundtrack",
-      "src": "/music/Ляпис Трубецкой - В платье белом.mp3",
-      "posterImg": "/posters/poster_1758359158574_373l1l.jpg",
-      "filename": "Ляпис Трубецкой - В платье белом.mp3"
-    },
-    {
-      "artist": "Ляпис Трубецкой",
-      "name": "Капитал",
-      "album": "Капитал",
-      "year": "2007",
-      "genre": "Rock",
-      "src": "/music/Ляпис Трубецкой - Капитал.mp3",
-      "posterImg": "/posters/poster_1758359158578_nc6w7g.jpg",
-      "filename": "Ляпис Трубецкой - Капитал.mp3"
-    },
-    {
-      "artist": "Ляпис Трубецкой",
-      "name": "Хали-Гали",
-      "album": "Нам С Тобою Было Супер",
-      "year": "2016",
-      "genre": "Rock",
-      "src": "/music/Ляпис Трубецкой - Хали-Гали.mp3",
-      "posterImg": "/posters/poster_1758359158580_36k63f.jpg",
-      "filename": "Ляпис Трубецкой - Хали-Гали.mp3"
-    },
-    {
-      "artist": "Мираж",
-      "name": "Музыка нас связала",
-      "album": "Снова вместе",
-      "year": "1988",
-      "genre": "Pop",
-      "src": "/music/Мираж - Музыка нас связала.mp3",
-      "posterImg": "/posters/poster_1758359158584_50w5y.jpg",
-      "filename": "Мираж - Музыка нас связала.mp3"
-    },
-    {
-      "artist": "Моцарт",
-      "name": "Турецкий марш",
-      "album": "Ein armes Tier ist das Klavier - Das große Abenteuer Musik - Folge 2",
-      "year": "2016",
-      "genre": "Kid's",
-      "src": "/music/Моцарт - Турецкий марш.mp3",
-      "posterImg": "/posters/poster_1758359158589_1w7pih.jpg",
-      "filename": "Моцарт - Турецкий марш.mp3"
-    },
-    {
-      "artist": "Мумий Тр.",
-      "name": "Дельфины",
-      "album": "Best 20-20",
-      "year": "2020",
-      "genre": "Rock",
-      "src": "/music/Мумий Тр. - Дельфины.mp3",
-      "posterImg": "/posters/poster_1758359158594_r7fp.jpg",
-      "filename": "Мумий Тр. - Дельфины.mp3"
-    },
-    {
-      "artist": "Мумий Тролль",
-      "name": "Владивосток 2000",
-      "album": "Best 20-20",
-      "year": "2020",
-      "genre": "Rock",
-      "src": "/music/Мумий Тролль - Владивосток 2000.mp3",
-      "posterImg": "/posters/poster_1758359158598_ipefj.jpg",
-      "filename": "Мумий Тролль - Владивосток 2000.mp3"
-    },
-    {
-      "artist": "Мумий Тролль",
-      "name": "Невеста?",
-      "album": "Best 20-20",
-      "year": "2020",
-      "genre": "Rock",
-      "src": "/music/Мумий Тролль - Невеста_.mp3",
-      "posterImg": "/posters/poster_1758359158603_ozi7dh.jpg",
-      "filename": "Мумий Тролль - Невеста_.mp3"
-    },
-    {
-      "artist": "Ноль",
-      "name": "Иду, курю",
-      "album": "Песня о безответной любви к родине",
-      "year": "2003",
-      "genre": "Rock",
-      "src": "/music/Ноль - Иду, курю.mp3",
-      "posterImg": "/posters/poster_1758359158607_wlz0h.jpg",
-      "filename": "Ноль - Иду, курю.mp3"
-    },
-    {
-      "artist": "Ноль",
-      "name": "Человек и кошка",
-      "album": "Что так сердце растревожено",
-      "year": "1998",
-      "genre": "Rock",
-      "src": "/music/Ноль - Человек и кошка.mp3",
-      "posterImg": "/posters/poster_1758359158611_8hwc9.jpg",
-      "filename": "Ноль - Человек и кошка.mp3"
-    },
-    {
-      "artist": "Ночные Снайперы",
-      "name": "31-я весна",
-      "album": "рубеж",
-      "year": "2001",
-      "genre": "Rock",
-      "src": "/music/Ночные Снайперы - 31-я весна.mp3",
-      "posterImg": "/posters/poster_1758359158617_ury0a.jpg",
-      "filename": "Ночные Снайперы - 31-я весна.mp3"
-    },
-    {
-      "artist": "София Ротару",
-      "name": "Было, но прошло",
-      "album": "you 2023",
-      "year": "2024",
-      "genre": "Hip-hop",
-      "src": "/music/София Ротару - Было, но прошло.mp3",
-      "posterImg": "/posters/poster_1758359158622_h6zbg.jpg",
-      "filename": "София Ротару - Было, но прошло.mp3"
-    },
-    {
-      "artist": "Сплин",
-      "name": "Моё Сердце",
-      "album": "25 Кадр",
-      "year": "2017",
-      "genre": "Rock",
-      "src": "/music/Сплин - Моё Сердце.mp3",
-      "posterImg": "/posters/poster_1758359158627_v6o3ro.jpg",
-      "filename": "Сплин - Моё Сердце.mp3"
-    },
-    {
-      "artist": "Сплин",
-      "name": "Орбит без сахара",
-      "album": "Гранатовый альбом",
-      "year": "1998",
-      "genre": "Rock",
-      "src": "/music/Сплин - Орбит без сахара.mp3",
-      "posterImg": "/posters/poster_1758359158630_idnd4m.jpg",
-      "filename": "Сплин - Орбит без сахара.mp3"
-    },
-    {
-      "artist": "ЧАЙФ",
-      "name": "Аргентина-Ямайка - 5:0",
-      "album": "В стиле регги",
+      "artist": "Queen",
+      "name": "Bohemian Rhapsody",
+      "album": "Mannheim 1986",
       "year": "2025",
       "genre": "Rock",
-      "src": "/music/ЧАЙФ - Аргентина-Ямайка - 5_0.mp3",
-      "posterImg": "/posters/poster_1758359158634_fgizbj.jpg",
-      "filename": "ЧАЙФ - Аргентина-Ямайка - 5_0.mp3"
+      "src": "/music/Queen - Bohemian Rhapsody.mp3",
+      "posterImg": "/posters/poster_1758905891424_cv671p.jpg",
+      "filename": "Queen - Bohemian Rhapsody.mp3"
     },
     {
-      "artist": "ЧАЙФ",
-      "name": "Никто не услышит (Ой-йо)",
-      "album": "Давай вернёмся",
-      "year": "1990",
+      "artist": "Rammstein",
+      "name": "Du hast",
+      "album": "Made In Germany 1995 - 2011",
+      "year": "2011",
       "genre": "Rock",
-      "src": "/music/ЧАЙФ - Никто не услышит (Ой-йо).mp3",
-      "posterImg": "/posters/poster_1758359158638_blcvwd.jpg",
-      "filename": "ЧАЙФ - Никто не услышит (Ой-йо).mp3"
+      "src": "/music/Rammstein - Du hast.mp3",
+      "posterImg": "/posters/poster_1758905891427_b2qjz8.jpg",
+      "filename": "Rammstein - Du hast.mp3"
+    },
+    {
+      "artist": "Rammstein",
+      "name": "Ich will",
+      "album": "Mutter",
+      "year": "2001",
+      "genre": "Rock",
+      "src": "/music/Rammstein - Ich will.mp3",
+      "posterImg": "/posters/poster_1758905891429_mv7m9.jpg",
+      "filename": "Rammstein - Ich will.mp3"
+    },
+    {
+      "artist": "Sarah Brightman/Andrea Bocelli",
+      "name": "Time To Say Goodbye",
+      "album": "The Best of Andrea Bocelli - 'Vivere'",
+      "year": "2007",
+      "genre": "Pop",
+      "src": "/music/Sarah Brightman, Andrea Bocelli - Time To Say Goodbye.mp3",
+      "posterImg": "/posters/poster_1758905891433_dd8g69.jpg",
+      "filename": "Sarah Brightman, Andrea Bocelli - Time To Say Goodbye.mp3"
+    },
+    {
+      "artist": "Tom Jones",
+      "name": "Sex Bomb (2000)",
+      "album": "Greatest Hits Rediscovered",
+      "year": "2010",
+      "genre": "Pop",
+      "src": "/music/Tom Jones - Sex Bomb (2000).mp3",
+      "posterImg": "/posters/poster_1758905891436_cef4ic.jpg",
+      "filename": "Tom Jones - Sex Bomb (2000).mp3"
+    },
+    {
+      "artist": "Буйнов Александр",
+      "name": "Мои финансы поют романсы",
+      "album": "Буйнов А.  Финансы поют романсы 1999",
+      "year": "2017",
+      "genre": "Pop",
+      "src": "/music/Буйнов Александр - Мои финансы поют романсы.mp3",
+      "posterImg": "/posters/poster_1758905891440_qn95q.jpg",
+      "filename": "Буйнов Александр - Мои финансы поют романсы.mp3"
+    },
+    {
+      "artist": "Вячеслав Бутусов",
+      "name": "Девушка по городу",
+      "album": "Избранное",
+      "year": "2005",
+      "genre": "Rock",
+      "src": "/music/Вячеслав Бутусов - Девушка по городу.mp3",
+      "posterImg": "/posters/poster_1758905891444_nah1cf.jpg",
+      "filename": "Вячеслав Бутусов - Девушка по городу.mp3"
+    },
+    {
+      "artist": "Группа ОТПЕТЫЕ МОШЕННИКИ",
+      "name": "Девушки бывают разные",
+      "album": "",
+      "year": "",
+      "genre": "",
+      "src": "/music/Группа ОТПЕТЫЕ МОШЕННИКИ - Девушки бывают разные.mp3",
+      "posterImg": "/posters/default.jpg",
+      "filename": "Группа ОТПЕТЫЕ МОШЕННИКИ - Девушки бывают разные.mp3"
+    },
+    {
+      "artist": "ДДТ",
+      "name": "Дождь",
+      "album": "Просвистела",
+      "year": "1999",
+      "genre": "Rock",
+      "src": "/music/ДДТ - Дождь.mp3",
+      "posterImg": "/posters/poster_1758905891448_oswcsk.jpg",
+      "filename": "ДДТ - Дождь.mp3"
+    },
+    {
+      "artist": "ДДТ",
+      "name": "Что такое осень",
+      "album": "Просвистела",
+      "year": "1999",
+      "genre": "Rock",
+      "src": "/music/ДДТ - Что такое осень.mp3",
+      "posterImg": "/posters/poster_1758905891451_v09a5f.jpg",
+      "filename": "ДДТ - Что такое осень.mp3"
+    },
+    {
+      "artist": "Детские песенки",
+      "name": "Четыре неразлучных таракана и сверчок",
+      "album": "Пусть всегда будет Солнце",
+      "year": "2018",
+      "genre": "Kid's",
+      "src": "/music/Детские песенки - Четыре неразлучных таракана и сверчок.mp3",
+      "posterImg": "/posters/poster_1758905891453_fauvx.jpg",
+      "filename": "Детские песенки - Четыре неразлучных таракана и сверчок.mp3"
+    },
+    {
+      "artist": "Кино",
+      "name": "Пачка сигарет",
+      "album": "Легенда",
+      "year": "2018",
+      "genre": "Rock",
+      "src": "/music/Кино - Пачка сигарет.mp3",
+      "posterImg": "/posters/poster_1758905891457_zp664q.jpg",
+      "filename": "Кино - Пачка сигарет.mp3"
+    },
+    {
+      "artist": "Кино/В. Цой",
+      "name": "Группа крови",
+      "album": "Группа крови",
+      "year": "2017",
+      "genre": "Rock",
+      "src": "/music/Кино, В. Цой - Группа крови.mp3",
+      "posterImg": "/posters/poster_1758905891460_f5a8j7.jpg",
+      "filename": "Кино, В. Цой - Группа крови.mp3"
+    },
+    {
+      "artist": "Любэ",
+      "name": "Комбат",
+      "album": "Лучшие песни 1989-2015",
+      "year": "2015",
+      "genre": "Pop;Pop-rock",
+      "src": "/music/Любэ - Комбат.mp3",
+      "posterImg": "/posters/poster_1758905891465_cimy2.jpg",
+      "filename": "Любэ - Комбат.mp3"
+    },
+    {
+      "artist": "Отпетые мошенники",
+      "name": "Люби меня, люби",
+      "album": "Люби меня, люби",
+      "year": "1999",
+      "genre": "Pop",
+      "src": "/music/Отпетые мошенники - Люби меня, люби.mp3",
+      "posterImg": "/posters/poster_1758905891469_8s2k6.jpg",
+      "filename": "Отпетые мошенники - Люби меня, люби.mp3"
+    },
+    {
+      "artist": "Татьяна Буланова",
+      "name": "Ясный мой свет",
+      "album": "The Best",
+      "year": "1998",
+      "genre": "Pop",
+      "src": "/music/Татьяна Буланова - Ясный мой свет.mp3",
+      "posterImg": "/posters/poster_1758905891472_rdhxw9.jpg",
+      "filename": "Татьяна Буланова - Ясный мой свет.mp3"
+    },
+    {
+      "artist": "Чай Вдвоём",
+      "name": "День рожденья",
+      "album": "10 тысяч слов о любви",
+      "year": "2004",
+      "genre": "Pop",
+      "src": "/music/Чай Вдвоём - День рожденья.mp3",
+      "posterImg": "/posters/poster_1758905891475_8b1y6e.jpg",
+      "filename": "Чай Вдвоём - День рожденья.mp3"
+    },
+    {
+      "artist": "Чай Вдвоём",
+      "name": "Ласковая моя",
+      "album": "Утреннее чаепитие",
+      "year": "2005",
+      "genre": "Pop",
+      "src": "/music/Чай Вдвоём - Ласковая моя.mp3",
+      "posterImg": "/posters/poster_1758905891480_of5ccr.jpg",
+      "filename": "Чай Вдвоём - Ласковая моя.mp3"
     }
   ]
 }

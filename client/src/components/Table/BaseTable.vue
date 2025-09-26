@@ -20,19 +20,19 @@ function headerClick(name) {
 <template>
   <div class="table-wrapper">
     <div class="table">
+      <!-- <div -->
+      <!--   class="table-headers" -->
+      <!--   :style="{ 'grid-template-columns': columnsTemplate }" -->
+      <!-- > -->
       <div
-        class="table-headers"
-        :style="{ 'grid-template-columns': columnsTemplate }"
+        class="table-headers__name"
+        v-for="(name, i) of headers"
+        :key="i"
+        @click="headerClick(name)"
       >
-        <div
-          class="table-headers__name"
-          v-for="(name, i) of headers"
-          :key="i"
-          @click="headerClick(name)"
-        >
-          {{ name }}
-        </div>
+        {{ name }}
       </div>
+      <!-- </div> -->
       <slot></slot>
     </div>
   </div>

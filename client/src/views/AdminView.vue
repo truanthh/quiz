@@ -17,8 +17,12 @@ function showArtist() {
   store.socket.emit("request-show-artist");
 }
 
-function showArtist() {
+function showTrackName() {
   store.socket.emit("request-show-trackname");
+}
+
+function showPoster() {
+  store.socket.emit("request-show-poster");
 }
 
 function handlePlay() {
@@ -34,7 +38,7 @@ function nextQuestion() {
 }
 
 function prevQuestion() {
-  store.socket.emit("prev-question", currentTrack);
+  store.socket.emit("prev-question");
 }
 
 function countArtistAnswerCorrect(user) {
@@ -96,18 +100,17 @@ onMounted(() => {
       </button>
     </div>
     <div class="admin__buttonsRow">
-      <button class="admin__button_default" @click="countTrackAnswerWrong">
-        - track
-      </button>
-      <button class="admin__button_default" @click="countTrackAnswerCorrect">
-        + track
+      <button class="admin__button_default" @click="showPoster">
+        show poster
       </button>
     </div>
     <div class="admin__buttonsRow">
-      <button class="admin__button_default" @click="showArtist">
-        show artist
+      <button class="admin__button_default" @click="countTrackAnswerWrong">
+        track wrong
       </button>
-      <button class="admin__button_default" @click="showName">show name</button>
+      <button class="admin__button_default" @click="countTrackAnswerCorrect">
+        track correct
+      </button>
     </div>
     <div class="admin__buttonsRow">
       <button class="admin__button_default" @click="prevQuestion">prev</button>
@@ -119,28 +122,6 @@ onMounted(() => {
 </template>
 <style lang="scss">
 .admin {
-  &__buttonsRow {
-    display: flex;
-    width: 100%;
-    height: 80px;
-    justify-content: center;
-    align-items: center;
-  &__artist {
-    font-size: 20px;
-    font-weight: bold;
-  }
-  &__trackName {
-    font-size: 20px;
-    font-weight: bold;
-  }
-  &__container {
-    display: flex;
-    width: 100%;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    // background-color: orange;
-  }
   &__button {
     &_default {
       display: flex;
@@ -150,6 +131,29 @@ onMounted(() => {
       border-radius: 2px;
       align-items: center;
       justify-content: center;
+    }
+  }
+  &__buttonsRow {
+    display: flex;
+    width: 100%;
+    height: 80px;
+    justify-content: center;
+    align-items: center;
+    &__artist {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    &__trackName {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    &__container {
+      display: flex;
+      width: 100%;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      // background-color: orange;
     }
   }
 }

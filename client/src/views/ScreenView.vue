@@ -13,8 +13,11 @@ const store = mainStore();
 
 const audioPlayerElement = ref(null);
 const audioPlayer = useAudioPlayerStore();
+const usersReadyToAnswer = ref([]);
 
-const { currentUserAnswering } = storeToRefs(store);
+const userAnswering = computed(() => {
+  return usersReadyToAnswer.value[0];
+});
 
 const usersSortedByPoints = computed(() => {
   return users.sort((a, b) => b.points - a.points);
@@ -22,8 +25,14 @@ const usersSortedByPoints = computed(() => {
 
 const trackArtist = ref("");
 const trackName = ref("");
-const isTrackArtistShown = ref(false);
+const isArtistShown = ref(false);
 const isTrackNameShown = ref(false);
+
+const isPosterShown = ref(false);
+
+const posterExists = computed(() => {
+  return !audioPlayer.currentTrack.posterImg.endsWith("default.jpg");
+});
 
 const {
   currentTimeSeconds,
@@ -43,13 +52,24 @@ watch(currentTimeSeconds, (newTime) => {
 
 onMounted(() => {
   store.socket.on("track-is-playing", audioPlayer.play);
-  store.socket.on("track-is-paused-by-player", audioPlayer.pause);
-  store.socket.on("track-is-paused-by-admin", audioPlayer.pause);
-  store.socket.on("show-trackname-answer", () => {
+  store.socket.on("track-is-paused", audioPlayer.pause);
+  store.socket.on("update-question", (currQuestionId) => {
+    audioPlayer.changeTrack(currQuestionId);
+    isTrackNameShown.value = false;
+    isArtistShown.value = false;
+    isPosterShown.value = false;
+  });
+  store.socket.on("update-users-ready-to-answer", (usersReadyToAnswerArr) => {
+    usersReadyToAnswer.value = usersReadyToAnswerArr;
+  });
+  store.socket.on("show-trackname", () => {
     isTrackNameShown.value = true;
   });
-  store.socket.on("show-artist-answer", () => {
-    isTrackArtistShown.value = true;
+  store.socket.on("show-artist", () => {
+    isArtistShown.value = true;
+  });
+  store.socket.on("show-poster", () => {
+    isPosterShown.value = true;
   });
 
   audioPlayer.initialize(audioPlayerElement.value);
@@ -100,16 +120,23 @@ onUnmounted(() => {
         </div>
         <div class="screenView__mid__main__trackInfo">
           <div class="screenView__mid__main__trackInfo__posterContainer">
-            <ImageSkeleton
+            <div
               class="screenView__mid__main__trackInfo__posterContainer__poster"
-            />
+            >
+              <img
+                class="screenView__mid__main__trackInfo__posterContainer__poster__img"
+                :src="audioPlayer.currentTrack.posterImg"
+                v-if="isPosterShown && posterExists"
+              />
+              <ImageSkeleton v-else />
+            </div>
           </div>
 
           <div class="screenView__mid__main__trackInfo__artistAndTrackNameText">
             <div
               class="screenView__mid__main__trackInfo__artistAndTrackNameText__artist"
             >
-              <span v-if="isTrackArtistShown"> {{ currentTrack.artist }} </span>
+              <span v-if="isArtistShown"> {{ currentTrack.artist }} </span>
             </div>
             <div
               class="screenView__mid__main__trackInfo__artistAndTrackNameText__trackName"
@@ -119,8 +146,17 @@ onUnmounted(() => {
           </div>
         </div>
       </div>
+      <div class="screenView__mid__main__usersReadyToAnswer">
+        <base-table>
+          <table-row v-for="user in usersReadyToAnswer" :key="user.token">
+            <table-column>
+              {{ user.name }}
+            </table-column>
+          </table-row>
+        </base-table>
+      </div>
       <!-- <div class="screenView__mid__usersTable"> -->
-      <base-table :headers :columnsTemplate>
+      <!--   <base-table :headers :columnsTemplate> -->
       <!--     <table-row -->
       <!--       v-for="user in usersSorted" -->
       <!--       :key="user.token" -->
@@ -159,12 +195,12 @@ onUnmounted(() => {
     // background-color: gray;
     &__empty {
       width: 100%;
-      height: 10%;
+      height: 2%;
     }
     &__main {
       display: flex;
       flex-direction: column;
-      gap: 100px;
+      gap: 10px;
       width: 100%;
       height: 50%;
       &__status {
@@ -207,8 +243,16 @@ onUnmounted(() => {
           // background-color: green;
           padding-left: 50px;
           &__poster {
-            height: 250px;
-            width: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            width: 200px;
+            &__img {
+              height: 100%;
+              width: 100%;
+              object-fit: cover;
+            }
           }
         }
         &__artistAndTrackNameText {
@@ -222,25 +266,45 @@ onUnmounted(() => {
             width: 100%;
             height: 100%;
             flex-direction: column;
-            font-size: 50px;
+            font-size: 30px;
             font-weight: bold;
             justify-content: center;
             align-items: center;
             padding-right: 40px;
             // background-color: yellow;
+            padding-top: 10%;
+            word-break: break-all;
+            text-align: center;
           }
           &__trackName {
             display: flex;
             width: 100%;
             height: 100%;
             flex-direction: column;
-            font-size: 60px;
+            font-size: 40px;
             font-weight: bold;
             justify-content: center;
             align-items: center;
-            padding-right: 40px;
+            padding-right: 38px;
             // background-color: orange;
+            padding-bottom: 12%;
+            word-break: break-all;
+            text-align: center;
           }
+        }
+      }
+      &__usersReadyToAnswer {
+        display: flex;
+        flex-direction: column;
+        margin-top: 50px;
+        width: 100%;
+        height: 300px;
+        background-color: khaki;
+        color: green;
+        font-size: 30px;
+        &:first-child {
+          font-size: 40px;
+          font-weight: bold;
         }
       }
     }

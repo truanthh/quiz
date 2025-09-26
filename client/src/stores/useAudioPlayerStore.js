@@ -87,6 +87,7 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
     if (audioElementRef.value) {
       pause();
       audioElementRef.value.src = tracks.value[index].src;
+      currentTimeString.value = "00:00";
     }
   }
 

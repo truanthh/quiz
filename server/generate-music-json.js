@@ -10,9 +10,6 @@ const __dirname = path.dirname(__filename);
 const musicDir = path.join(__dirname, "public", "music");
 const outputFile = path.join(__dirname, "public", "tracks.json");
 
-const fs = require("fs");
-const path = require("path");
-
 // Создаем папку для постеров если её нет
 if (!fs.existsSync(postersDir)) {
   fs.mkdirSync(postersDir, { recursive: true });
