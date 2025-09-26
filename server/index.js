@@ -114,8 +114,18 @@ io.on("connection", (socket) => {
     connectedAt: new Date().toLocaleString(),
   });
 
+  socket.on("admin-loaded", (adminToken) => {
+    console.log(users[adminToken].socketId);
+    console.log(currentQuestion);
+    io.to(users[adminToken].socketId).emit("bla", currentQuestion);
+  });
+
   socket.on("set-first-question", (trackData) => {
+    console.log(
+      `setting server track to ${trackData.artist},${trackData.name}`,
+    );
     currentQuestion = trackData;
+    socket.to(adminSocketId).emit("update-admin-track-data", trackData);
     // for (let user in users) {
     //   user.isAllowedToPause = true;
     // }
@@ -123,6 +133,7 @@ io.on("connection", (socket) => {
 
   socket.on("next-question", (trackData) => {
     currentQuestion = trackData;
+    socket.to(adminSocketId).emit("update-admin-track-data", trackData);
     // for (let user in users) {
     // user.isAllowedToPause = true;
     // }
@@ -130,6 +141,7 @@ io.on("connection", (socket) => {
 
   socket.on("prev-question", (trackData) => {
     currentQuestion = trackData;
+    socket.to(adminSocketId).emit("update-admin-track-data", trackData);
     // for (let user in users) {
     //   user.isAllowedToPause = true;
     // }
@@ -167,9 +179,17 @@ io.on("connection", (socket) => {
 
   //broadcasted to everyone but screen
   socket.on("update-server-time", (currentTime) => {
-    console.log(`new time ${currentTime}`);
+    // console.log(`new time ${currentTime}`);
     audioPlayer.currentTime = currentTime;
     socket.broadcast.emit("update-client-time", audioPlayer.currentTime);
+  });
+
+  socket.on("request-show-artist-answer", () => {
+    socket.to(screenSocketId).emit("show-artist-answer");
+  });
+
+  socket.on("request-show-trackname-answer", () => {
+    socket.to(screenSocketId).emit("show-trackname-answer");
   });
 
   // THESE ONLY SENT BY ADMIN
@@ -178,7 +198,6 @@ io.on("connection", (socket) => {
     user.points += 100;
     let players = playerTokenArray.map((token) => users[token]);
     socket.broadcast.emit("update-users-data-all-clients", players);
-    socket.to(screenSocketId).emit("show-artist-answer");
   });
 
   socket.on("count-artist-answer-wrong", (currentUserAnsweringToken) => {
@@ -186,7 +205,6 @@ io.on("connection", (socket) => {
     user.points -= 100;
     let players = playerTokenArray.map((token) => users[token]);
     socket.broadcast.emit("update-users-data-all-clients", players);
-    socket.to(screenSocketId).emit("show-artist-answer");
   });
 
   socket.on("count-song-answer-correct", (currentUserAnsweringToken) => {
@@ -194,7 +212,6 @@ io.on("connection", (socket) => {
     user.points += 200;
     let players = playerTokenArray.map((token) => users[token]);
     socket.broadcast.emit("update-users-data-all-clients", players);
-    socket.to(screenSocketId).emit("show-song-answer");
   });
 
   socket.on("count-song-answer-wrong", (currentUserAnsweringToken) => {
@@ -202,7 +219,6 @@ io.on("connection", (socket) => {
     user.points -= 200;
     let players = playerTokenArray.map((token) => users[token]);
     socket.broadcast.emit("update-users-data-all-clients", players);
-    socket.to(screenSocketId).emit("show-song-answer");
   });
 
   // socket.on("play-pause-track", (user) => {
