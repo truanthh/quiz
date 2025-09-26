@@ -38,7 +38,7 @@ const usersReadyToAnswer = [];
 
 const tracks = [];
 let currentQuestionId = 0;
-let currentQuestion;
+let currentQuestion = {};
 
 let screenSocketId;
 let adminSocketId;
@@ -59,7 +59,7 @@ function setRoleGroupSocketIds(token) {
     screenSocketId = users[token].socketId;
   } else if (users[token].role === "admin") {
     adminSocketId = users[token].socketId;
-    // users[token].isAllowedToPause = true;
+    users[token].isAllowedToPause = true;
   } else if (users[token].role === "player") {
     playerTokenArray.push(token);
   }
@@ -73,7 +73,7 @@ io.on("connection", (socket) => {
   if (token) {
     if (users[token]) {
       users[token].socketId = socket.id;
-      // users[token].isAllowedToPause = true;
+      users[token].isAllowedToPause = true;
       setRoleGroupSocketIds(token);
       console.log(`got user, logging in... ${JSON.stringify(users[token])}`);
       socket.emit("login-successful", { ...users[token], token: token });
@@ -91,7 +91,8 @@ io.on("connection", (socket) => {
     users[token].name = payload.userName;
     users[token].socketId = socket.id;
     users[token].connectedAt = socket.connectedAt;
-    // users[token].isAllowedToPause = true;
+    users[token].points = 0;
+    users[token].isAllowedToPause = true;
     setRoleGroupSocketIds(token);
     console.log(
       `
@@ -114,25 +115,30 @@ io.on("connection", (socket) => {
     connectedAt: new Date().toLocaleString(),
   });
 
-  socket.on("set-first-question", (trackData) => {
-    currentQuestion = trackData;
-    // for (let user in users) {
-    //   user.isAllowedToPause = true;
-    // }
+  socket.on("set-tracks", (tracks) => {
+    audioPlayer.tracks = tracks;
+    currentQuestion = audioPlayer.tracks[0];
+
+    // just in case, mb delete this later
+    for (let user in users) {
+      user.isAllowedToPause = true;
+    }
   });
+
+  socket.on("admin-loaded", () => {});
 
   socket.on("next-question", (trackData) => {
     currentQuestion = trackData;
-    // for (let user in users) {
-    // user.isAllowedToPause = true;
-    // }
+    for (let user in users) {
+      user.isAllowedToPause = true;
+    }
   });
 
   socket.on("prev-question", (trackData) => {
     currentQuestion = trackData;
-    // for (let user in users) {
-    //   user.isAllowedToPause = true;
-    // }
+    for (let user in users) {
+      user.isAllowedToPause = true;
+    }
   });
 
   // track can only be paused by player or admin
@@ -178,7 +184,6 @@ io.on("connection", (socket) => {
     user.points += 100;
     let players = playerTokenArray.map((token) => users[token]);
     socket.broadcast.emit("update-users-data-all-clients", players);
-    socket.to(screenSocketId).emit("show-artist-answer");
   });
 
   socket.on("count-artist-answer-wrong", (currentUserAnsweringToken) => {
@@ -186,7 +191,6 @@ io.on("connection", (socket) => {
     user.points -= 100;
     let players = playerTokenArray.map((token) => users[token]);
     socket.broadcast.emit("update-users-data-all-clients", players);
-    socket.to(screenSocketId).emit("show-artist-answer");
   });
 
   socket.on("count-song-answer-correct", (currentUserAnsweringToken) => {
@@ -194,7 +198,6 @@ io.on("connection", (socket) => {
     user.points += 200;
     let players = playerTokenArray.map((token) => users[token]);
     socket.broadcast.emit("update-users-data-all-clients", players);
-    socket.to(screenSocketId).emit("show-song-answer");
   });
 
   socket.on("count-song-answer-wrong", (currentUserAnsweringToken) => {
@@ -202,7 +205,6 @@ io.on("connection", (socket) => {
     user.points -= 200;
     let players = playerTokenArray.map((token) => users[token]);
     socket.broadcast.emit("update-users-data-all-clients", players);
-    socket.to(screenSocketId).emit("show-song-answer");
   });
 
   // socket.on("play-pause-track", (user) => {

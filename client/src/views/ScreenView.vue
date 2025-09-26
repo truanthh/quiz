@@ -59,7 +59,7 @@ onMounted(() => {
     audioPlayer.updateTime,
   );
 
-  store.socket.emit("set-first-question", audioPlayer.currentTrack);
+  store.socket.emit("set-tracks", audioPlayer.tracks);
 });
 
 onUnmounted(() => {
