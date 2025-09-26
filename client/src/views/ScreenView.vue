@@ -6,6 +6,7 @@ import { mainStore } from "../stores/mainStore";
 import BaseTable from "../components/Table/BaseTable.vue";
 import TableRow from "../components/Table/TableRow.vue";
 import TableColumn from "../components/Table/TableColumn.vue";
+import ImageSkeleton from "../components/ImageSkeleton.vue";
 import tracksData from "../../tracks.json";
 
 const store = mainStore();
@@ -44,7 +45,7 @@ onMounted(() => {
   store.socket.on("track-is-playing", audioPlayer.play);
   store.socket.on("track-is-paused-by-player", audioPlayer.pause);
   store.socket.on("track-is-paused-by-admin", audioPlayer.pause);
-  store.socket.on("show-song-answer", () => {
+  store.socket.on("show-trackname-answer", () => {
     isTrackNameShown.value = true;
   });
   store.socket.on("show-artist-answer", () => {
@@ -75,6 +76,11 @@ onUnmounted(() => {
 
 <template>
   <div class="screenView__container">
+    <audio
+      :src="audioPlayer.currentTrack.src"
+      ref="audioPlayerElement"
+      preload="auto"
+    ></audio>
     <div class="screenView__left"></div>
     <div class="screenView__mid">
       <div class="screenView__mid__empty"></div>
@@ -92,29 +98,43 @@ onUnmounted(() => {
             <span class="text__pointsChange"> +100 </span>
           </div>
         </div>
-        <div class="screenView__mid__main__artist">
-          {{ currentTrack.artist }}
-        </div>
-        <div class="screenView__mid__main__song">
-          {{ currentTrack.name }}
+        <div class="screenView__mid__main__trackInfo">
+          <div class="screenView__mid__main__trackInfo__posterContainer">
+            <ImageSkeleton
+              class="screenView__mid__main__trackInfo__posterContainer__poster"
+            />
+          </div>
+
+          <div class="screenView__mid__main__trackInfo__artistAndTrackNameText">
+            <div
+              class="screenView__mid__main__trackInfo__artistAndTrackNameText__artist"
+            >
+              <span v-if="isTrackArtistShown"> {{ currentTrack.artist }} </span>
+            </div>
+            <div
+              class="screenView__mid__main__trackInfo__artistAndTrackNameText__trackName"
+            >
+              <span v-if="isTrackNameShown"> {{ currentTrack.name }} </span>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="screenView__mid__usersTable">
-        <base-table :headers :columnsTemplate>
-          <table-row
-            v-for="user in usersSorted"
-            :key="user.token"
-            :columnsTemplate
-          >
-            <table-column>
-              {{ user.name }}
-            </table-column>
-            <table-column>
-              {{ user.points }}
-            </table-column>
-          </table-row>
-        </base-table>
-      </div>
+      <!-- <div class="screenView__mid__usersTable"> -->
+      <base-table :headers :columnsTemplate>
+      <!--     <table-row -->
+      <!--       v-for="user in usersSorted" -->
+      <!--       :key="user.token" -->
+      <!--       :columnsTemplate -->
+      <!--     > -->
+      <!--       <table-column> -->
+      <!--         {{ user.name }} -->
+      <!--       </table-column> -->
+      <!--       <table-column> -->
+      <!--         {{ user.points }} -->
+      <!--       </table-column> -->
+      <!--     </table-row> -->
+      <!--   </base-table> -->
+      <!-- </div> -->
     </div>
     <div class="screenView__right"></div>
   </div>
@@ -144,8 +164,7 @@ onUnmounted(() => {
     &__main {
       display: flex;
       flex-direction: column;
-      // background-color: green;
-      gap: 20px;
+      gap: 100px;
       width: 100%;
       height: 50%;
       &__status {
@@ -173,23 +192,56 @@ onUnmounted(() => {
           padding-right: 4%;
         }
       }
-      &__artist {
+      &__trackInfo {
         display: flex;
-        flex-direction: column;
-        font-size: 60px;
-        font-weight: bold;
-        justify-content: start;
         align-items: center;
-        // background-color: yellow;
-      }
-      &__song {
-        display: flex;
-        flex-direction: column;
-        font-size: 50px;
-        font-weight: bold;
-        justify-content: start;
-        align-items: center;
-        // background-color: yellow;
+        justify-content: center;
+        width: 100%;
+        height: 300px;
+        // background-color: green;
+        &__posterContainer {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40%;
+          // background-color: green;
+          padding-left: 50px;
+          &__poster {
+            height: 250px;
+            width: 300px;
+          }
+        }
+        &__artistAndTrackNameText {
+          display: flex;
+          height: 100%;
+          width: 60%;
+          // background-color: orange;
+          flex-direction: column;
+          &__artist {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            font-size: 50px;
+            font-weight: bold;
+            justify-content: center;
+            align-items: center;
+            padding-right: 40px;
+            // background-color: yellow;
+          }
+          &__trackName {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            font-size: 60px;
+            font-weight: bold;
+            justify-content: center;
+            align-items: center;
+            padding-right: 40px;
+            // background-color: orange;
+          }
+        }
       }
     }
   }

@@ -173,9 +173,17 @@ io.on("connection", (socket) => {
 
   //broadcasted to everyone but screen
   socket.on("update-server-time", (currentTime) => {
-    console.log(`new time ${currentTime}`);
+    // console.log(`new time ${currentTime}`);
     audioPlayer.currentTime = currentTime;
     socket.broadcast.emit("update-client-time", audioPlayer.currentTime);
+  });
+
+  socket.on("request-show-artist-answer", () => {
+    socket.to(screenSocketId).emit("show-artist-answer");
+  });
+
+  socket.on("request-show-trackname-answer", () => {
+    socket.to(screenSocketId).emit("show-trackname-answer");
   });
 
   // THESE ONLY SENT BY ADMIN

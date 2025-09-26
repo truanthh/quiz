@@ -34,7 +34,7 @@ function nextQuestion() {
 }
 
 function prevQuestion() {
-  store.socket.emit("prev-question");
+  store.socket.emit("prev-question", currentTrack);
 }
 
 function countArtistAnswerCorrect(user) {
@@ -64,13 +64,13 @@ function countTrackAnswerWrong(user) {
     currentUserAnswering.value.token,
   );
 }
-
 onMounted(() => {
   store.socket.on("update-admin-track-data", (trackData) => {
     currentTrack.value = trackData;
   });
   store.socket.on("track-is-playing", () => {
     isPlayingAudioPlayer.value = true;
+    console.log("PLAYING");
   });
   store.socket.on("track-is-paused-by-player", () => {
     isPlayingAudioPlayer.value = false;
@@ -88,11 +88,11 @@ onMounted(() => {
       <button class="admin__button_default" @click="handlePlay">PLAY</button>
     </div>
     <div class="admin__buttonsRow">
-      <button class="admin__button_default" @click="countArtistAnswerWrong">
-        - artist
+      <button class="admin__button_default" @click="showArtist">
+        show artist
       </button>
-      <button class="admin__button_default" @click="countArtistAnswerCorrect">
-        + artist
+      <button class="admin__button_default" @click="showTrackName">
+        show trackname
       </button>
     </div>
     <div class="admin__buttonsRow">
@@ -114,6 +114,8 @@ onMounted(() => {
       <button class="admin__button_default" @click="nextQuestion">next</button>
     </div>
   </div>
+  <div class="admin__artist">{{ currentTrack.artist }}</div>
+  <div class="admin__trackName">{{ currentTrack.name }}</div>
 </template>
 <style lang="scss">
 .admin {
@@ -123,17 +125,31 @@ onMounted(() => {
     height: 80px;
     justify-content: center;
     align-items: center;
+  &__artist {
+    font-size: 20px;
+    font-weight: bold;
+  }
+  &__trackName {
+    font-size: 20px;
+    font-weight: bold;
   }
   &__container {
     display: flex;
+    width: 100%;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    // background-color: orange;
   }
   &__button {
     &_default {
       display: flex;
       width: 50%;
+      height: 100px;
+      outline: none;
+      border-radius: 2px;
+      align-items: center;
+      justify-content: center;
     }
   }
 }
