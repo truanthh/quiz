@@ -27,37 +27,17 @@ app.get("/{*any}", (req, res) => {
 app.use(cors());
 app.use(express.json());
 
-const user = {
-  socketId: "",
-  connectedAt: "",
-  points: 0,
-  pressedReady: false,
-};
-
-function resetUsers() {
-  for (let user in users) {
-    if (user.role === "player") {
-      user.pressedReady = false;
-    }
-  }
-}
-
+// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+//
 const users = {};
 const usersReadyToAnswer = [];
-
-const tracks = [];
-let currentQuestionId = 0;
-let currentQuestion = {};
 
 let screenSocketId;
 let adminSocketId;
 let playerTokenArray = [];
 
-function getPlayers() {
-  if (playerTokenArray.length > 0) {
-    return playerTokenArray.map(token > users[token]);
-  }
-}
+let currentQuestionId = 0;
+let currentQuestion = {};
 
 // audioPlayer state
 const audioPlayer = {
@@ -68,6 +48,21 @@ const audioPlayer = {
   volume: 2.0,
   tracks: [],
 };
+
+function getPlayers() {
+  if (playerTokenArray.length > 0) {
+    return playerTokenArray.map(token > users[token]);
+  }
+}
+
+function resetUsers() {
+  for (let user in users) {
+    if (user.role === "player") {
+      user.hasPressedReady = false;
+    }
+  }
+  usersReadyToAnswer.length = 0;
+}
 
 function setRoleGroupSocketIds(token) {
   if (users[token].role === "screen") {
@@ -105,6 +100,7 @@ io.on("connection", (socket) => {
     users[token].socketId = socket.id;
     users[token].connectedAt = socket.connectedAt;
     users[token].points = 0;
+    users[token].hasPressedReady = false;
     setRoleGroupSocketIds(token);
     console.log(
       `
@@ -141,34 +137,55 @@ io.on("connection", (socket) => {
   });
 
   socket.on("next-question", (trackData) => {
-    console.log("admin requested a switch to next question!");
+    if (currentQuestionId === audioPlayer.tracks.length - 1) {
+      return;
+    }
+    resetUsers();
+    io.to(screenSocketId).emit(
+      "update-users-ready-to-answer",
+      usersReadyToAnswer,
+    );
     currentQuestionId++;
     currentQuestion = audioPlayer.tracks[currentQuestionId];
-    resetUsers();
     io.sockets.emit("update-question", currentQuestionId);
   });
 
   socket.on("prev-question", (trackData) => {
-    console.log("admin requested a switch to prev question!");
+    if (currentQuestionId === 0) {
+      return;
+    }
+    resetUsers();
+    io.to(screenSocketId).emit(
+      "update-users-ready-to-answer",
+      usersReadyToAnswer,
+    );
     currentQuestionId--;
     currentQuestion = audioPlayer.tracks[currentQuestionId];
-    resetUsers();
     io.sockets.emit("update-question", currentQuestionId);
   });
 
   // track can only be paused by player or admin
   // added admin condition just in case
   socket.on("pause-track", (user) => {
-    console.log(`${user.name} is trying to pause! (${user.role})`);
+    const player = users[user.token];
     if (audioPlayer.isPlaying) {
       audioPlayer.isPlaying = false;
       io.to(screenSocketId).emit("track-is-paused");
     }
-    if (user.role === "player") {
-      if (!user.pressedReady) {
-        usersReadyToAnswer.push(user);
-        user.pressedReady = true;
-        io.sockets.emit("update-users-ready-to-answer");
+    if (player.role === "player") {
+      console.log(`${player.name} is ready to answer!`);
+      if (!player.hasPressedReady) {
+        player.hasPressedReady = true;
+        usersReadyToAnswer.push(player);
+        // io.to(user.socketId).emit("update-user-data", user);
+        io.to(screenSocketId).emit(
+          "update-users-ready-to-answer",
+          usersReadyToAnswer,
+        );
+      } else {
+        console.log(
+          `${player.name} cannot pause anymore - hasPressedReady: ${player.hasPressedReady}`,
+        );
       }
     }
   });

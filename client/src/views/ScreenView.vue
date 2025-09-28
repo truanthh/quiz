@@ -13,11 +13,8 @@ const store = mainStore();
 
 const audioPlayerElement = ref(null);
 const audioPlayer = useAudioPlayerStore();
-const usersReadyToAnswer = ref([]);
 
-const userAnswering = computed(() => {
-  return usersReadyToAnswer.value[0];
-});
+const usersReadyToAnswer = ref([]);
 
 const usersSortedByPoints = computed(() => {
   return users.sort((a, b) => b.points - a.points);
@@ -301,7 +298,7 @@ onUnmounted(() => {
         height: 300px;
         background-color: khaki;
         color: green;
-        font-size: 30px;
+        font-size: 60px;
         &:first-child {
           font-size: 40px;
           font-weight: bold;

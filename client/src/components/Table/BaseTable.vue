@@ -40,7 +40,7 @@ function headerClick(name) {
 
 <style lang="scss" scoped>
 .table {
-  background-color: #fff;
+  // background-color: #fff;
   width: 60%;
   &-wrapper {
     display: flex;
@@ -52,7 +52,7 @@ function headerClick(name) {
     column-gap: 40px;
     align-items: center;
     border-bottom: 2px solid #eeeff4;
-    background: #fff;
+    // background: #fff;
     @media screen and (max-width: 767px) {
       display: none;
     }

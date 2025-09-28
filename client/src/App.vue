@@ -30,6 +30,10 @@ onUnmounted(() => {
 
 #app {
   height: 100%;
+  width: device-width;
+  initial-scale: 1;
+  maximum-scale: 1;
+  user-scalable: no;
 }
 .content {
   // width: 100%;

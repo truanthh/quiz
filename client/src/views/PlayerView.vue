@@ -52,9 +52,7 @@ onMounted(() => {
         !isPlaying ? 'playerView__mainButton' : 'playerView__mainButton_glowing'
       "
       @click="handleClick"
-    >
-      STOP!
-    </button>
+    ></button>
     <div class="debugInfo">{{ debugLog }}</div>
     <div class="debugInfo">{{ store.connectionInfo.message }}</div>
     <div class="debugInfo">{{ store.connectionInfo.connectedAt }}</div>

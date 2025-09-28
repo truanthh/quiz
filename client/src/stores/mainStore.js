@@ -9,9 +9,6 @@ export const mainStore = defineStore("mainStore", () => {
   const user = ref({});
   const users = ref([]);
   const isAuth = ref(false);
-  const currentUserAnswering = computed(() => {
-    return users.value[0]?.name;
-  });
 
   const audioPlayer = useAudioPlayerStore();
 
@@ -33,8 +30,12 @@ export const mainStore = defineStore("mainStore", () => {
       connectionInfo.value.status = "Отключено от сервера";
     });
 
-    socket.value.on("update-users-data-all-clients", (users) => {
+    socket.value.on("update-users-data", (users) => {
       users.value = [...users];
+    });
+
+    socket.value.on("update-user-data", (user) => {
+      user.value = user;
     });
   };
 
@@ -68,8 +69,6 @@ export const mainStore = defineStore("mainStore", () => {
   };
 
   const isQuestionActive = ref(false);
-
-  const isReadyToAnswer = ref(false);
   const debug = (el) => {};
 
   return {
@@ -83,6 +82,5 @@ export const mainStore = defineStore("mainStore", () => {
     debug,
     pauseTrack,
     waitForLogin,
-    currentUserAnswering,
   };
 });
