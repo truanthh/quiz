@@ -1,4 +1,4 @@
-<script setup>
+<script set4p>
 import { ref, onMounted, computed } from "vue";
 import { mainStore } from "../stores/mainStore";
 
@@ -80,17 +80,67 @@ onMounted(() => {
     isPlayingAudioPlayer.value = false;
   });
 
-  store.socket.emit("admin-loaded", user.token);
+  store.socket.emit("admin-loaded");
 });
 </script>
 <template>
   <div class="admin__container">
-    <div class="debugInfo">{{ currentTrack.artist }}</div>
-    <div class="debugInfo">{{ currentTrack.name }}</div>
-    <div class="admin__buttonsRow">
-      <button class="admin__button_default" @click="handlePause">PAUSE</button>
-      <button class="admin__button_default" @click="handlePlay">PLAY</button>
+    <div class="admin__buttonsRow_controls">
+      <div class="admin__buttonsRow">
+        <button class="admin__button_default" @click="handlePause">
+          <span
+            style="
+              display: inline-block;
+              font-size: 18px;
+              color: #000000;
+              border-radius: 6px;
+              padding: 10px 20px;
+            "
+            >❚❚</span
+          >
+        </button>
+        <button class="admin__button_default" @click="prevQuestion">
+          <span
+            style="
+              display: inline-block;
+              font-size: 30px;
+              color: #000000;
+              border-radius: 6px;
+              padding: 10px 20px;
+            "
+            >⏮</span
+          >
+        </button>
+      </div>
+      <div class="admin__buttonsRow">
+        <button class="admin__button_default" @click="nextQuestion">
+          <span
+            style="
+              display: inline-block;
+              font-size: 30px;
+              color: #000000;
+              border-radius: 6px;
+              padding: 10px 20px;
+            "
+            >⏭</span
+          >
+        </button>
+        <button class="admin__button_default" @click="handlePlay">
+          <span
+            style="
+              display: inline-block;
+              font-size: 34px;
+              color: #000000;
+              border-radius: 6px;
+              padding: 10px 20px;
+            "
+            >▶</span
+          >
+        </button>
+      </div>
     </div>
+    <div class="admin__artist">{{ currentTrack.artist }}</div>
+    <div class="admin__trackName">{{ currentTrack.name }}</div>
     <div class="admin__buttonsRow">
       <button class="admin__button_default" @click="showArtist">
         show artist
@@ -112,49 +162,48 @@ onMounted(() => {
         track correct
       </button>
     </div>
-    <div class="admin__buttonsRow">
-      <button class="admin__button_default" @click="prevQuestion">prev</button>
-      <button class="admin__button_default" @click="nextQuestion">next</button>
-    </div>
   </div>
-  <div class="admin__artist">{{ currentTrack.artist }}</div>
-  <div class="admin__trackName">{{ currentTrack.name }}</div>
 </template>
-<style lang="scss">
+<style lang="scss" scoped>
 .admin {
+  &__container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    flex-direction: column;
+    // background-color: orange;
+  }
+  &__buttonsRow {
+    display: flex;
+    width: 100%;
+    height: 80px;
+    &_controls {
+      display: flex;
+      width: 100%;
+      height: 80px;
+      margin-top: 0px;
+      margin-bottom: 40px;
+    }
+  }
   &__button {
     &_default {
       display: flex;
       width: 50%;
       height: 100px;
       outline: none;
+      border: 1px solid gray;
       border-radius: 2px;
       align-items: center;
       justify-content: center;
     }
   }
-  &__buttonsRow {
-    display: flex;
-    width: 100%;
-    height: 80px;
-    justify-content: center;
-    align-items: center;
-    &__artist {
-      font-size: 20px;
-      font-weight: bold;
-    }
-    &__trackName {
-      font-size: 20px;
-      font-weight: bold;
-    }
-    &__container {
-      display: flex;
-      width: 100%;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      // background-color: orange;
-    }
+  &__artist {
+    font-size: 20px;
+    font-weight: bold;
+  }
+  &__trackName {
+    font-size: 20px;
+    font-weight: bold;
   }
 }
 </style>

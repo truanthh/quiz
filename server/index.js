@@ -34,8 +34,9 @@ const usersReadyToAnswer = [];
 
 let screenSocketId;
 let adminSocketId;
-let playerTokenArray = [];
+const playerTokenArray = [];
 
+const questions = [];
 let currentQuestionId = 0;
 let currentQuestion = {};
 
@@ -46,7 +47,6 @@ const audioPlayer = {
   duration: 0,
   currentTime: 0,
   volume: 2.0,
-  tracks: [],
 };
 
 function getPlayers() {
@@ -124,9 +124,12 @@ io.on("connection", (socket) => {
   });
 
   socket.on("screen-loaded", (tracks) => {
-    audioPlayer.tracks = tracks;
-    currentQuestion = audioPlayer.tracks[currentQuestionId];
-    if (audioPlayer.tracks.length !== 0) {
+    questions = tracks;
+    questions.forEach((q) => {
+      q.state = "";
+    });
+    currentQuestion = questions[currentQuestionId];
+    if (questions.length !== 0) {
       console.log("screen/tracks loaded successfully!");
     }
   });
@@ -137,7 +140,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("next-question", (trackData) => {
-    if (currentQuestionId === audioPlayer.tracks.length - 1) {
+    if (currentQuestionId === questions.length - 1) {
       return;
     }
     resetUsers();
@@ -146,7 +149,7 @@ io.on("connection", (socket) => {
       usersReadyToAnswer,
     );
     currentQuestionId++;
-    currentQuestion = audioPlayer.tracks[currentQuestionId];
+    currentQuestion = questions[currentQuestionId];
     io.sockets.emit("update-question", currentQuestionId);
   });
 
@@ -160,7 +163,7 @@ io.on("connection", (socket) => {
       usersReadyToAnswer,
     );
     currentQuestionId--;
-    currentQuestion = audioPlayer.tracks[currentQuestionId];
+    currentQuestion = questions[currentQuestionId];
     io.sockets.emit("update-question", currentQuestionId);
   });
 
@@ -174,10 +177,12 @@ io.on("connection", (socket) => {
     }
     if (player.role === "player") {
       console.log(`${player.name} is ready to answer!`);
-      if (!player.hasPressedReady) {
+      if (!player.hasPressedReady && currentQuestion.state === "open") {
         player.hasPressedReady = true;
+        setTimeout(() => {
+          currentQuestion.state = "pending";
+        }, 3000);
         usersReadyToAnswer.push(player);
-        // io.to(user.socketId).emit("update-user-data", user);
         io.to(screenSocketId).emit(
           "update-users-ready-to-answer",
           usersReadyToAnswer,
@@ -194,12 +199,12 @@ io.on("connection", (socket) => {
   // so we need to send event to everyone but the sender
   socket.on("play-track", () => {
     audioPlayer.isPlaying = true;
+    currentQuestion.state = "open";
     socket.broadcast.emit("track-is-playing", audioPlayer);
   });
 
   //broadcasted to everyone but screen
   socket.on("update-server-time", (currentTime) => {
-    // console.log(`new time ${currentTime}`);
     audioPlayer.currentTime = currentTime;
     socket.broadcast.emit("update-client-time", audioPlayer.currentTime);
   });
@@ -244,18 +249,6 @@ io.on("connection", (socket) => {
     let players = playerTokenArray.map((token) => users[token]);
     socket.broadcast.emit("update-users-data-all-clients", players);
   });
-
-  // socket.on("play-pause-track", (user) => {
-  //   console.log(`pressing play-pause, time: ${user.timePaused}`);
-  //   socket.broadcast.emit("play-pause-track-confirm", {
-  //     timePaused: user.timePaused,
-  //   });
-  // });
-
-  // Запуск таймера
-  // socket.on("start-timer", (data) => {
-  //   io.to(data.gameId).emit("timer-start", data.duration);
-  // });
 
   socket.on("disconnect", () => {
     console.log("Отключился:", socket.id);

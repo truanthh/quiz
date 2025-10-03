@@ -152,22 +152,6 @@ onUnmounted(() => {
           </table-row>
         </base-table>
       </div>
-      <!-- <div class="screenView__mid__usersTable"> -->
-      <!--   <base-table :headers :columnsTemplate> -->
-      <!--     <table-row -->
-      <!--       v-for="user in usersSorted" -->
-      <!--       :key="user.token" -->
-      <!--       :columnsTemplate -->
-      <!--     > -->
-      <!--       <table-column> -->
-      <!--         {{ user.name }} -->
-      <!--       </table-column> -->
-      <!--       <table-column> -->
-      <!--         {{ user.points }} -->
-      <!--       </table-column> -->
-      <!--     </table-row> -->
-      <!--   </base-table> -->
-      <!-- </div> -->
     </div>
     <div class="screenView__right"></div>
   </div>

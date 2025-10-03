@@ -50,6 +50,7 @@ function isLoginDataValid(userName) {
   <div class="login__container">
     <div class="login__form">
       <h1>Home quiz</h1>
+      <button @click="handleDebug">debug</button>
       <select class="login__form__input" v-model="role" id="roleSelect">
         <option value="player" selected>player</option>
         <option value="screen">screen</option>
