@@ -77,7 +77,7 @@ onMounted(() => {
     audioPlayer.updateTime,
   );
 
-  store.socket.emit("set-tracks", audioPlayer.tracks);
+  store.socket.emit("screen-loaded", audioPlayer.tracks);
 });
 
 onUnmounted(() => {

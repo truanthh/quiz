@@ -1,4 +1,4 @@
-<script set4p>
+<script setup>
 import { ref, onMounted, computed } from "vue";
 import { mainStore } from "../stores/mainStore";
 
@@ -80,7 +80,7 @@ onMounted(() => {
     isPlayingAudioPlayer.value = false;
   });
 
-  store.socket.emit("admin-loaded");
+  store.socket.emit("admin-loaded", store.user.token);
 });
 </script>
 <template>
@@ -139,8 +139,10 @@ onMounted(() => {
         </button>
       </div>
     </div>
-    <div class="admin__artist">{{ currentTrack.artist }}</div>
-    <div class="admin__trackName">{{ currentTrack.name }}</div>
+    <div class="admin__trackInfo">
+      <div class="admin__trackInfo__artist">{{ currentTrack.artist }}</div>
+      <div class="admin__trackInfo__trackName">{{ currentTrack.name }}</div>
+    </div>
     <div class="admin__buttonsRow">
       <button class="admin__button_default" @click="showArtist">
         show artist
@@ -182,7 +184,7 @@ onMounted(() => {
       width: 100%;
       height: 80px;
       margin-top: 0px;
-      margin-bottom: 40px;
+      margin-bottom: 30px;
     }
   }
   &__button {
@@ -197,13 +199,14 @@ onMounted(() => {
       justify-content: center;
     }
   }
-  &__artist {
-    font-size: 20px;
-    font-weight: bold;
-  }
-  &__trackName {
-    font-size: 20px;
-    font-weight: bold;
+  &__trackInfo {
+    margin-bottom: 10px;
+    &__artist {
+      font-size: 18px;
+    }
+    &__trackName {
+      font-size: 18px;
+    }
   }
 }
 </style>

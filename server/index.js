@@ -124,10 +124,11 @@ io.on("connection", (socket) => {
   });
 
   socket.on("screen-loaded", (tracks) => {
-    questions = tracks;
-    questions.forEach((q) => {
-      q.state = "";
+    tracks.forEach((track) => {
+      track.state = "";
+      questions.push(track);
     });
+    console.log(questions[0]);
     currentQuestion = questions[currentQuestionId];
     if (questions.length !== 0) {
       console.log("screen/tracks loaded successfully!");
@@ -167,31 +168,35 @@ io.on("connection", (socket) => {
     io.sockets.emit("update-question", currentQuestionId);
   });
 
-  // track can only be paused by player or admin
-  // added admin condition just in case
-  socket.on("pause-track", (user) => {
-    const player = users[user.token];
+  socket.on("pause-track-admin", () => {
     if (audioPlayer.isPlaying) {
       audioPlayer.isPlaying = false;
-      io.to(screenSocketId).emit("track-is-paused");
+      io.to(screenSocketId).emit("track-is-paused-admin");
     }
-    if (player.role === "player") {
-      console.log(`${player.name} is ready to answer!`);
-      if (!player.hasPressedReady && currentQuestion.state === "open") {
-        player.hasPressedReady = true;
-        setTimeout(() => {
-          currentQuestion.state = "pending";
-        }, 3000);
-        usersReadyToAnswer.push(player);
-        io.to(screenSocketId).emit(
-          "update-users-ready-to-answer",
-          usersReadyToAnswer,
-        );
-      } else {
-        console.log(
-          `${player.name} cannot pause anymore - hasPressedReady: ${player.hasPressedReady}`,
-        );
-      }
+  });
+
+  socket.on("button-pressed-player", (sender) => {
+    const user = users[sender.token];
+    if (!user.hasPressedReady && currentQuestion.state === "open") {
+      user.hasPressedReady = true;
+      setTimeout(() => {
+        if (audioPlayer.isPlaying) {
+          audioPlayer.isPlaying = false;
+          io.to(screenSocketId).emit("track-is-paused-player");
+        }
+        currentQuestion.state = "pending";
+        [
+          // screenSocketId,
+          ...playerTokenArray.map((token) => user[token].socketId),
+        ].forEach((socket) => {
+          io.to(socket).emit("question-state-changed", currentQuestion.state);
+        });
+      }, 3000);
+      usersReadyToAnswer.push(user);
+      io.to(screenSocketId).emit(
+        "update-users-ready-to-answer",
+        usersReadyToAnswer,
+      );
     }
   });
 

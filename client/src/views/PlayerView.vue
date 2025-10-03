@@ -9,6 +9,7 @@ const counter = ref(0);
 
 const currentTime = ref("00:00");
 const isPlaying = ref(false);
+const currentQuestionState = ref(false);
 
 function updateClientTime(seconds) {
   console.log(`current time is ${seconds}`);
@@ -34,22 +35,28 @@ function handleClick() {
 
 onMounted(() => {
   store.socket.on("update-client-time", updateClientTime);
+  store.socket.on("track-is-paused-by-player", (audioPlayerState) => {
+    isPlaying.value = audioPlayerState.isPlaying;
+  });
   store.socket.on("track-is-paused-by-admin", (audioPlayerState) => {
     isPlaying.value = audioPlayerState.isPlaying;
   });
   store.socket.on("track-is-playing", (audioPlayerState) => {
     isPlaying.value = audioPlayerState.isPlaying;
   });
+  store.socket.on("question-state-changed", (currentQuestionState) => {
+    currentQuestionState.value = currentQuestionState;
+  });
 });
 </script>
 <template>
   <div class="playerView__container">
-    <div class="debugInfoo">
-      {{ store.user.name }} {{ isPlaying }} {{ currentTime }}
-    </div>
+    <div class="debugInfoo">{{ store.user.name }} {{ currentTime }}</div>
     <button
       :class="
-        !isPlaying ? 'playerView__mainButton' : 'playerView__mainButton_glowing'
+        !isPlaying && currentQuestionState !== `open`
+          ? 'playerView__mainButton'
+          : 'playerView__mainButton_glowing'
       "
       @click="handleClick"
     ></button>
