@@ -49,7 +49,8 @@ watch(currentTimeSeconds, (newTime) => {
 
 onMounted(() => {
   store.socket.on("track-is-playing", audioPlayer.play);
-  store.socket.on("track-is-paused", audioPlayer.pause);
+  store.socket.on("track-is-paused-admin", audioPlayer.pause);
+  store.socket.on("track-is-paused-player", audioPlayer.pause);
   store.socket.on("update-question", (currQuestionId) => {
     audioPlayer.changeTrack(currQuestionId);
     isTrackNameShown.value = false;

@@ -171,7 +171,8 @@ io.on("connection", (socket) => {
   socket.on("pause-track-admin", () => {
     if (audioPlayer.isPlaying) {
       audioPlayer.isPlaying = false;
-      io.to(screenSocketId).emit("track-is-paused-admin");
+      // io.to(screenSocketId).emit("track-is-paused-admin");
+      socket.broadcast.emit("track-is-paused-admin", audioPlayer)
     }
   });
 
@@ -187,7 +188,7 @@ io.on("connection", (socket) => {
         currentQuestion.state = "pending";
         [
           // screenSocketId,
-          ...playerTokenArray.map((token) => user[token].socketId),
+          ...playerTokenArray.map((token) => users[token].socketId),
         ].forEach((socket) => {
           io.to(socket).emit("question-state-changed", currentQuestion.state);
         });
@@ -202,9 +203,9 @@ io.on("connection", (socket) => {
 
   // track can only be played by admin
   // so we need to send event to everyone but the sender
-  socket.on("play-track", () => {
+  socket.on("play-track-admin", () => {
     audioPlayer.isPlaying = true;
-    currentQuestion.state = "open";
+    currentQuestion.state = "open"; // ??????
     socket.broadcast.emit("track-is-playing", audioPlayer);
   });
 

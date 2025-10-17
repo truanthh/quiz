@@ -26,11 +26,11 @@ function showPoster() {
 }
 
 function handlePlay() {
-  store.socket.emit("play-track", store.user);
+  store.socket.emit("play-track-admin", store.user);
 }
 
 function handlePause() {
-  store.socket.emit("pause-track", store.user);
+  store.socket.emit("pause-track-admin", store.user);
 }
 
 function nextQuestion() {

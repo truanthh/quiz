@@ -29,20 +29,24 @@ function formatTime(seconds) {
 }
 
 function handleClick() {
+  // this is to immediately disable button playing animation
   isPlaying.value = false;
-  store.socket.emit("pause-track", store.user);
+  store.socket.emit("button-pressed-player", store.user);
 }
 
 onMounted(() => {
   store.socket.on("update-client-time", updateClientTime);
-  store.socket.on("track-is-paused-by-player", (audioPlayerState) => {
-    isPlaying.value = audioPlayerState.isPlaying;
+  store.socket.on("track-is-paused-player", (audioPlayerState) => {
+    // isPlaying.value = audioPlayerState.isPlaying;
+    isPlaying.value = false;
   });
-  store.socket.on("track-is-paused-by-admin", (audioPlayerState) => {
-    isPlaying.value = audioPlayerState.isPlaying;
+  store.socket.on("track-is-paused-admin", (audioPlayerState) => {
+    // isPlaying.value = audioPlayerState.isPlaying;
+    isPlaying.value = false;
   });
   store.socket.on("track-is-playing", (audioPlayerState) => {
-    isPlaying.value = audioPlayerState.isPlaying;
+    // isPlaying.value = audioPlayerState.isPlaying;
+    isPlaying.value = true;
   });
   store.socket.on("question-state-changed", (currentQuestionState) => {
     currentQuestionState.value = currentQuestionState;
