@@ -11,6 +11,8 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
   const currentTimeString = ref("00:00");
   const currentTimeSeconds = ref(0);
 
+  // const isPlaying()
+
   // need tracks and id and we are good
   const currentTrack = computed(() => tracks.value[currentTrackIndex.value]);
 

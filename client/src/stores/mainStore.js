@@ -1,7 +1,6 @@
 import { ref, watch, computed } from "vue";
 import { defineStore } from "pinia";
 import { io } from "socket.io-client";
-import { useAudioPlayerStore } from "./useAudioPlayerStore.js";
 
 export const mainStore = defineStore("mainStore", () => {
   const socket = ref(null);
@@ -9,8 +8,6 @@ export const mainStore = defineStore("mainStore", () => {
   const user = ref({});
   const users = ref([]);
   const isAuth = ref(false);
-
-  const audioPlayer = useAudioPlayerStore();
 
   // presumably only connection stuff here
   const initSocket = () => {
@@ -63,10 +60,17 @@ export const mainStore = defineStore("mainStore", () => {
     socket.value.emit("login", payload);
   };
 
-  const pauseTrack = () => {
-    socket.value.emit("pause-track", user.value);
-    audioPlayer.pause();
-  };
+function formatTime(seconds) {
+  let sec = seconds;
+  let min = 0;
+
+  if (seconds > 59) {
+    min = Math.floor(seconds / 60);
+    sec = sec % 60;
+  }
+
+  return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
+}
 
   const isQuestionActive = ref(false);
   const debug = (el) => {};
@@ -80,7 +84,7 @@ export const mainStore = defineStore("mainStore", () => {
     user,
     users,
     debug,
-    pauseTrack,
     waitForLogin,
+    formatTime,
   };
 });

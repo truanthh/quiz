@@ -42,30 +42,46 @@ const {
 
 audioPlayer.setTracks(tracksData.tracks);
 
+const audioPlayerState = ref({
+  tracks,
+  currentTrack,
+  currentTrackIndex,
+  isPlaying,
+  currentTimeSeconds,
+})
+
+watch(audioPlayerState, (newState) => {
+  store.socket.emit("audioplayer-state-change", newState);
+}, { deep: true })
+
 // emits on every second change
-watch(currentTimeSeconds, (newTime) => {
-  store.socket.emit("update-server-time", newTime);
-});
+// watch(currentTimeSeconds, (newTime) => {
+//   store.socket.emit("update-server-time", newTime);
+// });
 
 onMounted(() => {
-  store.socket.on("track-is-playing", audioPlayer.play);
-  store.socket.on("track-is-paused-admin", audioPlayer.pause);
-  store.socket.on("track-is-paused-player", audioPlayer.pause);
+  store.socket.on("play-track", audioPlayer.play);
+  store.socket.on("pause-track", audioPlayer.pause);
+
   store.socket.on("update-question", (currQuestionId) => {
     audioPlayer.changeTrack(currQuestionId);
     isTrackNameShown.value = false;
     isArtistShown.value = false;
     isPosterShown.value = false;
   });
+
   store.socket.on("update-users-ready-to-answer", (usersReadyToAnswerArr) => {
     usersReadyToAnswer.value = usersReadyToAnswerArr;
   });
+
   store.socket.on("show-trackname", () => {
     isTrackNameShown.value = true;
   });
+
   store.socket.on("show-artist", () => {
     isArtistShown.value = true;
   });
+
   store.socket.on("show-poster", () => {
     isPosterShown.value = true;
   });

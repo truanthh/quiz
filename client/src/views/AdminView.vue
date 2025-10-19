@@ -26,11 +26,11 @@ function showPoster() {
 }
 
 function handlePlay() {
-  store.socket.emit("play-track-admin", store.user);
+  store.socket.emit("request-play-track", store.user);
 }
 
 function handlePause() {
-  store.socket.emit("pause-track-admin", store.user);
+  store.socket.emit("request-pause-track", store.user);
 }
 
 function nextQuestion() {
@@ -69,15 +69,9 @@ function countTrackAnswerWrong(user) {
   );
 }
 onMounted(() => {
-  store.socket.on("update-admin-track-data", (trackData) => {
-    currentTrack.value = trackData;
-  });
-  store.socket.on("track-is-playing", () => {
-    isPlayingAudioPlayer.value = true;
-    console.log("PLAYING");
-  });
-  store.socket.on("track-is-paused-by-player", () => {
-    isPlayingAudioPlayer.value = false;
+  store.socket.on("update-audioplayer-client-state", (newState) => {
+    currentTrack.value = newState.currentTrack;
+    isPlayingAudioPlayer.value = newState.isPlaying;
   });
 
   store.socket.emit("admin-loaded", store.user.token);

@@ -30,7 +30,7 @@ app.use(express.json());
 // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 //
 const users = {};
-const usersReadyToAnswer = [];
+const playersReadyToAnswer = [];
 
 let screenSocketId;
 let adminSocketId;
@@ -42,26 +42,32 @@ let currentQuestion = {};
 
 // audioPlayer state
 const audioPlayer = {
+  tracks: "",
+  currentTrack: "",
   isPlaying: false,
-  currentTrackIndex: 0,
-  duration: 0,
   currentTime: 0,
-  volume: 2.0,
 };
 
 function getPlayers() {
   if (playerTokenArray.length > 0) {
-    return playerTokenArray.map(token > users[token]);
+    let bla = playerTokenArray.map(token => users[token]);
+    console.log(bla[0]);
+    return bla;
   }
+
+  return 0;
 }
 
-function resetUsers() {
-  for (let user in users) {
-    if (user.role === "player") {
-      user.hasPressedReady = false;
-    }
+function resetPlayers() {
+  const players = getPlayers();
+  if(players === 0){
+    console.log("error getting players array!")
+    return;
   }
-  usersReadyToAnswer.length = 0;
+  for (let player of players) {
+    player.hasPressedReady = false;
+  }
+  playersReadyToAnswer.length = 0;
 }
 
 function setRoleGroupSocketIds(token) {
@@ -100,7 +106,9 @@ io.on("connection", (socket) => {
     users[token].socketId = socket.id;
     users[token].connectedAt = socket.connectedAt;
     users[token].points = 0;
-    users[token].hasPressedReady = false;
+    if(payload.role === "player"){
+      users[token].hasPressedReady = false;
+    }
     setRoleGroupSocketIds(token);
     console.log(
       `
@@ -131,88 +139,36 @@ io.on("connection", (socket) => {
     console.log(questions[0]);
     currentQuestion = questions[currentQuestionId];
     if (questions.length !== 0) {
-      console.log("screen/tracks loaded successfully!");
+      console.log("questions loaded successfully!");
     }
   });
 
   socket.on("admin-loaded", () => {
-    resetUsers();
+    resetPlayers();
     io.to(adminSocketId).emit("update-admin-track-data", currentQuestion);
   });
 
-  socket.on("next-question", (trackData) => {
-    if (currentQuestionId === questions.length - 1) {
-      return;
-    }
-    resetUsers();
-    io.to(screenSocketId).emit(
-      "update-users-ready-to-answer",
-      usersReadyToAnswer,
-    );
-    currentQuestionId++;
-    currentQuestion = questions[currentQuestionId];
-    io.sockets.emit("update-question", currentQuestionId);
-  });
-
-  socket.on("prev-question", (trackData) => {
-    if (currentQuestionId === 0) {
-      return;
-    }
-    resetUsers();
-    io.to(screenSocketId).emit(
-      "update-users-ready-to-answer",
-      usersReadyToAnswer,
-    );
-    currentQuestionId--;
-    currentQuestion = questions[currentQuestionId];
-    io.sockets.emit("update-question", currentQuestionId);
-  });
-
-  socket.on("pause-track-admin", () => {
-    if (audioPlayer.isPlaying) {
-      audioPlayer.isPlaying = false;
-      // io.to(screenSocketId).emit("track-is-paused-admin");
-      socket.broadcast.emit("track-is-paused-admin", audioPlayer)
-    }
-  });
-
-  socket.on("button-pressed-player", (sender) => {
-    const user = users[sender.token];
-    if (!user.hasPressedReady && currentQuestion.state === "open") {
-      user.hasPressedReady = true;
-      setTimeout(() => {
-        if (audioPlayer.isPlaying) {
-          audioPlayer.isPlaying = false;
-          io.to(screenSocketId).emit("track-is-paused-player");
-        }
-        currentQuestion.state = "pending";
-        [
-          // screenSocketId,
-          ...playerTokenArray.map((token) => users[token].socketId),
-        ].forEach((socket) => {
-          io.to(socket).emit("question-state-changed", currentQuestion.state);
-        });
-      }, 3000);
-      usersReadyToAnswer.push(user);
-      io.to(screenSocketId).emit(
-        "update-users-ready-to-answer",
-        usersReadyToAnswer,
-      );
-    }
-  });
+  // this presumably only sent by screen
+  // and needs to be sent to everyone else to update clients
+  socket.on("audioplayer-state-change", (newState) => {
+    // audioPlayer.tracks = newState.tracks;
+    audioPlayer.currentTrack = newState.currentTrack;
+    audioPlayer.isPlaying = newState.isPlaying;
+    audioPlayer.currentTime = newState.currentTimeSeconds;
+    socket.broadcast.emit("update-audioplayer-client-state", audioPlayer);
+    // console.log(audioPlayer.currentTime);
+    // socket.broadcast.emit("update-client-time", audioPlayer.currentTimeSeconds);
+  })
 
   // track can only be played by admin
   // so we need to send event to everyone but the sender
-  socket.on("play-track-admin", () => {
-    audioPlayer.isPlaying = true;
-    currentQuestion.state = "open"; // ??????
-    socket.broadcast.emit("track-is-playing", audioPlayer);
+  socket.on("request-play-track", () => {
+    currentQuestion.state = "open";
+    io.to(screenSocketId).emit("play-track");
   });
 
-  //broadcasted to everyone but screen
-  socket.on("update-server-time", (currentTime) => {
-    audioPlayer.currentTime = currentTime;
-    socket.broadcast.emit("update-client-time", audioPlayer.currentTime);
+  socket.on("request-pause-track", () => {
+    io.to(screenSocketId).emit("pause-track");
   });
 
   socket.on("request-show-artist", () => {
@@ -225,6 +181,56 @@ io.on("connection", (socket) => {
 
   socket.on("request-show-poster", () => {
     io.to(screenSocketId).emit("show-poster");
+  });
+
+  socket.on("next-question", (trackData) => {
+    if (currentQuestionId === questions.length - 1) {
+      return;
+    }
+    resetPlayers();
+    io.to(screenSocketId).emit(
+      "update-users-ready-to-answer",
+      playersReadyToAnswer,
+    );
+    currentQuestionId++;
+    currentQuestion = questions[currentQuestionId];
+    io.sockets.emit("update-question", currentQuestionId);
+  });
+
+  socket.on("prev-question", (trackData) => {
+    if (currentQuestionId === 0) {
+      return;
+    }
+    resetPlayers();
+    io.to(screenSocketId).emit(
+      "update-users-ready-to-answer",
+      playersReadyToAnswer,
+    );
+    currentQuestionId--;
+    currentQuestion = questions[currentQuestionId];
+    io.sockets.emit("update-question", currentQuestionId);
+  });
+
+  socket.on("button-pressed-player", (sender) => {
+    const user = users[sender.token];
+    if (!user.hasPressedReady && currentQuestion.state === "open") {
+      user.hasPressedReady = true;
+      setTimeout(() => {
+        io.to(screenSocketId).emit("pause-track");
+        currentQuestion.state = "pending";
+        [
+          // screenSocketId,
+          ...playerTokenArray.map((token) => users[token].socketId),
+        ].forEach((socket) => {
+          io.to(socket).emit("question-state-changed", currentQuestion.state);
+        });
+      }, 3000);
+      playersReadyToAnswer.push(user);
+      io.to(screenSocketId).emit(
+        "update-users-ready-to-answer",
+        playersReadyToAnswer,
+      );
+    }
   });
 
   // THESE ONLY SENT BY ADMIN
