@@ -24,8 +24,10 @@ const trackArtist = ref("");
 const trackName = ref("");
 const isArtistShown = ref(false);
 const isTrackNameShown = ref(false);
-
 const isPosterShown = ref(false);
+
+const currentQuestionState = ref("");
+const countdown = ref(0);
 
 const posterExists = computed(() => {
   return !audioPlayer.currentTrack.posterImg.endsWith("default.jpg");
@@ -48,11 +50,15 @@ const audioPlayerState = ref({
   currentTrackIndex,
   isPlaying,
   currentTimeSeconds,
-})
+});
 
-watch(audioPlayerState, (newState) => {
-  store.socket.emit("audioplayer-state-change", newState);
-}, { deep: true })
+watch(
+  audioPlayerState,
+  (newState) => {
+    store.socket.emit("audioplayer-state-change", newState);
+  },
+  { deep: true },
+);
 
 // emits on every second change
 // watch(currentTimeSeconds, (newTime) => {
@@ -62,12 +68,19 @@ watch(audioPlayerState, (newState) => {
 onMounted(() => {
   store.socket.on("play-track", audioPlayer.play);
   store.socket.on("pause-track", audioPlayer.pause);
+  store.socket.on("countdown", (seconds) => {
+    countdown.value = seconds;
+  });
 
-  store.socket.on("update-question", (currQuestionId) => {
+  store.socket.on("change-current-question", (currQuestionId) => {
     audioPlayer.changeTrack(currQuestionId);
     isTrackNameShown.value = false;
     isArtistShown.value = false;
     isPosterShown.value = false;
+  });
+
+  store.socket.on("current-question-state-changed", (state) => {
+    currentQuestionState.value = state;
   });
 
   store.socket.on("update-users-ready-to-answer", (usersReadyToAnswerArr) => {
@@ -144,6 +157,9 @@ onUnmounted(() => {
               />
               <ImageSkeleton v-else />
             </div>
+            <span class="text__clock" v-if="countdown !== 0">
+              {{ countdown }}</span
+            >
           </div>
 
           <div class="screenView__mid__main__trackInfo__artistAndTrackNameText">

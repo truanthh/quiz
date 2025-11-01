@@ -27,8 +27,8 @@ app.get("/{*any}", (req, res) => {
 app.use(cors());
 app.use(express.json());
 
-// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-//
+// handling users
+
 const users = {};
 const playersReadyToAnswer = [];
 
@@ -50,24 +50,12 @@ const audioPlayer = {
 
 function getPlayers() {
   if (playerTokenArray.length > 0) {
-    let bla = playerTokenArray.map(token => users[token]);
+    let bla = playerTokenArray.map((token) => users[token]);
     console.log(bla[0]);
     return bla;
   }
 
   return 0;
-}
-
-function resetPlayers() {
-  const players = getPlayers();
-  if(players === 0){
-    console.log("error getting players array!")
-    return;
-  }
-  for (let player of players) {
-    player.hasPressedReady = false;
-  }
-  playersReadyToAnswer.length = 0;
 }
 
 function setRoleGroupSocketIds(token) {
@@ -78,6 +66,38 @@ function setRoleGroupSocketIds(token) {
   } else if (users[token].role === "player") {
     playerTokenArray.push(token);
   }
+}
+
+function changeCurrentQuestionStateAndUpdateClient(state) {
+  currentQuestion.state = state;
+  [screenSocketId, ...getPlayers().map((player) => player.socketId)].forEach(
+    (socketId) => {
+      io.to(socketId).emit("question-state-changed", currentQuestion.state);
+    },
+  );
+}
+
+function userReadyToAnswerAndUpdate(user) {
+  user.hasPressedReady = true;
+  playersReadyToAnswer.push(user);
+  io.to(user.socketId).emit("you-are-ready");
+  io.to(screenSocketId).emit(
+    "update-users-ready-to-answer",
+    playersReadyToAnswer,
+  );
+}
+
+function resetPlayers() {
+  const players = getPlayers();
+  if (players === 0) {
+    console.log("error getting players array!");
+    return;
+  }
+  for (let player of players) {
+    player.hasPressedReady = false;
+  }
+  playersReadyToAnswer.length = 0;
+  io.to(players.map((player) => player.socketId)).emit("reset-players");
 }
 
 // Обработка подключений
@@ -106,7 +126,7 @@ io.on("connection", (socket) => {
     users[token].socketId = socket.id;
     users[token].connectedAt = socket.connectedAt;
     users[token].points = 0;
-    if(payload.role === "player"){
+    if (payload.role === "player") {
       users[token].hasPressedReady = false;
     }
     setRoleGroupSocketIds(token);
@@ -133,8 +153,7 @@ io.on("connection", (socket) => {
 
   socket.on("screen-loaded", (tracks) => {
     tracks.forEach((track) => {
-      track.state = "";
-      questions.push(track);
+      questions.push({ track, state: "" });
     });
     console.log(questions[0]);
     currentQuestion = questions[currentQuestionId];
@@ -158,12 +177,14 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("update-audioplayer-client-state", audioPlayer);
     // console.log(audioPlayer.currentTime);
     // socket.broadcast.emit("update-client-time", audioPlayer.currentTimeSeconds);
-  })
+  });
 
   // track can only be played by admin
   // so we need to send event to everyone but the sender
   socket.on("request-play-track", () => {
-    currentQuestion.state = "open";
+    if (currentQuestion.state === "") {
+      changeCurrentQuestionStateAndUpdateClient("open");
+    }
     io.to(screenSocketId).emit("play-track");
   });
 
@@ -194,7 +215,7 @@ io.on("connection", (socket) => {
     );
     currentQuestionId++;
     currentQuestion = questions[currentQuestionId];
-    io.sockets.emit("update-question", currentQuestionId);
+    io.sockets.emit("change-current-question", currentQuestionId);
   });
 
   socket.on("prev-question", (trackData) => {
@@ -208,28 +229,30 @@ io.on("connection", (socket) => {
     );
     currentQuestionId--;
     currentQuestion = questions[currentQuestionId];
-    io.sockets.emit("update-question", currentQuestionId);
+    io.sockets.emit("change-current-question", currentQuestionId);
   });
 
   socket.on("button-pressed-player", (sender) => {
     const user = users[sender.token];
-    if (!user.hasPressedReady && currentQuestion.state === "open") {
-      user.hasPressedReady = true;
-      setTimeout(() => {
-        io.to(screenSocketId).emit("pause-track");
-        currentQuestion.state = "pending";
-        [
-          // screenSocketId,
-          ...playerTokenArray.map((token) => users[token].socketId),
-        ].forEach((socket) => {
-          io.to(socket).emit("question-state-changed", currentQuestion.state);
-        });
-      }, 3000);
-      playersReadyToAnswer.push(user);
-      io.to(screenSocketId).emit(
-        "update-users-ready-to-answer",
-        playersReadyToAnswer,
-      );
+
+    // question states - no state(empty string), open, countdown, pending, closed
+
+    if (currentQuestion.state === "open" && !user.hasPressedReady) {
+      userReadyToAnswerAndUpdate(user);
+      // countdown is also a question state
+      changeCurrentQuestionStateAndUpdateClient("countdown");
+      let seconds = 4;
+      let id = setInterval(() => {
+        seconds--;
+        io.to(screenSocketId).emit("countdown", seconds);
+        if (seconds === 0) {
+          clearInterval(id);
+          io.to(screenSocketId).emit("pause-track");
+          changeCurrentQuestionStateAndUpdateClient("pending");
+        }
+      }, 1000);
+    } else if (currentQuestion.state === "countdown" && !user.hasPressedReady) {
+      userReadyToAnswerAndUpdate(user);
     }
   });
 
