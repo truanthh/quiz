@@ -4,8 +4,8 @@ import { ref, onMounted } from "vue";
 import { mainStore } from "../stores/mainStore.js";
 
 const store = mainStore();
-const debugLog = ref("");
-const counter = ref(0);
+// const debugLog = ref("");
+// const counter = ref(0);
 
 const currentTime = ref("00:00");
 const isPlaying = ref(false);
@@ -62,10 +62,10 @@ onMounted(() => {
       "
       @click="handleClick"
     ></button>
-    <div class="debugInfo">{{ debugLog }}</div>
-    <div class="debugInfo">{{ store.connectionInfo.message }}</div>
-    <div class="debugInfo">{{ store.connectionInfo.connectedAt }}</div>
-    <div class="debugInfo">{{ store.user.token }}</div>
+    <!-- <div class="debugInfo">{{ debugLog }}</div> -->
+    <!-- <div class="debugInfo">{{ store.connectionInfo.message }}</div> -->
+    <!-- <div class="debugInfo">{{ store.connectionInfo.connectedAt }}</div> -->
+    <!-- <div class="debugInfo">{{ store.user.token }}</div> -->
   </div>
 </template>
 <style lang="scss" scoped>

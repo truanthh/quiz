@@ -9,6 +9,8 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const avatarsDir = path.join(__dirname, "/public/avatars");
+
 const app = express();
 const server = createServer(app);
 const io = new socketIo(server, {
@@ -27,14 +29,16 @@ app.get("/{*any}", (req, res) => {
 app.use(cors());
 app.use(express.json());
 
-// handling users
+const players = new Map();
 
-const users = {};
-const playersReadyToAnswer = [];
+// ????
+// const tokens = new Map();
 
 let screenSocketId;
 let adminSocketId;
-const playerTokenArray = [];
+
+const playersReadyToAnswer = [];
+// const playerTokenArray = [];
 
 const questions = [];
 let currentQuestionId = 0;
@@ -48,8 +52,26 @@ const audioPlayer = {
   currentTime: 0,
 };
 
+const availableAvatars = new Set([1, 2, 3, 4, 5, 6, 7, 8]);
+
+function generateAvatarNumber() {
+  if (availableAvatars.size === 0) {
+    console.log("no avatars available!");
+    return;
+  }
+
+  const avatarNumber =
+    Array.from(availableAvatars)[
+      Math.floor(Math.random() * availableAvatars.size)
+    ];
+
+  availableAvatars.delete(avatarNumber);
+
+  return avatarNumber;
+}
+
 function getPlayers() {
-  if (playerTokenArray.length > 0) {
+  if (users.length > 0) {
     let bla = playerTokenArray.map((token) => users[token]);
     console.log(bla[0]);
     return bla;
@@ -58,15 +80,17 @@ function getPlayers() {
   return 0;
 }
 
-function setRoleGroupSocketIds(token) {
-  if (users[token].role === "screen") {
-    screenSocketId = users[token].socketId;
-  } else if (users[token].role === "admin") {
-    adminSocketId = users[token].socketId;
-  } else if (users[token].role === "player") {
-    playerTokenArray.push(token);
-  }
-}
+// function setRoleGroupSocketIds(token) {
+//   if (users[token].role === "screen") {
+//     screenSocketId = users[token].socketId;
+//   } else if (users[token].role === "admin") {
+//     adminSocketId = users[token].socketId;
+//   } else if (users[token].role === "player") {
+//     playerTokenArray.push(token);
+//     // updating cuz user joined. should probably move this logic
+//     updatePlayersClient();
+//   }
+// }
 
 function changeCurrentQuestionStateAndUpdateClient(state) {
   currentQuestion.state = state;
@@ -75,6 +99,15 @@ function changeCurrentQuestionStateAndUpdateClient(state) {
       io.to(socketId).emit("question-state-changed", currentQuestion.state);
     },
   );
+}
+
+function getPlayers() {
+  return Array.from(players.values());
+}
+
+function updatePlayersClient() {
+  io.to(screenSocketId).emit("update-players-data", getPlayers());
+  // console.log(`updated players screen with ${players[0]}s ome  data`);
 }
 
 function userReadyToAnswerAndUpdate(user) {
@@ -105,10 +138,13 @@ io.on("connection", (socket) => {
   let token = socket.handshake.auth.token;
   console.log(`Подключился: socket: ${socket.id} token: ${token}`);
 
+  // if token that means its a player
   if (token) {
-    if (users[token]) {
+    // let existingPlayer =
+    if (getPlayers().filter((player) => player.token === token).length > 0) {
       users[token].socketId = socket.id;
-      setRoleGroupSocketIds(token);
+      // comment this? looks we dont need
+      updatePlayersClient();
       console.log(`got user, logging in... ${JSON.stringify(users[token])}`);
       socket.emit("login-successful", { ...users[token], token: token });
     } else {
@@ -119,25 +155,28 @@ io.on("connection", (socket) => {
   // only new user
   socket.on("login", (payload) => {
     // generating new token and creating new user
-    token = uuidv4();
-    users[token] = {};
-    users[token].role = payload.role;
-    users[token].name = payload.userName;
-    users[token].socketId = socket.id;
-    users[token].connectedAt = socket.connectedAt;
-    users[token].points = 0;
     if (payload.role === "player") {
-      users[token].hasPressedReady = false;
+      const player = {
+        socketId: payload.socket.id,
+        token: uuidv4(),
+        name: payload.userName,
+        points: 0,
+        hasPressedReady: false,
+        avatar: generateAvatarNumber(),
+        // role: payload.role,
+        // connectedAt = socket.connectedAt,
+      };
+      players.set(payload.socket.id, player);
+      updatePlayersClient();
+    } else if (payload.role === "admin") {
+      adminSocketId = payload.socket.id;
+    } else if (payload.role === "screen") {
+      screenSocketId = payload.socket.id;
     }
-    setRoleGroupSocketIds(token);
     console.log(
       `
       ---------------------------
-      registered new user:\n
-      role: ${users[token].role}\n
-      name: ${users[token].name}\n
-      token: ${token}\n
-      socketId: ${users[token].socketId}
+      registered new user:\n role: ${users[token].role}\n name: ${users[token].name}\n token: ${token}\n socketId: ${users[token].socketId}
       ---------------------------
       `,
     );
@@ -155,6 +194,7 @@ io.on("connection", (socket) => {
     tracks.forEach((track) => {
       questions.push({ track, state: "" });
     });
+    console.log("first question is: ");
     console.log(questions[0]);
     currentQuestion = questions[currentQuestionId];
     if (questions.length !== 0) {
@@ -189,6 +229,12 @@ io.on("connection", (socket) => {
   });
 
   socket.on("request-pause-track", () => {
+    if (
+      currentQuestion.state === "open" ||
+      currentQuestion.state === "pending"
+    ) {
+      changeCurrentQuestionStateAndUpdateClient("");
+    }
     io.to(screenSocketId).emit("pause-track");
   });
 
@@ -240,14 +286,18 @@ io.on("connection", (socket) => {
     if (currentQuestion.state === "open" && !user.hasPressedReady) {
       userReadyToAnswerAndUpdate(user);
       // countdown is also a question state
+      // pause track. count down.
+      io.to(screenSocketId).emit("pause-track");
       changeCurrentQuestionStateAndUpdateClient("countdown");
-      let seconds = 4;
+      let seconds = 3;
       let id = setInterval(() => {
         seconds--;
-        io.to(screenSocketId).emit("countdown", seconds);
+        io.to([
+          screenSocketId,
+          getPlayers().map((player) => player.socketId),
+        ]).emit("countdown", seconds);
         if (seconds === 0) {
           clearInterval(id);
-          io.to(screenSocketId).emit("pause-track");
           changeCurrentQuestionStateAndUpdateClient("pending");
         }
       }, 1000);
@@ -257,33 +307,33 @@ io.on("connection", (socket) => {
   });
 
   // THESE ONLY SENT BY ADMIN
-  socket.on("count-artist-answer-correct", (currentUserAnsweringToken) => {
-    let user = users[currentUserAnsweringToken];
-    user.points += 100;
-    let players = playerTokenArray.map((token) => users[token]);
-    socket.broadcast.emit("update-users-data-all-clients", players);
-  });
-
-  socket.on("count-artist-answer-wrong", (currentUserAnsweringToken) => {
-    users[currentUserAnsweringToken].points -= 100;
-    user.points -= 100;
-    let players = playerTokenArray.map((token) => users[token]);
-    socket.broadcast.emit("update-users-data-all-clients", players);
-  });
-
-  socket.on("count-song-answer-correct", (currentUserAnsweringToken) => {
-    users[currentUserAnsweringToken].points += 200;
-    user.points += 200;
-    let players = playerTokenArray.map((token) => users[token]);
-    socket.broadcast.emit("update-users-data-all-clients", players);
-  });
-
-  socket.on("count-song-answer-wrong", (currentUserAnsweringToken) => {
-    users[currentUserAnsweringToken].points -= 200;
-    user.points -= 200;
-    let players = playerTokenArray.map((token) => users[token]);
-    socket.broadcast.emit("update-users-data-all-clients", players);
-  });
+  // socket.on("count-artist-answer-correct", (currentUserAnsweringToken) => {
+  //   let user = users[currentUserAnsweringToken];
+  //   user.points += 100;
+  //   let players = playerTokenArray.map((token) => users[token]);
+  //   socket.broadcast.emit("update-users-data-all-clients", players);
+  // });
+  //
+  // socket.on("count-artist-answer-wrong", (currentUserAnsweringToken) => {
+  //   users[currentUserAnsweringToken].points -= 100;
+  //   user.points -= 100;
+  //   let players = playerTokenArray.map((token) => users[token]);
+  //   socket.broadcast.emit("update-users-data-all-clients", players);
+  // });
+  //
+  // socket.on("count-song-answer-correct", (currentUserAnsweringToken) => {
+  //   users[currentUserAnsweringToken].points += 200;
+  //   user.points += 200;
+  //   let players = playerTokenArray.map((token) => users[token]);
+  //   socket.broadcast.emit("update-users-data-all-clients", players);
+  // });
+  //
+  // socket.on("count-song-answer-wrong", (currentUserAnsweringToken) => {
+  //   users[currentUserAnsweringToken].points -= 200;
+  //   user.points -= 200;
+  //   let players = playerTokenArray.map((token) => users[token]);
+  //   socket.broadcast.emit("update-users-data-all-clients", players);
+  // });
 
   socket.on("disconnect", () => {
     console.log("Отключился:", socket.id);

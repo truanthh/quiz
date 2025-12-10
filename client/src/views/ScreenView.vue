@@ -3,25 +3,27 @@ import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import { storeToRefs } from "pinia";
 import { useAudioPlayerStore } from "../stores/useAudioPlayerStore.js";
 import { mainStore } from "../stores/mainStore";
-import BaseTable from "../components/Table/BaseTable.vue";
-import TableRow from "../components/Table/TableRow.vue";
-import TableColumn from "../components/Table/TableColumn.vue";
+// import BaseTable from "../components/Table/BaseTable.vue";
+// import TableRow from "../components/Table/TableRow.vue";
+// import TableColumn from "../components/Table/TableColumn.vue";
 import ImageSkeleton from "../components/ImageSkeleton.vue";
 import tracksData from "../../tracks.json";
 
 const store = mainStore();
-
-const audioPlayerElement = ref(null);
-const audioPlayer = useAudioPlayerStore();
-
+const { players } = storeToRefs(store);
 const usersReadyToAnswer = ref([]);
 
-const usersSortedByPoints = computed(() => {
-  return users.sort((a, b) => b.points - a.points);
-});
+// const players = ref([]);
 
-const trackArtist = ref("");
-const trackName = ref("");
+const audioPlayer = useAudioPlayerStore();
+const audioPlayerElement = ref(null);
+
+// const usersSortedByPoints = computed(() => {
+//   return users.sort((a, b) => b.points - a.points);
+// });
+
+// const trackArtist = ref("");
+// const trackName = ref("");
 const isArtistShown = ref(false);
 const isTrackNameShown = ref(false);
 const isPosterShown = ref(false);
@@ -98,6 +100,10 @@ onMounted(() => {
   store.socket.on("show-poster", () => {
     isPosterShown.value = true;
   });
+
+  // store.socket.on("update-players-data", (playersData) => {
+  //   players.value = [...playersData];
+  // });
 
   audioPlayer.initialize(audioPlayerElement.value);
 
@@ -176,20 +182,38 @@ onUnmounted(() => {
           </div>
         </div>
       </div>
-      <div class="screenView__mid__main__usersReadyToAnswer">
-        <base-table>
-          <table-row v-for="user in usersReadyToAnswer" :key="user.token">
-            <table-column>
-              {{ user.name }}
-            </table-column>
-          </table-row>
-        </base-table>
+      <div class="screenView__mid__main__playerList">
+        <!-- <base-table> -->
+        <!--   <table-row v-for="user in usersReadyToAnswer" :key="user.token"> -->
+        <!--     <table-column> -->
+        <!--       {{ user.name }} -->
+        <!--     </table-column> -->
+        <!--   </table-row> -->
+        <!-- </base-table> -->
+        <div class="screenView__mid__main__playerList__row1">
+          <div class="bla">
+            {{ players }}
+          </div>
+          <div class="player" v-for="(player, i) of players" :key="i">
+            <div class="player__name">
+              {{ player.name }}
+            </div>
+            <img
+              class="player__avatar"
+              :src="`/avatars/${player.avatar}.png`"
+            />
+          </div>
+        </div>
       </div>
     </div>
     <div class="screenView__right"></div>
   </div>
 </template>
 <style lang="scss" scoped>
+.bla {
+  font-size: 12px;
+  background-color: gray;
+}
 .screenView {
   &__container {
     display: flex;
@@ -307,7 +331,7 @@ onUnmounted(() => {
           }
         }
       }
-      &__usersReadyToAnswer {
+      &__playerList {
         display: flex;
         flex-direction: column;
         margin-top: 50px;
@@ -320,6 +344,12 @@ onUnmounted(() => {
           font-size: 40px;
           font-weight: bold;
         }
+        &__row1 {
+          display: flex;
+          background-color: green;
+          width: 100%;
+          height: 50%;
+        }
       }
     }
   }
@@ -329,6 +359,13 @@ onUnmounted(() => {
     width: 18%;
     // background-color: pink;
   }
+}
+
+.player {
+  display: flex;
+  height: 100%;
+  width: 25%;
+  background-color: aquamarine;
 }
 
 .text {

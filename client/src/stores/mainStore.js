@@ -1,4 +1,4 @@
-import { ref, watch, computed } from "vue";
+import { ref } from "vue";
 import { defineStore } from "pinia";
 import { io } from "socket.io-client";
 
@@ -7,6 +7,7 @@ export const mainStore = defineStore("mainStore", () => {
   const connectionInfo = ref({});
   const user = ref({});
   const users = ref([]);
+  const players = ref([]);
   const isAuth = ref(false);
 
   // presumably only connection stuff here
@@ -29,6 +30,10 @@ export const mainStore = defineStore("mainStore", () => {
 
     socket.value.on("update-users-data", (users) => {
       users.value = [...users];
+    });
+
+    socket.value.on("update-players-data", (playersData) => {
+      players.value = playersData;
     });
 
     socket.value.on("update-user-data", (user) => {
@@ -60,20 +65,20 @@ export const mainStore = defineStore("mainStore", () => {
     socket.value.emit("login", payload);
   };
 
-function formatTime(seconds) {
-  let sec = seconds;
-  let min = 0;
+  function formatTime(seconds) {
+    let sec = seconds;
+    let min = 0;
 
-  if (seconds > 59) {
-    min = Math.floor(seconds / 60);
-    sec = sec % 60;
+    if (seconds > 59) {
+      min = Math.floor(seconds / 60);
+      sec = sec % 60;
+    }
+
+    return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
   }
 
-  return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
-}
-
-  const isQuestionActive = ref(false);
-  const debug = (el) => {};
+  // const isQuestionActive = ref(false);
+  // const debug = (el) => {};
 
   return {
     login,
@@ -83,7 +88,8 @@ function formatTime(seconds) {
     connectionInfo,
     user,
     users,
-    debug,
+    players,
+    // debug,
     waitForLogin,
     formatTime,
   };
