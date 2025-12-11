@@ -47,7 +47,7 @@ export const mainStore = defineStore("mainStore", () => {
         rej(new Error("login timeout"));
       }, 5000);
 
-      const eventHandler = (payload) => {
+      const handleLogin = (payload) => {
         clearTimeout(timer);
         user.value.token = payload.token;
         localStorage.setItem("token", payload.token);
@@ -57,7 +57,7 @@ export const mainStore = defineStore("mainStore", () => {
         res();
       };
 
-      socket.value.once("login-successful", eventHandler);
+      socket.value.once("login-successful", handleLogin);
     });
   }
 

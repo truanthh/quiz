@@ -30,6 +30,10 @@ app.use(cors());
 app.use(express.json());
 
 const players = new Map();
+const tokens = new Map();
+
+let admin = {};
+let screen = {};
 
 // ????
 // const tokens = new Map();
@@ -70,15 +74,15 @@ function generateAvatarNumber() {
   return avatarNumber;
 }
 
-function getPlayers() {
-  if (users.length > 0) {
-    let bla = playerTokenArray.map((token) => users[token]);
-    console.log(bla[0]);
-    return bla;
-  }
-
-  return 0;
-}
+// function getPlayers() {
+//   if (users.length > 0) {
+//     let bla = playerTokenArray.map((token) => users[token]);
+//     console.log(bla[0]);
+//     return bla;
+//   }
+//
+//   return 0;
+// }
 
 // function setRoleGroupSocketIds(token) {
 //   if (users[token].role === "screen") {
@@ -137,16 +141,22 @@ function resetPlayers() {
 io.on("connection", (socket) => {
   let token = socket.handshake.auth.token;
   console.log(`Подключился: socket: ${socket.id} token: ${token}`);
+  let oldSocketId = tokens.get(token);
 
-  // if token that means its a player
   if (token) {
-    // let existingPlayer =
-    if (getPlayers().filter((player) => player.token === token).length > 0) {
-      users[token].socketId = socket.id;
-      // comment this? looks we dont need
-      updatePlayersClient();
-      console.log(`got user, logging in... ${JSON.stringify(users[token])}`);
-      socket.emit("login-successful", { ...users[token], token: token });
+    if (token === admin.token) {
+      admin.socketId = socket.id;
+      socket.emit("login-successful", admin);
+    } else if (token === screen.token) {
+      screen.socketId = socket.id;
+      socket.emit("login-successful", screen);
+    } else if (oldSocketId) {
+      const playerOld = players.get(oldSocketId).player;
+      players.delete(playerOld);
+      const playerUpdated = players.set(socket.id, playerOld);
+      // updatePlayersClient();
+      console.log(`got user, logging in... `);
+      socket.emit("login-successful", playerUpdated);
     } else {
       console.log("token is irrelevant, log in normally");
     }
@@ -154,34 +164,51 @@ io.on("connection", (socket) => {
 
   // only new user
   socket.on("login", (payload) => {
+    const newToken = uuidv4();
+
     // generating new token and creating new user
     if (payload.role === "player") {
       const player = {
-        socketId: payload.socket.id,
-        token: uuidv4(),
+        socketId: socket.id,
+        token: newToken,
         name: payload.userName,
         points: 0,
         hasPressedReady: false,
         avatar: generateAvatarNumber(),
-        // role: payload.role,
+        role: payload.role,
         // connectedAt = socket.connectedAt,
       };
-      players.set(payload.socket.id, player);
-      updatePlayersClient();
+      players.set(socket.id, player);
+      tokens.set(newToken, socket.id);
+      // updatePlayersClient();
+      socket.emit("login-successful", player);
     } else if (payload.role === "admin") {
-      adminSocketId = payload.socket.id;
+      // adminSocketId = payload.socket.id;
+      const newAdmin = {
+        socketId: socket.id,
+        token: newToken,
+        role: "admin",
+      };
+      admin = newAdmin;
+      socket.emit("login-successful", admin);
     } else if (payload.role === "screen") {
-      screenSocketId = payload.socket.id;
+      // screenSocketId = payload.socket.id;
+      const newScreen = {
+        socketId: socket.id,
+        token: newToken,
+        role: "screen",
+      };
+      screen = newScreen;
+      socket.emit("login-successful", screen);
     }
-    console.log(
-      `
-      ---------------------------
-      registered new user:\n role: ${users[token].role}\n name: ${users[token].name}\n token: ${token}\n socketId: ${users[token].socketId}
-      ---------------------------
-      `,
-    );
-    console.log(`logging in...`);
-    socket.emit("login-successful", { ...users[token], token: token });
+    // console.log(
+    //   `
+    //   ---------------------------
+    //   registered new user:\n role: ${users[token].role}\n name: ${users[token].name}\n token: ${token}\n socketId: ${users[token].socketId}
+    //   ---------------------------
+    //   `,
+    // );
+    // console.log(`logging in...`);
   });
 
   socket.emit("connection-established", {
