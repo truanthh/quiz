@@ -1,16 +1,14 @@
-import { ref, watch, computed } from "vue";
+import { ref } from "vue";
 import { defineStore } from "pinia";
 import { io } from "socket.io-client";
-import { useAudioPlayerStore } from "./useAudioPlayerStore.js";
 
 export const mainStore = defineStore("mainStore", () => {
   const socket = ref(null);
   const connectionInfo = ref({});
   const user = ref({});
   const users = ref([]);
+  const players = ref([]);
   const isAuth = ref(false);
-
-  const audioPlayer = useAudioPlayerStore();
 
   // presumably only connection stuff here
   const initSocket = () => {
@@ -34,6 +32,10 @@ export const mainStore = defineStore("mainStore", () => {
       users.value = [...users];
     });
 
+    socket.value.on("update-players-data", (playersData) => {
+      players.value = playersData;
+    });
+
     socket.value.on("update-user-data", (user) => {
       user.value = user;
     });
@@ -45,7 +47,7 @@ export const mainStore = defineStore("mainStore", () => {
         rej(new Error("login timeout"));
       }, 5000);
 
-      const eventHandler = (payload) => {
+      const handleLogin = (payload) => {
         clearTimeout(timer);
         user.value.token = payload.token;
         localStorage.setItem("token", payload.token);
@@ -55,7 +57,7 @@ export const mainStore = defineStore("mainStore", () => {
         res();
       };
 
-      socket.value.once("login-successful", eventHandler);
+      socket.value.once("login-successful", handleLogin);
     });
   }
 
@@ -63,13 +65,20 @@ export const mainStore = defineStore("mainStore", () => {
     socket.value.emit("login", payload);
   };
 
-  const pauseTrack = () => {
-    socket.value.emit("pause-track", user.value);
-    audioPlayer.pause();
-  };
+  function formatTime(seconds) {
+    let sec = seconds;
+    let min = 0;
 
-  const isQuestionActive = ref(false);
-  const debug = (el) => {};
+    if (seconds > 59) {
+      min = Math.floor(seconds / 60);
+      sec = sec % 60;
+    }
+
+    return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
+  }
+
+  // const isQuestionActive = ref(false);
+  // const debug = (el) => {};
 
   return {
     login,
@@ -79,8 +88,9 @@ export const mainStore = defineStore("mainStore", () => {
     connectionInfo,
     user,
     users,
-    debug,
-    pauseTrack,
+    players,
+    // debug,
     waitForLogin,
+    formatTime,
   };
 });

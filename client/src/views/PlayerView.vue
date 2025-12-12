@@ -4,74 +4,74 @@ import { ref, onMounted } from "vue";
 import { mainStore } from "../stores/mainStore.js";
 
 const store = mainStore();
-const debugLog = ref("");
-const counter = ref(0);
+// const debugLog = ref("");
+// const counter = ref(0);
 
 const currentTime = ref("00:00");
 const isPlaying = ref(false);
-const currentQuestionState = ref(false);
-
-function updateClientTime(seconds) {
-  console.log(`current time is ${seconds}`);
-  currentTime.value = formatTime(seconds);
-}
-
-function formatTime(seconds) {
-  let sec = seconds;
-  let min = 0;
-
-  if (seconds > 59) {
-    min = Math.floor(seconds / 60);
-    sec = sec % 60;
-  }
-
-  return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
-}
+const isPlayerReady = ref(false);
+const currentQuestionState = ref("");
 
 function handleClick() {
-  isPlaying.value = false;
-  store.socket.emit("pause-track", store.user);
+  store.socket.emit("button-pressed-player", store.user);
 }
 
 onMounted(() => {
-  store.socket.on("update-client-time", updateClientTime);
-  store.socket.on("track-is-paused-by-player", (audioPlayerState) => {
-    isPlaying.value = audioPlayerState.isPlaying;
+  store.socket.on("update-audioplayer-client-state", (newState) => {
+    isPlaying.value = newState.isPlaying;
+    currentTime.value = store.formatTime(newState.currentTime);
   });
-  store.socket.on("track-is-paused-by-admin", (audioPlayerState) => {
-    isPlaying.value = audioPlayerState.isPlaying;
+
+  store.socket.on("question-state-changed", (newState) => {
+    currentQuestionState.value = newState;
   });
-  store.socket.on("track-is-playing", (audioPlayerState) => {
-    isPlaying.value = audioPlayerState.isPlaying;
+
+  store.socket.on("you-are-ready", () => {
+    isPlayerReady.value = true;
   });
-  store.socket.on("question-state-changed", (currentQuestionState) => {
-    currentQuestionState.value = currentQuestionState;
+
+  store.socket.on("reset-players", () => {
+    isPlayerReady.value = false;
   });
 });
 </script>
 <template>
   <div class="playerView__container">
-    <div class="debugInfoo">{{ store.user.name }} {{ currentTime }}</div>
+    <div class="playerView__infoPanel">
+      <div class="debugInfoo">{{ store.user.name }}</div>
+      <!-- <div class="debugInfoo">{{ currentTime }}</div> -->
+      <div class="debugInfoo" style="font-size: 24px">
+        {{ currentQuestionState }}
+      </div>
+      <div class="debugInfoo" style="font-size: 24px" v-if="isPlayerReady">
+        READY
+      </div>
+      <div
+        class="debugInfoo"
+        style="font-size: 24px"
+        v-else-if="!isPlayerReady"
+      >
+        NOT READY
+      </div>
+    </div>
     <button
       :class="
-        !isPlaying && currentQuestionState !== `open`
-          ? 'playerView__mainButton'
-          : 'playerView__mainButton_glowing'
+        !isPlayerReady && /open|countdown/gi.test(currentQuestionState)
+          ? 'playerView__mainButton_glowing'
+          : 'playerView__mainButton'
       "
       @click="handleClick"
     ></button>
-    <div class="debugInfo">{{ debugLog }}</div>
-    <div class="debugInfo">{{ store.connectionInfo.message }}</div>
-    <div class="debugInfo">{{ store.connectionInfo.connectedAt }}</div>
-    <div class="debugInfo">{{ store.user.token }}</div>
+    <!-- <div class="debugInfo">{{ debugLog }}</div> -->
+    <!-- <div class="debugInfo">{{ store.connectionInfo.message }}</div> -->
+    <!-- <div class="debugInfo">{{ store.connectionInfo.connectedAt }}</div> -->
+    <!-- <div class="debugInfo">{{ store.user.token }}</div> -->
   </div>
 </template>
 <style lang="scss" scoped>
 .debugInfoo {
   font-size: 14px;
   color: green;
-  margin-top: 10px;
-  margin-bottom: 20px;
 }
 .playerView {
   &__container {
@@ -81,6 +81,13 @@ onMounted(() => {
     align-items: center;
     justify-content: center;
     gap: 15px;
+  }
+  &__infoPanel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 20px;
   }
   &__nickname {
     font-size: 26px;
