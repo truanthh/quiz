@@ -30,16 +30,21 @@ app.use(cors());
 app.use(express.json());
 
 const players = new Map();
-const tokens = new Map();
+const playerTokens = new Map();
 
-let admin = {};
-let screen = {};
+let admin = {
+  socketId: undefined,
+  token: undefined,
+  role: "admin",
+};
+let screen = {
+  socketId: undefined,
+  token: undefined,
+  role: "screen",
+};
 
 // ????
-// const tokens = new Map();
-
-let screenSocketId;
-let adminSocketId;
+// const playerTokens = new Map();
 
 const playersReadyToAnswer = [];
 // const playerTokenArray = [];
@@ -74,31 +79,9 @@ function generateAvatarNumber() {
   return avatarNumber;
 }
 
-// function getPlayers() {
-//   if (users.length > 0) {
-//     let bla = playerTokenArray.map((token) => users[token]);
-//     console.log(bla[0]);
-//     return bla;
-//   }
-//
-//   return 0;
-// }
-
-// function setRoleGroupSocketIds(token) {
-//   if (users[token].role === "screen") {
-//     screenSocketId = users[token].socketId;
-//   } else if (users[token].role === "admin") {
-//     adminSocketId = users[token].socketId;
-//   } else if (users[token].role === "player") {
-//     playerTokenArray.push(token);
-//     // updating cuz user joined. should probably move this logic
-//     updatePlayersClient();
-//   }
-// }
-
 function changeCurrentQuestionStateAndUpdateClient(state) {
   currentQuestion.state = state;
-  [screenSocketId, ...getPlayers().map((player) => player.socketId)].forEach(
+  [screen.socketId, ...getPlayers().map((player) => player.socketId)].forEach(
     (socketId) => {
       io.to(socketId).emit("question-state-changed", currentQuestion.state);
     },
@@ -106,19 +89,23 @@ function changeCurrentQuestionStateAndUpdateClient(state) {
 }
 
 function getPlayers() {
-  return Array.from(players.values());
+  if (players.size) {
+    return Array.from(players.values());
+  }
+
+  return [];
 }
 
 function updatePlayersClient() {
-  io.to(screenSocketId).emit("update-players-data", getPlayers());
+  io.to(screen.socketId).emit("update-players-data", getPlayers());
   // console.log(`updated players screen with ${players[0]}s ome  data`);
 }
 
-function userReadyToAnswerAndUpdate(user) {
-  user.hasPressedReady = true;
-  playersReadyToAnswer.push(user);
-  io.to(user.socketId).emit("you-are-ready");
-  io.to(screenSocketId).emit(
+function setPlayerReadyAndUpdateClient(player) {
+  player.hasPressedReady = true;
+  playersReadyToAnswer.push(player);
+  io.to(player.socketId).emit("you-are-ready");
+  io.to(screen.socketId).emit(
     "update-users-ready-to-answer",
     playersReadyToAnswer,
   );
@@ -126,37 +113,46 @@ function userReadyToAnswerAndUpdate(user) {
 
 function resetPlayers() {
   const players = getPlayers();
-  if (players === 0) {
-    console.log("error getting players array!");
+  if (players.length === 0) {
+    console.log("error getting players array! mb no players?");
     return;
   }
   for (let player of players) {
     player.hasPressedReady = false;
   }
   playersReadyToAnswer.length = 0;
-  io.to(players.map((player) => player.socketId)).emit("reset-players");
+  io.to(getPlayers().map((player) => player.socketId)).emit("reset-players");
 }
 
 // Обработка подключений
 io.on("connection", (socket) => {
+  // user reconnects
   let token = socket.handshake.auth.token;
+  let oldSocketIdPlayer = playerTokens.get(token);
   console.log(`Подключился: socket: ${socket.id} token: ${token}`);
-  let oldSocketId = tokens.get(token);
+  // console.log(oldSocketIdPlayer);
 
   if (token) {
     if (token === admin.token) {
       admin.socketId = socket.id;
       socket.emit("login-successful", admin);
-    } else if (token === screen.token) {
+    }
+    //
+    else if (token === screen.token) {
       screen.socketId = socket.id;
+      updatePlayersClient();
       socket.emit("login-successful", screen);
-    } else if (oldSocketId) {
-      const playerOld = players.get(oldSocketId).player;
-      players.delete(playerOld);
-      const playerUpdated = players.set(socket.id, playerOld);
-      // updatePlayersClient();
+    }
+    //
+    else if (oldSocketIdPlayer) {
+      const playerOld = players.get(oldSocketIdPlayer);
+      players.delete(oldSocketIdPlayer);
+      playerOld.socketId = socket.id;
+      players.set(socket.id, playerOld);
+      playerTokens.set(token, socket.id);
+      updatePlayersClient();
       console.log(`got user, logging in... `);
-      socket.emit("login-successful", playerUpdated);
+      socket.emit("login-successful", playerOld);
     } else {
       console.log("token is irrelevant, log in normally");
     }
@@ -179,11 +175,12 @@ io.on("connection", (socket) => {
         // connectedAt = socket.connectedAt,
       };
       players.set(socket.id, player);
-      tokens.set(newToken, socket.id);
-      // updatePlayersClient();
+      playerTokens.set(newToken, socket.id);
       socket.emit("login-successful", player);
-    } else if (payload.role === "admin") {
-      // adminSocketId = payload.socket.id;
+      updatePlayersClient();
+    }
+    //
+    else if (payload.role === "admin") {
       const newAdmin = {
         socketId: socket.id,
         token: newToken,
@@ -191,8 +188,9 @@ io.on("connection", (socket) => {
       };
       admin = newAdmin;
       socket.emit("login-successful", admin);
-    } else if (payload.role === "screen") {
-      // screenSocketId = payload.socket.id;
+    }
+    //
+    else if (payload.role === "screen") {
       const newScreen = {
         socketId: socket.id,
         token: newToken,
@@ -221,8 +219,8 @@ io.on("connection", (socket) => {
     tracks.forEach((track) => {
       questions.push({ track, state: "" });
     });
-    console.log("first question is: ");
-    console.log(questions[0]);
+    // console.log("first question is: ");
+    // console.log(questions[0]);
     currentQuestion = questions[currentQuestionId];
     if (questions.length !== 0) {
       console.log("questions loaded successfully!");
@@ -231,7 +229,7 @@ io.on("connection", (socket) => {
 
   socket.on("admin-loaded", () => {
     resetPlayers();
-    io.to(adminSocketId).emit("update-admin-track-data", currentQuestion);
+    io.to(admin.socketId).emit("update-admin-track-data", currentQuestion);
   });
 
   // this presumably only sent by screen
@@ -252,7 +250,7 @@ io.on("connection", (socket) => {
     if (currentQuestion.state === "") {
       changeCurrentQuestionStateAndUpdateClient("open");
     }
-    io.to(screenSocketId).emit("play-track");
+    io.to(screen.socketId).emit("play-track");
   });
 
   socket.on("request-pause-track", () => {
@@ -262,19 +260,19 @@ io.on("connection", (socket) => {
     ) {
       changeCurrentQuestionStateAndUpdateClient("");
     }
-    io.to(screenSocketId).emit("pause-track");
+    io.to(screen.socketId).emit("pause-track");
   });
 
   socket.on("request-show-artist", () => {
-    io.to(screenSocketId).emit("show-artist");
+    io.to(screen.socketId).emit("show-artist");
   });
 
   socket.on("request-show-trackname", () => {
-    io.to(screenSocketId).emit("show-trackname");
+    io.to(screen.socketId).emit("show-trackname");
   });
 
   socket.on("request-show-poster", () => {
-    io.to(screenSocketId).emit("show-poster");
+    io.to(screen.socketId).emit("show-poster");
   });
 
   socket.on("next-question", (trackData) => {
@@ -282,7 +280,7 @@ io.on("connection", (socket) => {
       return;
     }
     resetPlayers();
-    io.to(screenSocketId).emit(
+    io.to(screen.socketId).emit(
       "update-users-ready-to-answer",
       playersReadyToAnswer,
     );
@@ -296,7 +294,7 @@ io.on("connection", (socket) => {
       return;
     }
     resetPlayers();
-    io.to(screenSocketId).emit(
+    io.to(screen.socketId).emit(
       "update-users-ready-to-answer",
       playersReadyToAnswer,
     );
@@ -306,21 +304,21 @@ io.on("connection", (socket) => {
   });
 
   socket.on("button-pressed-player", (sender) => {
-    const user = users[sender.token];
+    const player = players.get(playerTokens.get(sender.token));
 
     // question states - no state(empty string), open, countdown, pending, closed
 
-    if (currentQuestion.state === "open" && !user.hasPressedReady) {
-      userReadyToAnswerAndUpdate(user);
+    if (currentQuestion.state === "open" && !player.hasPressedReady) {
+      setPlayerReadyAndUpdateClient(player);
       // countdown is also a question state
       // pause track. count down.
-      io.to(screenSocketId).emit("pause-track");
+      io.to(screen.socketId).emit("pause-track");
       changeCurrentQuestionStateAndUpdateClient("countdown");
       let seconds = 3;
       let id = setInterval(() => {
         seconds--;
         io.to([
-          screenSocketId,
+          screen.socketId,
           getPlayers().map((player) => player.socketId),
         ]).emit("countdown", seconds);
         if (seconds === 0) {
@@ -328,8 +326,11 @@ io.on("connection", (socket) => {
           changeCurrentQuestionStateAndUpdateClient("pending");
         }
       }, 1000);
-    } else if (currentQuestion.state === "countdown" && !user.hasPressedReady) {
-      userReadyToAnswerAndUpdate(user);
+    } else if (
+      currentQuestion.state === "countdown" &&
+      !player.hasPressedReady
+    ) {
+      setPlayerReadyAndUpdateClient(player);
     }
   });
 

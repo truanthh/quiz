@@ -13,7 +13,7 @@ export const mainStore = defineStore("mainStore", () => {
   // presumably only connection stuff here
   const initSocket = () => {
     socket.value = io(import.meta.env.VITE_SERVER_ADDRESS, {
-      auth: { token: localStorage.getItem("token") },
+      auth: { token: localStorage.getItem("token"), role: user.value.role },
     });
 
     socket.value.on("connection-established", (data) => {

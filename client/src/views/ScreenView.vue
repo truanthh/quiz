@@ -191,10 +191,22 @@ onUnmounted(() => {
         <!--   </table-row> -->
         <!-- </base-table> -->
         <div class="screenView__mid__main__playerList__row1">
-          <div class="bla">
-            {{ players }}
+          <div
+            class="player"
+            v-for="(player, i) of players.slice(0, 3)"
+            :key="i"
+          >
+            <div class="player__name">
+              {{ player.name }}
+            </div>
+            <img
+              class="player__avatar"
+              :src="`/avatars/${player.avatar}.png`"
+            />
           </div>
-          <div class="player" v-for="(player, i) of players" :key="i">
+        </div>
+        <div class="screenView__mid__main__playerList__row2">
+          <div class="player" v-for="(player, i) of players.slice(4)" :key="i">
             <div class="player__name">
               {{ player.name }}
             </div>
@@ -337,8 +349,8 @@ onUnmounted(() => {
         margin-top: 50px;
         width: 100%;
         height: 300px;
-        background-color: khaki;
-        color: green;
+        // background-color: khaki;
+        // color: green;
         font-size: 60px;
         &:first-child {
           font-size: 40px;
@@ -346,9 +358,18 @@ onUnmounted(() => {
         }
         &__row1 {
           display: flex;
-          background-color: green;
+          // background-color: green;
           width: 100%;
           height: 50%;
+          gap: 12.5%;
+        }
+        &__row2 {
+          display: flex;
+          // background-color: green;
+          width: 100%;
+          height: 50%;
+          gap: 12.5%;
+          margin-left: 12.5%;
         }
       }
     }
@@ -363,14 +384,28 @@ onUnmounted(() => {
 
 .player {
   display: flex;
+  flex-direction: column;
   height: 100%;
-  width: 25%;
-  background-color: aquamarine;
+  width: 12.5%;
+  // background-color: aquamarine;
+  &__name {
+    display: flex;
+    color: black;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    height: 20%;
+  }
+  &__avatar {
+    width: 100%;
+    height: 80%;
+    border-radius: 50%;
+  }
 }
 
 .text {
   &__questionNumber {
-    font-size: 70px;
+    font-size: 50px;
     font-weight: bold;
   }
   &__clock {
@@ -378,10 +413,10 @@ onUnmounted(() => {
     left: 50%;
     transform: translateX(-50%);
     font-weight: bold;
-    font-size: 90px;
+    font-size: 80px;
   }
   &__pointsChange {
-    font-size: 90px;
+    font-size: 80px;
     font-weight: bold;
   }
 }
