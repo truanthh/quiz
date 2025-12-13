@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import { storeToRefs } from "pinia";
 import { useAudioPlayerStore } from "../stores/useAudioPlayerStore.js";
 import { mainStore } from "../stores/mainStore";
+import "spoilerjs/spoiler-span";
 // import BaseTable from "../components/Table/BaseTable.vue";
 // import TableRow from "../components/Table/TableRow.vue";
 // import TableColumn from "../components/Table/TableColumn.vue";
@@ -104,8 +105,8 @@ const players = [
 
 // const trackArtist = ref("");
 // const trackName = ref("");
-const isArtistShown = ref(true);
-const isTrackNameShown = ref(true);
+const isArtistShown = ref(false);
+const isTrackNameShown = ref(false);
 const isPosterShown = ref(false);
 
 const currentQuestionState = ref("");
@@ -257,11 +258,12 @@ onUnmounted(() => {
               v-if="isPosterShown && posterExists"
             />
             <!-- <ImageSkeleton v-else /> -->
-            <img
-              class="screenView__mainPanel__posterContainer__poster__gif"
-              :src="`/gifs/pocoyo1.gif`"
-              v-else
-            />
+            <spoiler-span v-else>
+              <img
+                class="screenView__mainPanel__posterContainer__poster__gif"
+                :src="`/gifs/pocoyo1.gif`"
+              />
+            </spoiler-span>
           </div>
         </div>
         <!-- <span class="text__clock" v-if="countdown !== 0"> -->
@@ -273,9 +275,15 @@ onUnmounted(() => {
           </div>
           <div class="screenView__mainPanel__trackInfo__artist">
             <span v-if="isArtistShown"> {{ currentTrack.artist }} </span>
+            <spoiler-span class="spoiler" v-else>
+              {{ currentTrack.artist }}
+            </spoiler-span>
           </div>
           <div class="screenView__mainPanel__trackInfo__trackName">
             <span v-if="isTrackNameShown"> {{ currentTrack.name }} </span>
+            <spoiler-span class="spoiler" v-else>
+              {{ currentTrack.name }}
+            </spoiler-span>
           </div>
         </div>
       </div>
@@ -326,6 +334,9 @@ onUnmounted(() => {
   </div>
 </template>
 <style lang="scss" scoped>
+.spoiler {
+  pointer-events: none;
+}
 .screenView {
   display: flex;
   height: 100%;
