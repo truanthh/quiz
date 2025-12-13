@@ -275,6 +275,10 @@ io.on("connection", (socket) => {
     io.to(screen.socketId).emit("show-poster");
   });
 
+  socket.on("request-show-scoreboard", () => {
+    io.to(screen.socketId).emit("show-scoreboard");
+  });
+
   socket.on("next-question", (trackData) => {
     if (currentQuestionId === questions.length - 1) {
       return;

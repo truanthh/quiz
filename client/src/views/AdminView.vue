@@ -13,6 +13,10 @@ const usersSorted = computed(() => {
 const isPlayingAudioPlayer = ref(false);
 const currentTrack = ref({});
 
+function showScoreboard() {
+  store.socket.emit("request-show-scoreboard");
+}
+
 function showArtist() {
   store.socket.emit("request-show-artist");
 }
@@ -148,6 +152,9 @@ onMounted(() => {
     <div class="admin__buttonsRow">
       <button class="admin__button_default" @click="showPoster">
         show poster
+      </button>
+      <button class="admin__button_default" @click="showScoreboard">
+        show scoreboard
       </button>
     </div>
     <div class="admin__buttonsRow">

@@ -10,13 +10,93 @@ import ImageSkeleton from "../components/ImageSkeleton.vue";
 import tracksData from "../../tracks.json";
 
 const store = mainStore();
-const { players } = storeToRefs(store);
+// const { players } = storeToRefs(store);
 const usersReadyToAnswer = ref([]);
-
-// const players = ref([]);
 
 const audioPlayer = useAudioPlayerStore();
 const audioPlayerElement = ref(null);
+
+const isScoreboardShown = ref(false);
+// const playersSortedByPoints = computed(() => {
+//   return players.value.sort((a, b) => b.points - a.points);
+// });
+
+// console.log(players.value);
+
+const players = [
+  {
+    avatar: 1,
+    hasPressedReady: false,
+    name: "Габарджон",
+    points: 0,
+    role: "player",
+    socketId: "IdVtnstlr0SNTpOwAAAh",
+    token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
+  },
+  {
+    avatar: 2,
+    hasPressedReady: false,
+    name: "Keni4ek",
+    points: 0,
+    role: "player",
+    socketId: "IdVtnstlr0SNTpOwAAAh",
+    token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
+  },
+  {
+    avatar: 3,
+    hasPressedReady: false,
+    name: "Сибмама",
+    points: 0,
+    role: "player",
+    socketId: "IdVtnstlr0SNTpOwAAAh",
+    token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
+  },
+  {
+    avatar: 4,
+    hasPressedReady: false,
+    name: "Бубубусик",
+    points: 0,
+    role: "player",
+    socketId: "IdVtnstlr0SNTpOwAAAh",
+    token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
+  },
+  {
+    avatar: 5,
+    hasPressedReady: false,
+    name: "Xavier",
+    points: 0,
+    role: "player",
+    socketId: "IdVtnstlr0SNTpOwAAAh",
+    token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
+  },
+  {
+    avatar: 6,
+    hasPressedReady: false,
+    name: "Попался",
+    points: 0,
+    role: "player",
+    socketId: "IdVtnstlr0SNTpOwAAAh",
+    token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
+  },
+  {
+    avatar: 7,
+    hasPressedReady: false,
+    name: "Makaka",
+    points: 0,
+    role: "player",
+    socketId: "IdVtnstlr0SNTpOwAAAh",
+    token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
+  },
+  {
+    avatar: 8,
+    hasPressedReady: false,
+    name: "Lohpidr",
+    points: 0,
+    role: "player",
+    socketId: "IdVtnstlr0SNTpOwAAAh",
+    token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
+  },
+];
 
 // const usersSortedByPoints = computed(() => {
 //   return users.sort((a, b) => b.points - a.points);
@@ -24,8 +104,8 @@ const audioPlayerElement = ref(null);
 
 // const trackArtist = ref("");
 // const trackName = ref("");
-const isArtistShown = ref(false);
-const isTrackNameShown = ref(false);
+const isArtistShown = ref(true);
+const isTrackNameShown = ref(true);
 const isPosterShown = ref(false);
 
 const currentQuestionState = ref("");
@@ -101,6 +181,10 @@ onMounted(() => {
     isPosterShown.value = true;
   });
 
+  store.socket.on("show-scoreboard", () => {
+    isScoreboardShown.value = !isScoreboardShown.value;
+  });
+
   // store.socket.on("update-players-data", (playersData) => {
   //   players.value = [...playersData];
   // });
@@ -129,60 +213,73 @@ onUnmounted(() => {
 
 <template>
   <div class="screenView__container">
+    <div
+      :class="
+        isScoreboardShown
+          ? 'screenView__scoreboard'
+          : 'screenView__scoreboard_hidden'
+      "
+    >
+      <div
+        class="screenView__scoreboard__line"
+        v-for="player of playersSortedByPoints"
+      >
+        <div class="screenView__scoreboard__line__playerName"></div>
+        <div class="screenView__scoreboard__line__playerPoints"></div>
+        {{ player }}
+      </div>
+    </div>
     <audio
       :src="audioPlayer.currentTrack.src"
       ref="audioPlayerElement"
       preload="auto"
     ></audio>
-    <div class="screenView__left"></div>
-    <div class="screenView__mid">
-      <div class="screenView__mid__empty"></div>
-      <div class="screenView__mid__main">
-        <div class="screenView__mid__main__status">
-          <div class="screenView__mid__main__status__questionNumber">
-            <span class="text__questionNumber">
-              #{{ currentTrackIndex + 1 }}</span
-            >
-          </div>
-          <div class="screenView__mid__main__status__clock">
-            <span class="text__clock"> {{ currentTimeString }}</span>
-          </div>
-          <div class="screenView__mid__main__status__pointsChange">
-            <span class="text__pointsChange"> +100 </span>
+    <div class="screenView">
+      <div class="screenView__mainPanel">
+        <!-- <div class="screenView__mainPanel__status"> -->
+        <!--   <div class="screenView__mainPanel__status__questionNumber"> -->
+        <!--     <span class="text__questionNumber"> -->
+        <!--       #{{ currentTrackIndex + 1 }}</span -->
+        <!--     > -->
+        <!--   </div> -->
+        <!--   <div class="screenView__mainPanel__status__clock"> -->
+        <!--     <span class="text__clock"> {{ currentTimeString }}</span> -->
+        <!--   </div> -->
+        <!--   <div class="screenView__mainPanel__status__pointsChange"> -->
+        <!--     <span class="text__pointsChange"> +100 </span> -->
+        <!--   </div> -->
+        <!-- </div> -->
+        <div class="screenView__mainPanel__posterContainer">
+          <div class="screenView__mainPanel__posterContainer__poster">
+            <img
+              class="screenView__mainPanel__posterContainer__poster__img"
+              :src="audioPlayer.currentTrack.posterImg"
+              v-if="isPosterShown && posterExists"
+            />
+            <!-- <ImageSkeleton v-else /> -->
+            <img
+              class="screenView__mainPanel__posterContainer__poster__gif"
+              :src="`/gifs/pocoyo1.gif`"
+              v-else
+            />
           </div>
         </div>
-        <div class="screenView__mid__main__trackInfo">
-          <div class="screenView__mid__main__trackInfo__posterContainer">
-            <div
-              class="screenView__mid__main__trackInfo__posterContainer__poster"
-            >
-              <img
-                class="screenView__mid__main__trackInfo__posterContainer__poster__img"
-                :src="audioPlayer.currentTrack.posterImg"
-                v-if="isPosterShown && posterExists"
-              />
-              <ImageSkeleton v-else />
-            </div>
-            <span class="text__clock" v-if="countdown !== 0">
-              {{ countdown }}</span
-            >
+        <!-- <span class="text__clock" v-if="countdown !== 0"> -->
+        <!--   {{ countdown }}</span -->
+        <!-- > -->
+        <div class="screenView__mainPanel__trackInfo">
+          <div class="screenView__mainPanel__trackInfo__currentTime">
+            {{ currentTimeString }}
           </div>
-
-          <div class="screenView__mid__main__trackInfo__artistAndTrackNameText">
-            <div
-              class="screenView__mid__main__trackInfo__artistAndTrackNameText__artist"
-            >
-              <span v-if="isArtistShown"> {{ currentTrack.artist }} </span>
-            </div>
-            <div
-              class="screenView__mid__main__trackInfo__artistAndTrackNameText__trackName"
-            >
-              <span v-if="isTrackNameShown"> {{ currentTrack.name }} </span>
-            </div>
+          <div class="screenView__mainPanel__trackInfo__artist">
+            <span v-if="isArtistShown"> {{ currentTrack.artist }} </span>
+          </div>
+          <div class="screenView__mainPanel__trackInfo__trackName">
+            <span v-if="isTrackNameShown"> {{ currentTrack.name }} </span>
           </div>
         </div>
       </div>
-      <div class="screenView__mid__main__playerList">
+      <div class="screenView__playerList">
         <!-- <base-table> -->
         <!--   <table-row v-for="user in usersReadyToAnswer" :key="user.token"> -->
         <!--     <table-column> -->
@@ -190,233 +287,231 @@ onUnmounted(() => {
         <!--     </table-column> -->
         <!--   </table-row> -->
         <!-- </base-table> -->
-        <div class="screenView__mid__main__playerList__row1">
+        <div class="screenView__playerList__row1">
           <div
-            class="player"
-            v-for="(player, i) of players.slice(0, 3)"
+            v-for="(player, i) of players"
+            :class="i % 2 === 1 ? 'gridItem_hidden' : 'gridItem'"
             :key="i"
           >
-            <div class="player__name">
-              {{ player.name }}
+            <div class="player">
+              <img
+                class="player__avatar"
+                :src="`/avatars/${player.avatar}.png`"
+              />
+              <div class="player__name">
+                {{ player.name }}
+              </div>
             </div>
-            <img
-              class="player__avatar"
-              :src="`/avatars/${player.avatar}.png`"
-            />
           </div>
         </div>
-        <div class="screenView__mid__main__playerList__row2">
-          <div class="player" v-for="(player, i) of players.slice(4)" :key="i">
-            <div class="player__name">
-              {{ player.name }}
+        <div class="screenView__playerList__row2">
+          <div
+            v-for="(player, i) of players"
+            :class="i % 2 === 0 ? 'gridItem_hidden' : 'gridItem'"
+            :key="i"
+          >
+            <div class="player">
+              <img
+                class="player__avatar"
+                :src="`/avatars/${player.avatar}.png`"
+              />
+              <div class="player__name">
+                {{ player.name }}
+              </div>
             </div>
-            <img
-              class="player__avatar"
-              :src="`/avatars/${player.avatar}.png`"
-            />
           </div>
         </div>
       </div>
     </div>
-    <div class="screenView__right"></div>
   </div>
 </template>
 <style lang="scss" scoped>
-.bla {
-  font-size: 12px;
-  background-color: gray;
-}
 .screenView {
-  &__container {
-    display: flex;
-    height: 100%;
-  }
-  &__left {
-    display: flex;
-    height: 100%;
-    width: 18%;
-    // background-color: pink;
-  }
-  &__mid {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  background-color: pink;
+  // justify-content: center;
+  align-items: center;
+  &__scoreboard {
     display: flex;
     flex-direction: column;
-    height: 100%;
-    width: 64%;
-    // background-color: gray;
-    &__empty {
-      width: 100%;
-      height: 2%;
+    background-color: white;
+    position: fixed;
+    height: 90%;
+    width: 90%;
+    top: 5%;
+    left: 5%;
+    z-index: 100;
+    border: 3px solid black;
+    border-radius: 10px;
+    font-size: 40px;
+    font-weight: bold;
+    // justify-content: center;
+    align-items: center;
+    &_hidden {
+      display: none;
     }
-    &__main {
+    &__line {
+      display: flex;
+      width: 30%;
+      background-color: khaki;
+      justify-content: start;
+    }
+  }
+  &__container {
+    height: 100%;
+  }
+  &__mainPanel {
+    margin-top: 5vh;
+    display: flex;
+    width: 100%;
+    height: 30vh;
+    // background-color: orange;
+    justify-content: center;
+    &__posterContainer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      // height: 400px;
+      // width: 400px;
+      padding-left: 50px;
+      &__poster {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        // height: 100%;
+        // width: 100%;
+        height: 30vh;
+        width: 30vh;
+        &__img {
+          height: 100%;
+          width: 100%;
+          object-fit: cover;
+        }
+        &__gif {
+          height: 100%;
+          width: 100%;
+          object-fit: cover;
+        }
+      }
+    }
+    &__trackInfo {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      width: 100%;
-      height: 50%;
-      &__status {
+      align-items: center;
+      justify-content: center;
+      width: 30%;
+      height: 100%;
+      // background-color: lightgreen;
+      &__currentTime {
         display: flex;
-        position: relative;
-        &__questionNumber {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          // background-color: lightgray;
-          width: 20%;
-        }
-        &__clock {
-          display: flex;
-          width: 50%;
-          justify-content: center;
-          // background-color: orange;
-        }
-        &__pointsChange {
-          display: flex;
-          width: 30%;
-          justify-content: center;
-          align-items: center;
-          // background-color: khaki;
-          padding-right: 4%;
-        }
-      }
-      &__trackInfo {
-        display: flex;
-        align-items: center;
         justify-content: center;
+        align-items: center;
+        font-weight: bold;
+        font-size: 50px;
+        // background-color: white;
         width: 100%;
-        height: 300px;
-        // background-color: green;
-        &__posterContainer {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 40%;
-          // background-color: green;
-          padding-left: 50px;
-          &__poster {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 200px;
-            width: 200px;
-            &__img {
-              height: 100%;
-              width: 100%;
-              object-fit: cover;
-            }
-          }
-        }
-        &__artistAndTrackNameText {
-          display: flex;
-          height: 100%;
-          width: 60%;
-          // background-color: orange;
-          flex-direction: column;
-          &__artist {
-            display: flex;
-            width: 100%;
-            height: 100%;
-            flex-direction: column;
-            font-size: 30px;
-            font-weight: bold;
-            justify-content: center;
-            align-items: center;
-            padding-right: 40px;
-            // background-color: yellow;
-            padding-top: 10%;
-            word-break: break-all;
-            text-align: center;
-          }
-          &__trackName {
-            display: flex;
-            width: 100%;
-            height: 100%;
-            flex-direction: column;
-            font-size: 40px;
-            font-weight: bold;
-            justify-content: center;
-            align-items: center;
-            padding-right: 38px;
-            // background-color: orange;
-            padding-bottom: 12%;
-            word-break: break-all;
-            text-align: center;
-          }
-        }
+        height: 100%;
       }
-      &__playerList {
+      &__artist {
         display: flex;
-        flex-direction: column;
-        margin-top: 50px;
         width: 100%;
-        height: 300px;
-        // background-color: khaki;
-        // color: green;
-        font-size: 60px;
-        &:first-child {
-          font-size: 40px;
-          font-weight: bold;
-        }
-        &__row1 {
-          display: flex;
-          // background-color: green;
-          width: 100%;
-          height: 50%;
-          gap: 12.5%;
-        }
-        &__row2 {
-          display: flex;
-          // background-color: green;
-          width: 100%;
-          height: 50%;
-          gap: 12.5%;
-          margin-left: 12.5%;
-        }
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+        font-size: 30px;
+        font-weight: bold;
+        word-break: break-all;
+        // text-align: center;
+        // background-color: aquamarine;
+      }
+      &__trackName {
+        display: flex;
+        // background-color: gray;
+        width: 100%;
+        height: 100%;
+        font-size: 40px;
+        font-weight: bold;
+        justify-content: center;
+        align-items: center;
+        word-break: break-all;
+        // text-align: center;
       }
     }
   }
-  &__right {
+  &__playerList {
     display: flex;
-    height: 100%;
-    width: 18%;
-    // background-color: pink;
+    flex-direction: column;
+    margin-top: 10%;
+    width: 70%;
+    height: 36%;
+    &__row1 {
+      // display: flex;
+      // background-color: green;
+      // width: 100%;
+      // height: 50%;
+      // gap: 14%;
+      display: grid;
+      width: 100%;
+      height: 50%;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: 1fr;
+      gap: 4px 12px;
+    }
+    &__row2 {
+      // display: flex;
+      // background-color: orange;
+      // width: 100%;
+      // height: 50%;
+      // gap: 14%;
+      // margin-left: 12.5%;
+      display: grid;
+      width: 100%;
+      height: 50%;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: 1fr;
+      gap: 4px 12px;
+    }
+  }
+}
+
+.gridItem {
+  display: flex;
+  &_hidden {
+    display: flex;
+    // z-index: -100;
+    visibility: hidden;
   }
 }
 
 .player {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  width: 12.5%;
   // background-color: aquamarine;
   &__name {
     display: flex;
     color: black;
     justify-content: center;
-    font-size: 18px;
+    font-size: 24px;
     font-weight: bold;
     height: 20%;
   }
   &__avatar {
     width: 100%;
     height: 80%;
-    border-radius: 50%;
+    // border-radius: 50%;
+    // border: 5px solid green;
   }
 }
 
 .text {
   &__questionNumber {
-    font-size: 50px;
+    font-size: 60px;
     font-weight: bold;
-  }
-  &__clock {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    font-weight: bold;
-    font-size: 80px;
   }
   &__pointsChange {
-    font-size: 80px;
+    font-size: 60px;
     font-weight: bold;
   }
 }
