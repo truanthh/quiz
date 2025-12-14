@@ -9,6 +9,7 @@ import "spoilerjs/spoiler-span";
 // import TableColumn from "../components/Table/TableColumn.vue";
 import ImageSkeleton from "../components/ImageSkeleton.vue";
 import tracksData from "../../tracks.json";
+import PlayerBoard from "../components/PlayerBoard.vue";
 
 const store = mainStore();
 // const { players } = storeToRefs(store);
@@ -105,7 +106,7 @@ const players = [
 
 // const trackArtist = ref("");
 // const trackName = ref("");
-const isArtistShown = ref(false);
+const isArtistNameShown = ref(false);
 const isTrackNameShown = ref(false);
 const isPosterShown = ref(false);
 
@@ -158,7 +159,7 @@ onMounted(() => {
   store.socket.on("change-current-question", (currQuestionId) => {
     audioPlayer.changeTrack(currQuestionId);
     isTrackNameShown.value = false;
-    isArtistShown.value = false;
+    isArtistNameShown.value = false;
     isPosterShown.value = false;
   });
 
@@ -175,7 +176,7 @@ onMounted(() => {
   });
 
   store.socket.on("show-artist", () => {
-    isArtistShown.value = true;
+    isArtistNameShown.value = true;
   });
 
   store.socket.on("show-poster", () => {
@@ -258,12 +259,12 @@ onUnmounted(() => {
               v-if="isPosterShown && posterExists"
             />
             <!-- <ImageSkeleton v-else /> -->
-            <spoiler-span v-else>
-              <img
-                class="screenView__mainPanel__posterContainer__poster__gif"
-                :src="`/gifs/pocoyo1.gif`"
-              />
-            </spoiler-span>
+            <!-- <spoiler-span class="spoiler" v-else> -->
+            <img
+              class="screenView__mainPanel__posterContainer__poster__gif"
+              :src="`/gifs/pocoyo1.gif`"
+            />
+            <!-- </spoiler-span> -->
           </div>
         </div>
         <!-- <span class="text__clock" v-if="countdown !== 0"> -->
@@ -273,75 +274,56 @@ onUnmounted(() => {
           <div class="screenView__mainPanel__trackInfo__currentTime">
             {{ currentTimeString }}
           </div>
-          <div class="screenView__mainPanel__trackInfo__artist">
-            <span v-if="isArtistShown"> {{ currentTrack.artist }} </span>
-            <spoiler-span class="spoiler" v-else>
-              {{ currentTrack.artist }}
-            </spoiler-span>
+          <div class="screenView__mainPanel__trackInfo__artistName">
+            <Transition name="fade">
+              <span v-if="isArtistNameShown"> {{ currentTrack.artist }} </span>
+              <spoiler-span class="spoiler" v-else>
+                {{ currentTrack.artist }}
+              </spoiler-span>
+            </Transition>
           </div>
           <div class="screenView__mainPanel__trackInfo__trackName">
-            <span v-if="isTrackNameShown"> {{ currentTrack.name }} </span>
-            <spoiler-span class="spoiler" v-else>
-              {{ currentTrack.name }}
-            </spoiler-span>
+            <Transition name="fade">
+              <span v-if="isTrackNameShown" class="spoilerIn">
+                {{ currentTrack.name }}
+              </span>
+              <spoiler-span class="spoiler" v-else>
+                {{ currentTrack.name }}
+              </spoiler-span>
+            </Transition>
           </div>
         </div>
+        <div class="screenView__mainPanel__emptySpace"></div>
       </div>
-      <div class="screenView__playerList">
-        <!-- <base-table> -->
-        <!--   <table-row v-for="user in usersReadyToAnswer" :key="user.token"> -->
-        <!--     <table-column> -->
-        <!--       {{ user.name }} -->
-        <!--     </table-column> -->
-        <!--   </table-row> -->
-        <!-- </base-table> -->
-        <div class="screenView__playerList__row1">
-          <div
-            v-for="(player, i) of players"
-            :class="i % 2 === 1 ? 'gridItem_hidden' : 'gridItem'"
-            :key="i"
-          >
-            <div class="player">
-              <img
-                class="player__avatar"
-                :src="`/avatars/${player.avatar}.png`"
-              />
-              <div class="player__name">
-                {{ player.name }}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="screenView__playerList__row2">
-          <div
-            v-for="(player, i) of players"
-            :class="i % 2 === 0 ? 'gridItem_hidden' : 'gridItem'"
-            :key="i"
-          >
-            <div class="player">
-              <img
-                class="player__avatar"
-                :src="`/avatars/${player.avatar}.png`"
-              />
-              <div class="player__name">
-                {{ player.name }}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PlayerBoard :items="players" class="playerGrid" />
     </div>
   </div>
 </template>
 <style lang="scss" scoped>
-.spoiler {
-  pointer-events: none;
+.playerGrid {
+  height: 250px;
+  width: 1200px;
+  // background-color: orange;
 }
+
+.fade-enter-active {
+  transition: opacity 2s ease;
+}
+
+.fade-enter-from {
+  opacity: 0;
+}
+
+.spoiler {
+  color: white;
+}
+
 .screenView {
   display: flex;
   height: 100%;
   flex-direction: column;
-  background-color: pink;
+  // background-color: #660066;
+  background: linear-gradient(to bottom, #1a001a 2.5%, #690069 76%, #bd00bd);
   // justify-content: center;
   align-items: center;
   &__scoreboard {
@@ -374,8 +356,8 @@ onUnmounted(() => {
     height: 100%;
   }
   &__mainPanel {
-    margin-top: 5vh;
     display: flex;
+    margin-top: 5vh;
     width: 100%;
     height: 30vh;
     // background-color: orange;
@@ -386,7 +368,6 @@ onUnmounted(() => {
       justify-content: center;
       // height: 400px;
       // width: 400px;
-      padding-left: 50px;
       &__poster {
         display: flex;
         justify-content: center;
@@ -412,7 +393,7 @@ onUnmounted(() => {
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      width: 30%;
+      // width: 30%;
       height: 100%;
       // background-color: lightgreen;
       &__currentTime {
@@ -425,7 +406,7 @@ onUnmounted(() => {
         width: 100%;
         height: 100%;
       }
-      &__artist {
+      &__artistName {
         display: flex;
         width: 100%;
         height: 100%;
@@ -450,69 +431,10 @@ onUnmounted(() => {
         // text-align: center;
       }
     }
-  }
-  &__playerList {
-    display: flex;
-    flex-direction: column;
-    margin-top: 10%;
-    width: 70%;
-    height: 36%;
-    &__row1 {
-      // display: flex;
-      // background-color: green;
-      // width: 100%;
-      // height: 50%;
-      // gap: 14%;
-      display: grid;
-      width: 100%;
-      height: 50%;
-      grid-template-columns: repeat(8, 1fr);
-      grid-template-rows: 1fr;
-      gap: 4px 12px;
+    &__emptySpace {
+      display: flex;
+      width: 120px;
     }
-    &__row2 {
-      // display: flex;
-      // background-color: orange;
-      // width: 100%;
-      // height: 50%;
-      // gap: 14%;
-      // margin-left: 12.5%;
-      display: grid;
-      width: 100%;
-      height: 50%;
-      grid-template-columns: repeat(8, 1fr);
-      grid-template-rows: 1fr;
-      gap: 4px 12px;
-    }
-  }
-}
-
-.gridItem {
-  display: flex;
-  &_hidden {
-    display: flex;
-    // z-index: -100;
-    visibility: hidden;
-  }
-}
-
-.player {
-  display: flex;
-  flex-direction: column;
-  // background-color: aquamarine;
-  &__name {
-    display: flex;
-    color: black;
-    justify-content: center;
-    font-size: 24px;
-    font-weight: bold;
-    height: 20%;
-  }
-  &__avatar {
-    width: 100%;
-    height: 80%;
-    // border-radius: 50%;
-    // border: 5px solid green;
   }
 }
 

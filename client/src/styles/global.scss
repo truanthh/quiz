@@ -5,21 +5,14 @@
   --primary-hover: #2c3e50;
   --second: #be52f2;
   --second-hover: #dba5f5;
-  --success: #00c48c;
-  --success-hover: #7ddfc3;
-  --info: #0084f4;
-  --info-hover: #66b5f8;
-  --warning: #ffa26b;
-  --warning-hover: #ffc7a6;
-  --danger: #ff647c;
-  --danger-hover: #fdafbb;
   --gray: #999999;
   --gray-hover: #4d4d4d;
 
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   // color: rgba(255, 255, 255, 0.87);
+  // color: white;
+  color: white;
   background-color: #242424;
 
   font-synthesis: none;
@@ -33,6 +26,16 @@ html {
   height: 100%;
   margin: 0;
   padding: 0;
+  /* Firefox */
+  scrollbar-width: none;
+  /* IE/Edge */
+  -ms-overflow-style: none;
+}
+
+/* WebKit browsers (Chrome, Safari, Edge) */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
 }
 
 body,
@@ -51,11 +54,11 @@ main {
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
+    // color: #213547;
     background-color: #ffffff;
   }
   a:hover {
-    color: #747bff;
+    // color: #747bff;
   }
   button {
     background-color: #f9f9f9;
