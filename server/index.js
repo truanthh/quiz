@@ -9,7 +9,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const avatarsDir = path.join(__dirname, "/public/avatars");
+// const avatarsDir = path.join(__dirname, "/public/avatars");
 
 const app = express();
 const server = createServer(app);
@@ -47,6 +47,7 @@ let screen = {
 // const playerTokens = new Map();
 
 const playersReadyToAnswer = [];
+let selectedPlayerId = 0;
 // const playerTokenArray = [];
 
 const questions = [];
@@ -106,7 +107,7 @@ function setPlayerReadyAndUpdateClient(player) {
   playersReadyToAnswer.push(player);
   io.to(player.socketId).emit("you-are-ready");
   io.to(screen.socketId).emit(
-    "update-users-ready-to-answer",
+    "update-players-ready-to-answer",
     playersReadyToAnswer,
   );
 }
@@ -279,6 +280,30 @@ io.on("connection", (socket) => {
     io.to(screen.socketId).emit("show-scoreboard");
   });
 
+  socket.on("request-select-prev-player", () => {
+    const prevPlayerId = selectedPlayerId - 1;
+    if (prevPlayerId >= 0) {
+      console.log(`selecting player ${prevPlayerId}`);
+      selectedPlayerId = prevPlayerId;
+      io.to(screen.socketId).emit(
+        "select-prev-player",
+        playersReadyToAnswer.slice(selectedPlayerId),
+      );
+    }
+  });
+
+  socket.on("request-select-next-player", () => {
+    const nextPlayerId = selectedPlayerId + 1;
+    if (nextPlayerId < playersReadyToAnswer.length) {
+      console.log(`selecting player ${nextPlayerId}`);
+      selectedPlayerId = nextPlayerId;
+      io.to(screen.socketId).emit(
+        "select-next-player",
+        playersReadyToAnswer.slice(selectedPlayerId),
+      );
+    }
+  });
+
   socket.on("next-question", (trackData) => {
     if (currentQuestionId === questions.length - 1) {
       return;
@@ -318,7 +343,7 @@ io.on("connection", (socket) => {
       // pause track. count down.
       io.to(screen.socketId).emit("pause-track");
       changeCurrentQuestionStateAndUpdateClient("countdown");
-      let seconds = 3;
+      let seconds = 10;
       let id = setInterval(() => {
         seconds--;
         io.to([

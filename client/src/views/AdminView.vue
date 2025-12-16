@@ -72,6 +72,15 @@ function countTrackAnswerWrong(user) {
     currentUserAnswering.value.token,
   );
 }
+
+function prevPlayer() {
+  store.socket.emit("request-select-prev-player");
+}
+
+function nextPlayer() {
+  store.socket.emit("request-select-next-player");
+}
+
 onMounted(() => {
   store.socket.on("update-audioplayer-client-state", (newState) => {
     currentTrack.value = newState.currentTrack;
@@ -163,6 +172,14 @@ onMounted(() => {
       </button>
       <button class="admin__button_default" @click="countTrackAnswerCorrect">
         track correct
+      </button>
+    </div>
+    <div class="admin__buttonsRow">
+      <button class="admin__button_default" @click="prevPlayer">
+        prevPlayer
+      </button>
+      <button class="admin__button_default" @click="nextPlayer">
+        nextPlayer
       </button>
     </div>
   </div>

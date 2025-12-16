@@ -12,8 +12,7 @@ import tracksData from "../../tracks.json";
 import PlayerBoard from "../components/PlayerBoard.vue";
 
 const store = mainStore();
-// const { players } = storeToRefs(store);
-const usersReadyToAnswer = ref([]);
+const { players } = storeToRefs(store);
 
 const audioPlayer = useAudioPlayerStore();
 const audioPlayerElement = ref(null);
@@ -25,80 +24,84 @@ const isScoreboardShown = ref(false);
 
 // console.log(players.value);
 
-const players = [
-  {
-    avatar: 1,
-    hasPressedReady: false,
-    name: "Габарджон",
-    points: 0,
-    role: "player",
-    socketId: "IdVtnstlr0SNTpOwAAAh",
-    token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
-  },
-  {
-    avatar: 2,
-    hasPressedReady: false,
-    name: "Keni4ek",
-    points: 0,
-    role: "player",
-    socketId: "IdVtnstlr0SNTpOwAAAh",
-    token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
-  },
-  {
-    avatar: 3,
-    hasPressedReady: false,
-    name: "Сибмама",
-    points: 0,
-    role: "player",
-    socketId: "IdVtnstlr0SNTpOwAAAh",
-    token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
-  },
-  {
-    avatar: 4,
-    hasPressedReady: false,
-    name: "Бубубусик",
-    points: 0,
-    role: "player",
-    socketId: "IdVtnstlr0SNTpOwAAAh",
-    token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
-  },
-  {
-    avatar: 5,
-    hasPressedReady: false,
-    name: "Xavier",
-    points: 0,
-    role: "player",
-    socketId: "IdVtnstlr0SNTpOwAAAh",
-    token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
-  },
-  {
-    avatar: 6,
-    hasPressedReady: false,
-    name: "Попался",
-    points: 0,
-    role: "player",
-    socketId: "IdVtnstlr0SNTpOwAAAh",
-    token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
-  },
-  {
-    avatar: 7,
-    hasPressedReady: false,
-    name: "Makaka",
-    points: 0,
-    role: "player",
-    socketId: "IdVtnstlr0SNTpOwAAAh",
-    token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
-  },
-  {
-    avatar: 8,
-    hasPressedReady: false,
-    name: "Lohpidr",
-    points: 0,
-    role: "player",
-    socketId: "IdVtnstlr0SNTpOwAAAh",
-    token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
-  },
-];
+const playersReadyToAnswer = ref([
+  { name: "blank", hasPressedReady: false, avatar: undefined },
+]);
+
+// const players = [
+//   {
+//     avatar: 1,
+//     hasPressedReady: false,
+//     name: "Габарджон",
+//     points: 0,
+//     role: "player",
+//     socketId: "IdVtnstlr0SNTpOwAAAh",
+//     token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
+//   },
+//   {
+//     avatar: 2,
+//     hasPressedReady: true,
+//     name: "Keni4ek",
+//     points: 0,
+//     role: "player",
+//     socketId: "IdVtnstlr0SNTpOwAAAh",
+//     token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
+//   },
+//   {
+//     avatar: 3,
+//     hasPressedReady: true,
+//     name: "Сибмама",
+//     points: 0,
+//     role: "player",
+//     socketId: "IdVtnstlr0SNTpOwAAAh",
+//     token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
+//   },
+//   {
+//     avatar: 4,
+//     hasPressedReady: false,
+//     name: "Бубубусик",
+//     points: 0,
+//     role: "player",
+//     socketId: "IdVtnstlr0SNTpOwAAAh",
+//     token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
+//   },
+//   {
+//     avatar: 5,
+//     hasPressedReady: false,
+//     name: "Xavier",
+//     points: 0,
+//     role: "player",
+//     socketId: "IdVtnstlr0SNTpOwAAAh",
+//     token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
+//   },
+//   {
+//     avatar: 6,
+//     hasPressedReady: false,
+//     name: "Попался",
+//     points: 0,
+//     role: "player",
+//     socketId: "IdVtnstlr0SNTpOwAAAh",
+//     token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
+//   },
+//   {
+//     avatar: 7,
+//     hasPressedReady: false,
+//     name: "Makaka",
+//     points: 0,
+//     role: "player",
+//     socketId: "IdVtnstlr0SNTpOwAAAh",
+//     token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
+//   },
+//   {
+//     avatar: 8,
+//     hasPressedReady: true,
+//     name: "Lohpidr",
+//     points: 0,
+//     role: "player",
+//     socketId: "IdVtnstlr0SNTpOwAAAh",
+//     token: "711584ad-6e5a-4add-a053-e1de2a2ef7f4",
+//   },
+// ];
 
 // const usersSortedByPoints = computed(() => {
 //   return users.sort((a, b) => b.points - a.points);
@@ -167,8 +170,8 @@ onMounted(() => {
     currentQuestionState.value = state;
   });
 
-  store.socket.on("update-users-ready-to-answer", (usersReadyToAnswerArr) => {
-    usersReadyToAnswer.value = usersReadyToAnswerArr;
+  store.socket.on("update-players-ready-to-answer", (players) => {
+    playersReadyToAnswer.value = players;
   });
 
   store.socket.on("show-trackname", () => {
@@ -185,6 +188,22 @@ onMounted(() => {
 
   store.socket.on("show-scoreboard", () => {
     isScoreboardShown.value = !isScoreboardShown.value;
+  });
+
+  // store.socket.on("select-next-player", (playerId) => {
+  //   selectedPlayerId.value = playerId;
+  // });
+  //
+  // store.socket.on("select-prev-player", (playerId) => {
+  //   selectedPlayerId.value = playerId;
+  // });
+
+  store.socket.on("select-next-player", (players) => {
+    playersReadyToAnswer.value = players;
+  });
+
+  store.socket.on("select-prev-player", (players) => {
+    playersReadyToAnswer.value = players;
   });
 
   // store.socket.on("update-players-data", (playersData) => {
@@ -261,6 +280,7 @@ onUnmounted(() => {
             <!-- <ImageSkeleton v-else /> -->
             <!-- <spoiler-span class="spoiler" v-else> -->
             <img
+              v-else
               class="screenView__mainPanel__posterContainer__poster__gif"
               :src="`/gifs/pocoyo1.gif`"
             />
@@ -295,15 +315,82 @@ onUnmounted(() => {
         </div>
         <div class="screenView__mainPanel__emptySpace"></div>
       </div>
-      <PlayerBoard :items="players" class="playerGrid" />
+      <div class="usersAnsweringBar">
+        <div class="usersAnsweringBar__selectedPlayerNickname">
+          {{ playersReadyToAnswer[0].name }}
+        </div>
+        <Transition name="fade">
+          <div
+            v-for="(player, i) of playersReadyToAnswer"
+            :key="i"
+            :class="{
+              usersAnsweringBar__player: i !== 0,
+              usersAnsweringBar__player_selected: i === 0,
+            }"
+          >
+            <img
+              class="usersAnsweringBar__avatar"
+              :src="`/avatars/${player.avatar}.png`"
+            />
+          </div>
+        </Transition>
+      </div>
+      <PlayerBoard :items="players" />
     </div>
   </div>
 </template>
 <style lang="scss" scoped>
+slide-enter-active,
+.slide-leave-active {
+  transition: all 0.5s ease-in-out; /* Define the transition properties and duration */
+}
+
+.usersAnsweringBar {
+  display: flex;
+  position: relative;
+  align-items: end;
+  width: 40%;
+  height: 180px;
+  // border: 2px solid orange;
+  // border-radius: 60px;
+  margin-bottom: 20px;
+  // background-color: orange;
+  &__selectedPlayerNickname {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 14%;
+    left: 35%;
+    font-size: 34px;
+    font-weight: bold;
+    font-family: Montserrat;
+    color: white;
+  }
+  &__player {
+    display: flex;
+    height: 40%;
+    aspect-ratio: 1 / 1;
+    justify-content: center;
+    align-items: center;
+    &_selected {
+      height: 100%;
+    }
+  }
+  &__avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid yellow;
+  }
+}
+
 .playerGrid {
+  // margin-top: 5%;
   height: 324px;
   width: 1050px;
-  // background-color: orange;
+  // background-color: green;
 }
 
 .fade-enter-active {
@@ -326,6 +413,7 @@ onUnmounted(() => {
   background: linear-gradient(to bottom, #1a001a 2.5%, #690069 76%, #bd00bd);
   // justify-content: center;
   align-items: center;
+  gap: 6%;
   &__scoreboard {
     display: flex;
     flex-direction: column;
@@ -357,25 +445,27 @@ onUnmounted(() => {
   }
   &__mainPanel {
     display: flex;
-    margin-top: 5vh;
+    margin-top: 2%;
     width: 100%;
-    height: 30vh;
-    // background-color: orange;
+    height: 30%;
+    // background-color: khaki;
     justify-content: center;
+    gap: 2%;
     &__posterContainer {
       display: flex;
       align-items: center;
       justify-content: center;
       // height: 400px;
       // width: 400px;
+      aspect-ratio: 1 / 1;
       &__poster {
         display: flex;
         justify-content: center;
         align-items: center;
         // height: 100%;
         // width: 100%;
-        height: 30vh;
-        width: 30vh;
+        height: 80%;
+        width: 80%;
         &__img {
           height: 100%;
           width: 100%;
@@ -405,6 +495,7 @@ onUnmounted(() => {
         // background-color: white;
         width: 100%;
         height: 100%;
+        padding-top: 60px;
       }
       &__artistName {
         display: flex;
@@ -417,6 +508,7 @@ onUnmounted(() => {
         word-break: break-all;
         // text-align: center;
         // background-color: aquamarine;
+        padding-top: 20px;
       }
       &__trackName {
         display: flex;
@@ -429,6 +521,7 @@ onUnmounted(() => {
         align-items: center;
         word-break: break-all;
         // text-align: center;
+        padding-bottom: 50px;
       }
     }
     &__emptySpace {
