@@ -57,11 +57,11 @@ const chess = computed(() => {
   display: grid;
   grid-template-columns: repeat(8, minmax(auto, 12.5%));
   grid-template-rows: repeat(2, minmax(auto, 50%));
-  background-color: orange;
+  // background-color: orange;
   // gap: 10px;
   &__cell {
     display: flex;
-    border: 1px solid black;
+    // border: 1px solid black;
     width: 100%;
     max-width: 100%;
     &_hidden {
@@ -76,11 +76,19 @@ const chess = computed(() => {
     height: 80%;
     width: 100%;
     max-width: 100%;
+    aspect-ratio: 1 / 1;
     object-fit: cover;
-    // max-height: 80%;
+    border-radius: 50%;
+    border: 2px solid yellow;
   }
   &__name {
+    display: flex;
     height: 20%;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: bold;
+    color: #ffffe6;
+    font-family: Montserrat;
     font-size: 18px;
   }
 }
