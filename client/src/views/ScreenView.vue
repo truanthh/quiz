@@ -301,7 +301,7 @@ onUnmounted(() => {
 </template>
 <style lang="scss" scoped>
 .playerGrid {
-  height: 250px;
+  height: 370px;
   width: 1200px;
   // background-color: orange;
 }
