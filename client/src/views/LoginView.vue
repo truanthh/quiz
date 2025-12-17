@@ -41,7 +41,9 @@ const handleLogin = async () => {
 const userRolePinia = ref("NOROLE");
 
 function isLoginDataValid(userName) {
-  if (userName.length < 2 || userName.length > 10) return false;
+  if (userName.length > 10) return false;
+  if (userName.length < 2) return false;
+  if (userName === "admin" || userName === "screen") return false;
 
   return true;
 }

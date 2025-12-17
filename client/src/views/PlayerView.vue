@@ -19,7 +19,7 @@ function handleClick() {
 onMounted(() => {
   store.socket.on("update-audioplayer-client-state", (newState) => {
     isPlaying.value = newState.isPlaying;
-    currentTime.value = store.formatTime(newState.currentTime);
+    // currentTime.value = store.formatTime(newState.currentTime);
   });
 
   store.socket.on("question-state-changed", (newState) => {

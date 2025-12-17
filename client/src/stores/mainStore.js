@@ -28,12 +28,8 @@ export const mainStore = defineStore("mainStore", () => {
       connectionInfo.value.status = "Отключено от сервера";
     });
 
-    socket.value.on("update-users-data", (users) => {
-      users.value = [...users];
-    });
-
-    socket.value.on("update-players-data", (playersData) => {
-      players.value = playersData;
+    socket.value.on("update-players", (data) => {
+      players.value = data;
     });
 
     socket.value.on("update-user-data", (user) => {
@@ -65,21 +61,9 @@ export const mainStore = defineStore("mainStore", () => {
     socket.value.emit("login", payload);
   };
 
-  function formatTime(seconds) {
-    let sec = seconds;
-    let min = 0;
-
-    if (seconds > 59) {
-      min = Math.floor(seconds / 60);
-      sec = sec % 60;
-    }
-
-    return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
-  }
-
   // const isQuestionActive = ref(false);
   // const debug = (el) => {};
-
+  //
   return {
     login,
     socket,
@@ -91,6 +75,5 @@ export const mainStore = defineStore("mainStore", () => {
     players,
     // debug,
     waitForLogin,
-    formatTime,
   };
 });

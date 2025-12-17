@@ -1,6 +1,42 @@
 <script setup>
 import "spoilerjs/spoiler-span";
 import ImageSkeleton from "../components/ImageSkeleton.vue";
+import pocoyo1 from "../../assets/gifs/pocoyo1.gif";
+
+const props = defineProps({
+  isPosterShown: {
+    type: Boolean,
+    default: false,
+  },
+  posterExists: {
+    type: Boolean,
+    default: false,
+  },
+  isTrackNameShown: {
+    type: Boolean,
+    default: false,
+  },
+  isArtistNameShown: {
+    type: Boolean,
+    default: false,
+  },
+  poster: {
+    type: String,
+    default: "",
+  },
+  time: {
+    type: String,
+    default: "00:00",
+  },
+  artistName: {
+    type: String,
+    default: "Darude",
+  },
+  trackName: {
+    type: String,
+    default: "Sandstorm",
+  },
+});
 </script>
 
 <template>
@@ -19,12 +55,12 @@ import ImageSkeleton from "../components/ImageSkeleton.vue";
       <div class="poster">
         <img
           class="poster__img"
-          :src="audioPlayer.currentTrack.posterImg"
+          :src="poster"
           v-if="isPosterShown && posterExists"
         />
         <!-- <ImageSkeleton v-else /> -->
         <!-- <spoiler-span class="spoiler" v-else> -->
-        <img v-else class="poster__gif" :src="`/gifs/pocoyo1.gif`" />
+        <img v-else class="poster__gif" :src="pocoyo1" />
         <!-- </spoiler-span> -->
       </div>
     </div>
@@ -33,23 +69,23 @@ import ImageSkeleton from "../components/ImageSkeleton.vue";
     <!-- > -->
     <div class="trackInfo">
       <div class="trackInfo__currentTime">
-        {{ currentTimeString }}
+        {{ time }}
       </div>
       <div class="trackInfo__artistName">
         <Transition name="fade">
-          <span v-if="isArtistNameShown"> {{ currentTrack.artist }} </span>
+          <span v-if="isArtistNameShown"> {{ artistName }} </span>
           <spoiler-span class="spoiler" v-else>
-            {{ currentTrack.artist }}
+            {{ artistName }}
           </spoiler-span>
         </Transition>
       </div>
       <div class="trackInfo__trackName">
         <Transition name="fade">
           <span v-if="isTrackNameShown" class="spoiler">
-            {{ currentTrack.name }}
+            {{ trackName }}
           </span>
           <spoiler-span class="spoiler" v-else>
-            {{ currentTrack.name }}
+            {{ trackName }}
           </spoiler-span>
         </Transition>
       </div>

@@ -2,21 +2,18 @@ import { defineStore } from "pinia";
 import { ref, computed, onMounted, onUnmounted } from "vue";
 
 export const useAudioPlayerStore = defineStore("audioPlayer", () => {
-  // state to sync
+  //
+  //
+  // -------- AUDIOPLAYER STATE ------------------------
   const isPlaying = ref(false);
   const currentTrackIndex = ref(0);
   const volume = ref(2.0);
   const tracks = ref([]);
   const duration = ref(0);
-  const currentTimeString = ref("00:00");
   const currentTimeSeconds = ref(0);
-
-  // const isPlaying()
-
-  // need tracks and id and we are good
   const currentTrack = computed(() => tracks.value[currentTrackIndex.value]);
 
-  // state only on screen page
+  // component context
   const audioElementRef = ref(null);
   const audioContextRef = ref(null);
   const gainNodeRef = ref(null);
@@ -89,7 +86,8 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
     if (audioElementRef.value) {
       pause();
       audioElementRef.value.src = tracks.value[index].src;
-      currentTimeString.value = "00:00";
+      // currentTimeString.value = "00:00";
+      // ????
     }
   }
 
@@ -108,23 +106,12 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
     tracks.value = newTracks;
   }
 
+  // THIS IS USED IN MAIN COMPONENT
+  // do i need this here?
   function updateTime() {
     let timeSeconds = Math.trunc(audioElementRef.value.currentTime);
 
     currentTimeSeconds.value = timeSeconds;
-    currentTimeString.value = secondsToString(timeSeconds);
-  }
-
-  function secondsToString(seconds) {
-    let sec = seconds;
-    let min = 0;
-
-    if (seconds > 59) {
-      min = Math.floor(seconds / 60);
-      sec = sec % 60;
-    }
-
-    return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
   }
 
   function getTracks() {
@@ -140,7 +127,6 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
 
     // Getters
     currentTrack,
-    currentTimeString,
     currentTimeSeconds,
     getTracks,
 
@@ -157,6 +143,5 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
     previousTrack,
     setTracks,
     updateTime,
-    secondsToString,
   };
 });

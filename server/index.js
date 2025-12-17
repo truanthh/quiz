@@ -9,8 +9,6 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// const avatarsDir = path.join(__dirname, "/public/avatars");
-
 const app = express();
 const server = createServer(app);
 const io = new socketIo(server, {
@@ -36,17 +34,21 @@ let admin = {
   socketId: undefined,
   token: undefined,
   role: "admin",
+  name: "admin",
 };
 let screen = {
   socketId: undefined,
   token: undefined,
   role: "screen",
+  name: "screen",
 };
 
 // ????
 // const playerTokens = new Map();
 
-const playersReadyToAnswer = [];
+const playersReadyToAnswer = [
+  { name: "blank", hasPressedReady: false, avatar: 0 },
+];
 let selectedPlayerId = 0;
 // const playerTokenArray = [];
 
@@ -60,13 +62,14 @@ const audioPlayer = {
   currentTrack: "",
   isPlaying: false,
   currentTime: 0,
+  currentTimeString: "",
 };
 
 const availableAvatars = new Set([1, 2, 3, 4, 5, 6, 7, 8]);
 
 function generateAvatarNumber() {
   if (availableAvatars.size === 0) {
-    console.log("no avatars available!");
+    // console.log("no avatars available!");
     return;
   }
 
@@ -78,6 +81,34 @@ function generateAvatarNumber() {
   availableAvatars.delete(avatarNumber);
 
   return avatarNumber;
+}
+
+function secondsToString(seconds) {
+  let sec = seconds;
+  let min = 0;
+
+  if (seconds > 59) {
+    min = Math.floor(seconds / 60);
+    sec = sec % 60;
+  }
+
+  return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
+}
+
+// i need this to restore state for screen after reconnecting
+function updateAllClientsAudioPlayerState() {
+  io.emit("update-audioplayer-client-state", audioPlayer);
+}
+
+// same shit here
+function setStateScreen() {
+  console.log("trying to send data to screen!");
+  updateAllClientsAudioPlayerState();
+  updatePlayersClient();
+  io.to(screen.socketId).emit(
+    "update-players-ready-to-answer",
+    playersReadyToAnswer.slice(selectedPlayerId),
+  );
 }
 
 function changeCurrentQuestionStateAndUpdateClient(state) {
@@ -98,7 +129,7 @@ function getPlayers() {
 }
 
 function updatePlayersClient() {
-  io.to(screen.socketId).emit("update-players-data", getPlayers());
+  io.emit("update-players", getPlayers());
   // console.log(`updated players screen with ${players[0]}s ome  data`);
 }
 
@@ -115,7 +146,7 @@ function setPlayerReadyAndUpdateClient(player) {
 function resetPlayers() {
   const players = getPlayers();
   if (players.length === 0) {
-    console.log("error getting players array! mb no players?");
+    // console.log("error getting players array! mb no players?");
     return;
   }
   for (let player of players) {
@@ -130,7 +161,7 @@ io.on("connection", (socket) => {
   // user reconnects
   let token = socket.handshake.auth.token;
   let oldSocketIdPlayer = playerTokens.get(token);
-  console.log(`Подключился: socket: ${socket.id} token: ${token}`);
+  // console.log(`Подключился: socket: ${socket.id} token: ${token}`);
   // console.log(oldSocketIdPlayer);
 
   if (token) {
@@ -141,7 +172,7 @@ io.on("connection", (socket) => {
     //
     else if (token === screen.token) {
       screen.socketId = socket.id;
-      updatePlayersClient();
+      // getting players, playersReady and trackdata
       socket.emit("login-successful", screen);
     }
     //
@@ -152,10 +183,10 @@ io.on("connection", (socket) => {
       players.set(socket.id, playerOld);
       playerTokens.set(token, socket.id);
       updatePlayersClient();
-      console.log(`got user, logging in... `);
+      // console.log(`got user, logging in... `);
       socket.emit("login-successful", playerOld);
     } else {
-      console.log("token is irrelevant, log in normally");
+      // console.log("token is irrelevant, log in normally");
     }
   }
 
@@ -224,8 +255,9 @@ io.on("connection", (socket) => {
     // console.log(questions[0]);
     currentQuestion = questions[currentQuestionId];
     if (questions.length !== 0) {
-      console.log("questions loaded successfully!");
+      // console.log("questions loaded successfully!");
     }
+    setStateScreen();
   });
 
   socket.on("admin-loaded", () => {
@@ -239,10 +271,11 @@ io.on("connection", (socket) => {
     // audioPlayer.tracks = newState.tracks;
     audioPlayer.currentTrack = newState.currentTrack;
     audioPlayer.isPlaying = newState.isPlaying;
-    audioPlayer.currentTime = newState.currentTimeSeconds;
-    socket.broadcast.emit("update-audioplayer-client-state", audioPlayer);
-    // console.log(audioPlayer.currentTime);
-    // socket.broadcast.emit("update-client-time", audioPlayer.currentTimeSeconds);
+    audioPlayer.currentTimeSeconds = newState.currentTimeSeconds;
+    audioPlayer.currentTimeString = secondsToString(
+      audioPlayer.currentTimeSeconds,
+    );
+    updateAllClientsAudioPlayerState();
   });
 
   // track can only be played by admin
@@ -250,6 +283,7 @@ io.on("connection", (socket) => {
   socket.on("request-play-track", () => {
     if (currentQuestion.state === "") {
       changeCurrentQuestionStateAndUpdateClient("open");
+      playersReadyToAnswer.length = 0;
     }
     io.to(screen.socketId).emit("play-track");
   });
@@ -283,7 +317,7 @@ io.on("connection", (socket) => {
   socket.on("request-select-prev-player", () => {
     const prevPlayerId = selectedPlayerId - 1;
     if (prevPlayerId >= 0) {
-      console.log(`selecting player ${prevPlayerId}`);
+      // console.log(`selecting player ${prevPlayerId}`);
       selectedPlayerId = prevPlayerId;
       io.to(screen.socketId).emit(
         "select-prev-player",
@@ -295,7 +329,7 @@ io.on("connection", (socket) => {
   socket.on("request-select-next-player", () => {
     const nextPlayerId = selectedPlayerId + 1;
     if (nextPlayerId < playersReadyToAnswer.length) {
-      console.log(`selecting player ${nextPlayerId}`);
+      // console.log(`selecting player ${nextPlayerId}`);
       selectedPlayerId = nextPlayerId;
       io.to(screen.socketId).emit(
         "select-next-player",
@@ -338,10 +372,10 @@ io.on("connection", (socket) => {
     // question states - no state(empty string), open, countdown, pending, closed
 
     if (currentQuestion.state === "open" && !player.hasPressedReady) {
+      io.to(screen.socketId).emit("pause-track");
       setPlayerReadyAndUpdateClient(player);
       // countdown is also a question state
       // pause track. count down.
-      io.to(screen.socketId).emit("pause-track");
       changeCurrentQuestionStateAndUpdateClient("countdown");
       let seconds = 10;
       let id = setInterval(() => {
@@ -393,10 +427,16 @@ io.on("connection", (socket) => {
   // });
 
   socket.on("disconnect", () => {
-    console.log("Отключился:", socket.id);
+    // console.log(
+    //   `Отключился: ${
+    //     players.get(socket.id)?.name || admin.socketId === socket.id
+    //       ? "admin"
+    //       : "screen"
+    //   }`,
+    // );
   });
 });
 
 server.listen(3000, "0.0.0.0", () => {
-  console.log("Сервер запущен на порту 3000");
+  // console.log("Сервер запущен на порту 3000");
 });

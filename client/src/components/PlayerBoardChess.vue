@@ -45,10 +45,10 @@ const chess = computed(() => {
       <div class="player">
         <img
           class="player__avatar"
-          :src="`/avatars/${player.avatar}.png`"
+          :src="`../ui/avatars/${player.avatar}.png`"
           v-if="!player.hasPressedReady"
         />
-        <img class="player__altAvatar" :src="`/gifs/dog${1}.gif`" v-else />
+        <img class="player__altAvatar" :src="`../ui/gifs/dog${1}.gif`" v-else />
         <div class="player__name">
           {{ player ? player.name.toUpperCase() : 0 }}
         </div>

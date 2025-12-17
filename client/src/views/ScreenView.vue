@@ -1,5 +1,12 @@
 <script setup>
-import { ref, onMounted, onUnmounted, watch, computed } from "vue";
+import {
+  ref,
+  onMounted,
+  onUnmounted,
+  watch,
+  computed,
+  onBeforeMount,
+} from "vue";
 import { storeToRefs } from "pinia";
 import { useAudioPlayerStore } from "../stores/useAudioPlayerStore.js";
 import { mainStore } from "../stores/mainStore";
@@ -7,7 +14,7 @@ import { mainStore } from "../stores/mainStore";
 // import TableRow from "../components/Table/TableRow.vue";
 // import TableColumn from "../components/Table/TableColumn.vue";
 import tracksData from "../../tracks.json";
-import PlayerBoard from "../components/PlayerBoard.vue";
+import PlayerBoardBars from "../components/PlayerBoardBars.vue";
 import ItemsBar from "../components/ItemsBar.vue";
 import MainPanel from "../components/MainPanel.vue";
 
@@ -39,23 +46,38 @@ const posterExists = computed(() => {
   return !audioPlayer.currentTrack.posterImg.endsWith("default.jpg");
 });
 
+audioPlayer.setTracks(tracksData.tracks);
+
+// we sending audioplayer state to server every second while track is playing
+// and receiving state from the server to display data
+// why is it being sent by screen and not audioPlayer?
+// maybe because audioplayer is only existing in screen component
 const {
   currentTimeSeconds,
-  currentTimeString,
   currentTrackIndex,
   currentTrack,
   isPlaying,
   tracks,
 } = storeToRefs(audioPlayer);
 
-audioPlayer.setTracks(tracksData.tracks);
+// const currentTimeString = ref("00:00");
 
+// state that we send to server
 const audioPlayerState = ref({
   tracks,
   currentTrack,
   currentTrackIndex,
   isPlaying,
   currentTimeSeconds,
+});
+
+const receivedAudioPlayerState = ref({
+  tracks: "tracks",
+  currentTrack: "currentTrack",
+  currentTrackIndex: 0,
+  isPlaying: false,
+  currentTimeSeconds: 0,
+  currentTimeString: "00:00",
 });
 
 watch(
@@ -66,12 +88,15 @@ watch(
   { deep: true },
 );
 
-// emits on every second change
-// watch(currentTimeSeconds, (newTime) => {
-//   store.socket.emit("update-server-time", newTime);
-// });
-
 onMounted(() => {
+  store.socket.on("update-audioplayer-client-state", (newState) => {
+    receivedAudioPlayerState.value = newState;
+  });
+
+  store.socket.on("update-players-ready-to-answer", (players) => {
+    playersReadyToAnswer.value = players;
+  });
+
   store.socket.on("play-track", audioPlayer.play);
   store.socket.on("pause-track", audioPlayer.pause);
   store.socket.on("countdown", (seconds) => {
@@ -87,10 +112,6 @@ onMounted(() => {
 
   store.socket.on("current-question-state-changed", (state) => {
     currentQuestionState.value = state;
-  });
-
-  store.socket.on("update-players-ready-to-answer", (players) => {
-    playersReadyToAnswer.value = players;
   });
 
   store.socket.on("show-trackname", () => {
@@ -109,14 +130,6 @@ onMounted(() => {
     isScoreboardShown.value = !isScoreboardShown.value;
   });
 
-  // store.socket.on("select-next-player", (playerId) => {
-  //   selectedPlayerId.value = playerId;
-  // });
-  //
-  // store.socket.on("select-prev-player", (playerId) => {
-  //   selectedPlayerId.value = playerId;
-  // });
-
   store.socket.on("select-next-player", (players) => {
     playersReadyToAnswer.value = players;
   });
@@ -124,10 +137,6 @@ onMounted(() => {
   store.socket.on("select-prev-player", (players) => {
     playersReadyToAnswer.value = players;
   });
-
-  // store.socket.on("update-players-data", (playersData) => {
-  //   players.value = [...playersData];
-  // });
 
   audioPlayer.initialize(audioPlayerElement.value);
 
@@ -153,6 +162,7 @@ onUnmounted(() => {
 
 <template>
   <div class="screenView__container">
+    <!-- AUDIO AND SCOREBOARD -->
     <div
       :class="
         isScoreboardShown
@@ -174,9 +184,20 @@ onUnmounted(() => {
       ref="audioPlayerElement"
       preload="auto"
     ></audio>
+    <!-- ---------------------- -->
     <div class="screenView">
+      <MainPanel
+        :isPosterShown
+        :posterExists
+        :poster="receivedAudioPlayerState.currentTrack.posterImg"
+        :isArtistNameShown
+        :isTrackNameShown
+        :artistName="receivedAudioPlayerState.currentTrack.artist"
+        :trackName="receivedAudioPlayerState.currentTrack.name"
+        :time="receivedAudioPlayerState.currentTimeString"
+      />
       <ItemsBar :items="playersReadyToAnswer" />
-      <PlayerBoard :items="players" />
+      <PlayerBoardBars :items="players" />
     </div>
   </div>
 </template>
