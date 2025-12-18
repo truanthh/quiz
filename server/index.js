@@ -43,14 +43,10 @@ let screen = {
   name: "screen",
 };
 
-// ????
-// const playerTokens = new Map();
-
 const playersReadyToAnswer = [
   { name: "blank", hasPressedReady: false, avatar: 0 },
 ];
 let selectedPlayerId = 0;
-// const playerTokenArray = [];
 
 const questions = [];
 let currentQuestionId = 0;
@@ -62,7 +58,7 @@ const audioPlayer = {
   currentTrack: "",
   isPlaying: false,
   currentTime: 0,
-  currentTimeString: "",
+  currentTimeString: "00:00",
 };
 
 const availableAvatars = new Set([1, 2, 3, 4, 5, 6, 7, 8]);

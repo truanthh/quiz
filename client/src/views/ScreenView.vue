@@ -37,7 +37,7 @@ const playersReadyToAnswer = ref([
 
 const isArtistNameShown = ref(false);
 const isTrackNameShown = ref(false);
-const isPosterShown = ref(false);
+const isPosterShown = ref(true);
 
 const currentQuestionState = ref("");
 const countdown = ref(0);
@@ -187,14 +187,15 @@ onUnmounted(() => {
     <!-- ---------------------- -->
     <div class="screenView">
       <MainPanel
-        :isPosterShown
-        :posterExists
         :poster="receivedAudioPlayerState.currentTrack.posterImg"
-        :isArtistNameShown
-        :isTrackNameShown
         :artistName="receivedAudioPlayerState.currentTrack.artist"
         :trackName="receivedAudioPlayerState.currentTrack.name"
         :time="receivedAudioPlayerState.currentTimeString"
+        :countdown
+        :isPosterShown
+        :posterExists
+        :isArtistNameShown
+        :isTrackNameShown
       />
       <ItemsBar :items="playersReadyToAnswer" />
       <PlayerBoardBars :items="players" />

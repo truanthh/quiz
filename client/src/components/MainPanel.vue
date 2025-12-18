@@ -36,37 +36,25 @@ const props = defineProps({
     type: String,
     default: "Sandstorm",
   },
+  countdown: {
+    type: Number,
+    default: 0,
+  },
 });
 </script>
 
 <template>
   <div class="mainPanel__container">
-    <!-- <div class="screenView__mainPanel__status"> -->
-    <!--   <div class="screenView__mainPanel__status__questionNumber"> -->
-    <!--     <span class="text__questionNumber"> -->
-    <!--       #{{ currentTrackIndex + 1 }}</span -->
-    <!--     > -->
-    <!--   </div> -->
-    <!--   <div class="screenView__mainPanel__status__pointsChange"> -->
-    <!--     <span class="text__pointsChange"> +100 </span> -->
-    <!--   </div> -->
-    <!-- </div> -->
     <div class="poster__container">
       <div class="poster">
         <img
           class="poster__img"
-          :src="poster"
+          :src="`${poster}`"
           v-if="isPosterShown && posterExists"
         />
-        <!-- <ImageSkeleton v-else /> -->
-        <!-- <spoiler-span class="spoiler" v-else> -->
         <img v-else class="poster__gif" :src="pocoyo1" />
-        <!-- </spoiler-span> -->
       </div>
     </div>
-    <!-- <span class="text__clock" v-if="countdown !== 0"> -->
-    <!--   {{ countdown }}</span -->
-    <!-- > -->
     <div class="trackInfo">
       <div class="trackInfo__currentTime">
         {{ time }}
@@ -90,11 +78,17 @@ const props = defineProps({
         </Transition>
       </div>
     </div>
-    <div class="emptySpace"></div>
+    <span class="countdown" v-if="countdown !== 0"> {{ countdown }}</span>
+    <span class="countdown" v-else> ~ </span>
   </div>
 </template>
 
 <style lang="scss" scoped>
+.countdown {
+  font-size: 33px;
+  color: white;
+}
+
 .mainPanel {
   &__container {
     display: flex;
@@ -125,7 +119,7 @@ const props = defineProps({
     align-items: center;
     font-weight: bold;
     font-size: 50px;
-    // background-color: white;
+    // background-color: orange;
     width: 100%;
     height: 100%;
     padding-top: 60px;
