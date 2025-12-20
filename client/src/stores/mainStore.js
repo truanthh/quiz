@@ -1,6 +1,7 @@
 import { ref } from "vue";
 import { defineStore } from "pinia";
 import { io } from "socket.io-client";
+import tracksData from "../../tracks.json";
 
 export const mainStore = defineStore("mainStore", () => {
   const socket = ref(null);
@@ -44,6 +45,7 @@ export const mainStore = defineStore("mainStore", () => {
       }, 5000);
 
       const handleLogin = (payload) => {
+        // console.log(payload.audioPlayer);
         clearTimeout(timer);
         user.value.token = payload.token;
         localStorage.setItem("token", payload.token);
@@ -58,7 +60,8 @@ export const mainStore = defineStore("mainStore", () => {
   }
 
   const login = (payload) => {
-    socket.value.emit("login", payload);
+    const data = { ...payload, tracksData };
+    socket.value.emit("login", data);
   };
 
   // const isQuestionActive = ref(false);

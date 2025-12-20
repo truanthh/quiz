@@ -90,7 +90,8 @@ watch(
 
 onMounted(() => {
   store.socket.on("update-audioplayer-client-state", (newState) => {
-    receivedAudioPlayerState.value = newState;
+    console.log(newState);
+    receivedAudioPlayerState.value = { ...newState };
   });
 
   store.socket.on("update-players-ready-to-answer", (players) => {
@@ -161,6 +162,13 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <div class="debugPanel">
+    <button
+      class="debugPanel__button"
+      @click="console.log(receivedAudioPlayerState)"
+    ></button>
+    {{ receivedAudioPlayerState }}
+  </div>
   <div class="screenView__container">
     <!-- AUDIO AND SCOREBOARD -->
     <div
@@ -203,6 +211,21 @@ onUnmounted(() => {
   </div>
 </template>
 <style lang="scss" scoped>
+.debugPanel {
+  width: 1000px;
+  height: 300px;
+  border: 2px solid black;
+  padding: 20px;
+  background-color: lightgray;
+  position: fixed;
+  color: black;
+  top: 0;
+  right: 0;
+  &__button {
+    width: 100px;
+    height: 20px;
+  }
+}
 .screenView {
   display: flex;
   height: 100%;

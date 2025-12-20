@@ -93,7 +93,7 @@ function secondsToString(seconds) {
 
 // i need this to restore state for screen after reconnecting
 function updateAllClientsAudioPlayerState() {
-  io.emit("update-audioplayer-client-state", audioPlayer);
+  io.to(screen.socketId).emit("update-audioplayer-client-state", audioPlayer);
 }
 
 // same shit here
@@ -168,7 +168,7 @@ io.on("connection", (socket) => {
     //
     else if (token === screen.token) {
       screen.socketId = socket.id;
-      // getting players, playersReady and trackdata
+      // getting players, playersReady and tracks data
       socket.emit("login-successful", screen);
     }
     //
@@ -225,7 +225,10 @@ io.on("connection", (socket) => {
         role: "screen",
       };
       screen = newScreen;
-      socket.emit("login-successful", screen);
+      console.log(payload.tracksData.tracks);
+      audioPlayer.tracks = payload.tracksData.tracks;
+      setStateScreen();
+      socket.emit("login-successful", { ...screen, audioPlayer });
     }
     // console.log(
     //   `
@@ -243,18 +246,16 @@ io.on("connection", (socket) => {
     connectedAt: new Date().toLocaleString(),
   });
 
-  socket.on("screen-loaded", (tracks) => {
-    tracks.forEach((track) => {
-      questions.push({ track, state: "" });
-    });
-    // console.log("first question is: ");
-    // console.log(questions[0]);
-    currentQuestion = questions[currentQuestionId];
-    if (questions.length !== 0) {
-      // console.log("questions loaded successfully!");
-    }
-    setStateScreen();
-  });
+  // socket.on("screen-loaded", (tracks) => {
+  //   tracks.forEach((track) => {
+  //     questions.push({ track, state: "" });
+  //   });
+  //   currentQuestion = questions[currentQuestionId];
+  //   if (questions.length !== 0) {
+  //     console.log("questions loaded successfully!");
+  //   }
+  //   setStateScreen();
+  // });
 
   socket.on("admin-loaded", () => {
     resetPlayers();
