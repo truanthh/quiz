@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { ref, reactive } from "vue";
 import { defineStore } from "pinia";
 import { io } from "socket.io-client";
 import tracksData from "../../tracks.json";
@@ -10,6 +10,21 @@ export const mainStore = defineStore("mainStore", () => {
   const users = ref([]);
   const players = ref([]);
   const isAuth = ref(false);
+
+  const playersReadyToAnswer = ref([
+    { name: "blank", hasPressedReady: false, avatar: undefined },
+  ]);
+
+  const receivedAudioPlayerState = reactive({
+    tracks: "tracks",
+    currentTrack: "currentTrack",
+    currentTrackIndex: 0,
+    isPlaying: false,
+    currentTimeSeconds: 0,
+    currentTimeString: "00:00",
+  });
+
+  const bla = ref(0);
 
   // presumably only connection stuff here
   const initSocket = () => {
@@ -35,6 +50,19 @@ export const mainStore = defineStore("mainStore", () => {
 
     socket.value.on("update-user-data", (user) => {
       user.value = user;
+    });
+
+    socket.value.on("update-audioplayer-client-state", (newState) => {
+      // receivedAudioPlayerState.tracks = newState.tracks;
+      // receivedAudioPlayerState.currentTrack = newState.currentTrack;
+      console.log(newState);
+      receivedAudioPlayerState.tracks = newState.tracks;
+      receivedAudioPlayerState.currentTrack = newState.currentTrack;
+      bla.value += 1;
+    });
+
+    socket.value.on("update-players-ready-to-answer", (players) => {
+      playersReadyToAnswer.value = players;
     });
   };
 
@@ -65,8 +93,6 @@ export const mainStore = defineStore("mainStore", () => {
   };
 
   // const isQuestionActive = ref(false);
-  // const debug = (el) => {};
-  //
   return {
     login,
     socket,
@@ -76,7 +102,9 @@ export const mainStore = defineStore("mainStore", () => {
     user,
     users,
     players,
-    // debug,
+    playersReadyToAnswer,
     waitForLogin,
+    receivedAudioPlayerState,
+    bla,
   };
 });

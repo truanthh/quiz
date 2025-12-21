@@ -1,8 +1,7 @@
 <script setup>
-import { ref, onBeforeMount, onMounted, computed, watch } from "vue";
+import { ref, onBeforeMount, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import { mainStore } from "../stores/mainStore";
-import { io } from "socket.io-client";
 
 const router = useRouter();
 const store = mainStore();
@@ -37,8 +36,6 @@ const handleLogin = async () => {
     router.push(`/${store.user.role}`);
   }
 };
-
-const userRolePinia = ref("NOROLE");
 
 function isLoginDataValid(userName) {
   if (userName.length > 10) return false;

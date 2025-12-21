@@ -20,25 +20,19 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  poster: {
-    type: String,
-    default: "",
-  },
-  time: {
-    type: String,
-    default: "00:00",
-  },
-  artistName: {
-    type: String,
-    default: "Darude",
-  },
-  trackName: {
-    type: String,
-    default: "Sandstorm",
-  },
   countdown: {
     type: Number,
     default: 0,
+  },
+  state: {
+    type: Object,
+    default: {
+      tracks: "defaulttracks",
+      currentTrack: "defaultcurrenttrack",
+      isPlaying: false,
+      currentTime: 0,
+      currentTimeString: "00:00",
+    },
   },
 });
 </script>
@@ -49,7 +43,7 @@ const props = defineProps({
       <div class="poster">
         <img
           class="poster__img"
-          :src="`${poster}`"
+          :src="`${state.currentTrack.posterImg}`"
           v-if="isPosterShown && posterExists"
         />
         <img v-else class="poster__gif" :src="pocoyo1" />
@@ -57,23 +51,25 @@ const props = defineProps({
     </div>
     <div class="trackInfo">
       <div class="trackInfo__currentTime">
-        {{ time }}
+        {{ state.currentTimeString }}
       </div>
       <div class="trackInfo__artistName">
         <Transition name="fade">
-          <span v-if="isArtistNameShown"> {{ artistName }} </span>
-          <spoiler-span class="spoiler" v-else>
-            {{ artistName }}
+          <span v-if="isArtistNameShown">
+            {{ state.currentTrack.artist }}
+          </span>
+          <spoiler-span class="spoiler" v-else :key="state.currentTrack.artist">
+            {{ state.currentTrack.artist }}
           </spoiler-span>
         </Transition>
       </div>
       <div class="trackInfo__trackName">
         <Transition name="fade">
           <span v-if="isTrackNameShown" class="spoiler">
-            {{ trackName }}
+            {{ state.currentTrack.name }}
           </span>
-          <spoiler-span class="spoiler" v-else>
-            {{ trackName }}
+          <spoiler-span class="spoiler" v-else :key="state.currentTrack.name">
+            {{ state.currentTrack.name }}
           </spoiler-span>
         </Transition>
       </div>

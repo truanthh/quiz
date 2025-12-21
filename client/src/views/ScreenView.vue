@@ -1,12 +1,5 @@
 <script setup>
-import {
-  ref,
-  onMounted,
-  onUnmounted,
-  watch,
-  computed,
-  onBeforeMount,
-} from "vue";
+import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import { storeToRefs } from "pinia";
 import { useAudioPlayerStore } from "../stores/useAudioPlayerStore.js";
 import { mainStore } from "../stores/mainStore";
@@ -19,7 +12,8 @@ import ItemsBar from "../components/ItemsBar.vue";
 import MainPanel from "../components/MainPanel.vue";
 
 const store = mainStore();
-const { players } = storeToRefs(store);
+const { players, playersReadyToAnswer, receivedAudioPlayerState, bla } =
+  storeToRefs(store);
 
 const audioPlayer = useAudioPlayerStore();
 const audioPlayerElement = ref(null);
@@ -30,10 +24,6 @@ const isScoreboardShown = ref(false);
 // });
 
 // console.log(players.value);
-
-const playersReadyToAnswer = ref([
-  { name: "blank", hasPressedReady: false, avatar: undefined },
-]);
 
 const isArtistNameShown = ref(false);
 const isTrackNameShown = ref(false);
@@ -71,15 +61,6 @@ const audioPlayerState = ref({
   currentTimeSeconds,
 });
 
-const receivedAudioPlayerState = ref({
-  tracks: "tracks",
-  currentTrack: "currentTrack",
-  currentTrackIndex: 0,
-  isPlaying: false,
-  currentTimeSeconds: 0,
-  currentTimeString: "00:00",
-});
-
 watch(
   audioPlayerState,
   (newState) => {
@@ -89,15 +70,6 @@ watch(
 );
 
 onMounted(() => {
-  store.socket.on("update-audioplayer-client-state", (newState) => {
-    console.log(newState);
-    receivedAudioPlayerState.value = { ...newState };
-  });
-
-  store.socket.on("update-players-ready-to-answer", (players) => {
-    playersReadyToAnswer.value = players;
-  });
-
   store.socket.on("play-track", audioPlayer.play);
   store.socket.on("pause-track", audioPlayer.pause);
   store.socket.on("countdown", (seconds) => {
@@ -195,10 +167,7 @@ onUnmounted(() => {
     <!-- ---------------------- -->
     <div class="screenView">
       <MainPanel
-        :poster="receivedAudioPlayerState.currentTrack.posterImg"
-        :artistName="receivedAudioPlayerState.currentTrack.artist"
-        :trackName="receivedAudioPlayerState.currentTrack.name"
-        :time="receivedAudioPlayerState.currentTimeString"
+        :state="receivedAudioPlayerState"
         :countdown
         :isPosterShown
         :posterExists
@@ -212,8 +181,9 @@ onUnmounted(() => {
 </template>
 <style lang="scss" scoped>
 .debugPanel {
-  width: 1000px;
-  height: 300px;
+  opacity: 0.5;
+  width: 700px;
+  height: 200px;
   border: 2px solid black;
   padding: 20px;
   background-color: lightgray;
@@ -221,6 +191,9 @@ onUnmounted(() => {
   color: black;
   top: 0;
   right: 0;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: bold;
   &__button {
     width: 100px;
     height: 20px;

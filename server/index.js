@@ -168,6 +168,7 @@ io.on("connection", (socket) => {
     //
     else if (token === screen.token) {
       screen.socketId = socket.id;
+      setStateScreen();
       // getting players, playersReady and tracks data
       socket.emit("login-successful", screen);
     }
@@ -227,6 +228,9 @@ io.on("connection", (socket) => {
       screen = newScreen;
       console.log(payload.tracksData.tracks);
       audioPlayer.tracks = payload.tracksData.tracks;
+      if (audioPlayer.tracks.length > 0) {
+        audioPlayer.currentTrack = audioPlayer.tracks[0];
+      }
       setStateScreen();
       socket.emit("login-successful", { ...screen, audioPlayer });
     }
