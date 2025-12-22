@@ -12,18 +12,23 @@ import ItemsBar from "../components/ItemsBar.vue";
 import MainPanel from "../components/MainPanel.vue";
 
 const store = mainStore();
-const { players, playersReadyToAnswer, receivedAudioPlayerState, bla } =
+const { players, playersReadyToAnswer, receivedAudioPlayerState } =
   storeToRefs(store);
 
 const audioPlayer = useAudioPlayerStore();
 const audioPlayerElement = ref(null);
 
 const isScoreboardShown = ref(false);
-// const playersSortedByPoints = computed(() => {
-//   return players.value.sort((a, b) => b.points - a.points);
-// });
 
-// console.log(players.value);
+const playersSortedByPoints = computed(() => {
+  return players.value.sort((a, b) => b.points - a.points);
+});
+
+const isDebugPanelShown = ref(false);
+
+function toggleDebugPanel() {
+  isDebugPanelShown.value = !isDebugPanelShown.value;
+}
 
 const isArtistNameShown = ref(false);
 const isTrackNameShown = ref(false);
@@ -70,7 +75,9 @@ watch(
 );
 
 onMounted(() => {
-  store.socket.on("play-track", audioPlayer.play);
+  store.socket.on("play-track", (time) => {
+    audioPlayer.play(time);
+  });
   store.socket.on("pause-track", audioPlayer.pause);
   store.socket.on("countdown", (seconds) => {
     countdown.value = seconds;
@@ -118,8 +125,6 @@ onMounted(() => {
     "timeupdate",
     audioPlayer.updateTime,
   );
-
-  store.socket.emit("screen-loaded", audioPlayer.tracks);
 });
 
 onUnmounted(() => {
@@ -134,12 +139,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="debugPanel">
-    <button
-      class="debugPanel__button"
-      @click="console.log(receivedAudioPlayerState)"
-    ></button>
-    {{ receivedAudioPlayerState }}
+  <div :class="isDebugPanelShown ? 'debugPanel' : 'debugPanel__hidden'">
+    <button class="debugPanel__button" @click="toggleDebugPanel"></button>
+    {{ playersSortedByPoints }}
   </div>
   <div class="screenView__container">
     <!-- AUDIO AND SCOREBOARD -->
@@ -150,13 +152,14 @@ onUnmounted(() => {
           : 'screenView__scoreboard_hidden'
       "
     >
-      <div
-        class="screenView__scoreboard__line"
-        v-for="player of playersSortedByPoints"
-      >
-        <div class="screenView__scoreboard__line__playerName"></div>
-        <div class="screenView__scoreboard__line__playerPoints"></div>
-        {{ player }}
+      <div class="screenView__scoreboard__line" v-for="player of players">
+        <div class="screenView__scoreboard__line__playerName">
+          {{ player.name }}
+        </div>
+        -----------
+        <div class="screenView__scoreboard__line__playerPoints">
+          {{ player.points }}
+        </div>
       </div>
     </div>
     <audio
@@ -183,7 +186,7 @@ onUnmounted(() => {
 .debugPanel {
   opacity: 0.5;
   width: 700px;
-  height: 200px;
+  height: 300px;
   border: 2px solid black;
   padding: 20px;
   background-color: lightgray;
@@ -194,7 +197,25 @@ onUnmounted(() => {
   overflow: hidden;
   font-size: 12px;
   font-weight: bold;
+  &__hidden {
+    opacity: 0.5;
+    width: 100px;
+    height: 20px;
+    border: 2px solid black;
+    padding: 20px;
+    background-color: lightgray;
+    position: fixed;
+    color: black;
+    top: 0;
+    right: 0;
+    overflow: hidden;
+    font-size: 12px;
+    font-weight: bold;
+  }
   &__button {
+    position: absolute;
+    top: 0;
+    right: 0;
     width: 100px;
     height: 20px;
   }

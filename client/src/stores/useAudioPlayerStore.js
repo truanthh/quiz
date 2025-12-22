@@ -7,7 +7,7 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
   // -------- AUDIOPLAYER STATE ------------------------
   const isPlaying = ref(false);
   const currentTrackIndex = ref(0);
-  const volume = ref(2.0);
+  const volume = ref(0.5);
   const tracks = ref([]);
   const duration = ref(0);
   const currentTimeSeconds = ref(0);
@@ -43,12 +43,15 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
     gainNodeRef.value = gainNode;
   }
 
-  async function play() {
+  async function play(time) {
     if (!audioElementRef.value) return;
 
     try {
       if (audioContextRef.value?.state === "suspended") {
         await audioContextRef.value.resume();
+      }
+      if (time) {
+        audioElementRef.value.currentTime = time;
       }
       await audioElementRef.value.play();
       isPlaying.value = true;

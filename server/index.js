@@ -57,9 +57,24 @@ const audioPlayer = {
   tracks: "",
   currentTrack: "",
   isPlaying: false,
-  currentTime: 0,
+  currentTimeSeconds: 0,
   currentTimeString: "00:00",
 };
+
+function initQuestions() {
+  audioPlayer.tracks.forEach((track) => {
+    questions.push({
+      track,
+      state: "",
+      artistNameIsOpen: true,
+      trackNameIsOpen: true,
+    });
+  });
+  currentQuestion = questions[currentQuestionId];
+  if (questions.length !== 0) {
+    console.log("questions loaded successfully!");
+  }
+}
 
 const availableAvatars = new Set([1, 2, 3, 4, 5, 6, 7, 8]);
 
@@ -92,14 +107,14 @@ function secondsToString(seconds) {
 }
 
 // i need this to restore state for screen after reconnecting
-function updateAllClientsAudioPlayerState() {
+function updateAudioPlayerStateAllClients() {
   io.to(screen.socketId).emit("update-audioplayer-client-state", audioPlayer);
 }
 
 // same shit here
 function setStateScreen() {
-  console.log("trying to send data to screen!");
-  updateAllClientsAudioPlayerState();
+  // console.log("trying to send data to screen!");
+  updateAudioPlayerStateAllClients();
   updatePlayersClient();
   io.to(screen.socketId).emit(
     "update-players-ready-to-answer",
@@ -157,8 +172,6 @@ io.on("connection", (socket) => {
   // user reconnects
   let token = socket.handshake.auth.token;
   let oldSocketIdPlayer = playerTokens.get(token);
-  // console.log(`Подключился: socket: ${socket.id} token: ${token}`);
-  // console.log(oldSocketIdPlayer);
 
   if (token) {
     if (token === admin.token) {
@@ -169,6 +182,7 @@ io.on("connection", (socket) => {
     else if (token === screen.token) {
       screen.socketId = socket.id;
       setStateScreen();
+
       // getting players, playersReady and tracks data
       socket.emit("login-successful", screen);
     }
@@ -226,11 +240,13 @@ io.on("connection", (socket) => {
         role: "screen",
       };
       screen = newScreen;
-      console.log(payload.tracksData.tracks);
+      // console.log(payload.tracksData.tracks);
       audioPlayer.tracks = payload.tracksData.tracks;
       if (audioPlayer.tracks.length > 0) {
         audioPlayer.currentTrack = audioPlayer.tracks[0];
       }
+      resetPlayers();
+      initQuestions();
       setStateScreen();
       socket.emit("login-successful", { ...screen, audioPlayer });
     }
@@ -250,19 +266,7 @@ io.on("connection", (socket) => {
     connectedAt: new Date().toLocaleString(),
   });
 
-  // socket.on("screen-loaded", (tracks) => {
-  //   tracks.forEach((track) => {
-  //     questions.push({ track, state: "" });
-  //   });
-  //   currentQuestion = questions[currentQuestionId];
-  //   if (questions.length !== 0) {
-  //     console.log("questions loaded successfully!");
-  //   }
-  //   setStateScreen();
-  // });
-
   socket.on("admin-loaded", () => {
-    resetPlayers();
     io.to(admin.socketId).emit("update-admin-track-data", currentQuestion);
   });
 
@@ -276,7 +280,7 @@ io.on("connection", (socket) => {
     audioPlayer.currentTimeString = secondsToString(
       audioPlayer.currentTimeSeconds,
     );
-    updateAllClientsAudioPlayerState();
+    updateAudioPlayerStateAllClients();
   });
 
   // track can only be played by admin
@@ -286,7 +290,7 @@ io.on("connection", (socket) => {
       changeCurrentQuestionStateAndUpdateClient("open");
       playersReadyToAnswer.length = 0;
     }
-    io.to(screen.socketId).emit("play-track");
+    io.to(screen.socketId).emit("play-track", audioPlayer.currentTimeSeconds);
   });
 
   socket.on("request-pause-track", () => {
@@ -343,7 +347,7 @@ io.on("connection", (socket) => {
     if (currentQuestionId === questions.length - 1) {
       return;
     }
-    resetPlayers();
+    // resetPlayers();
     io.to(screen.socketId).emit(
       "update-users-ready-to-answer",
       playersReadyToAnswer,
@@ -357,7 +361,7 @@ io.on("connection", (socket) => {
     if (currentQuestionId === 0) {
       return;
     }
-    resetPlayers();
+    // resetPlayers();
     io.to(screen.socketId).emit(
       "update-users-ready-to-answer",
       playersReadyToAnswer,
@@ -399,42 +403,51 @@ io.on("connection", (socket) => {
   });
 
   // THESE ONLY SENT BY ADMIN
-  // socket.on("count-artist-answer-correct", (currentUserAnsweringToken) => {
-  //   let user = users[currentUserAnsweringToken];
-  //   user.points += 100;
-  //   let players = playerTokenArray.map((token) => users[token]);
-  //   socket.broadcast.emit("update-users-data-all-clients", players);
-  // });
-  //
-  // socket.on("count-artist-answer-wrong", (currentUserAnsweringToken) => {
-  //   users[currentUserAnsweringToken].points -= 100;
-  //   user.points -= 100;
-  //   let players = playerTokenArray.map((token) => users[token]);
-  //   socket.broadcast.emit("update-users-data-all-clients", players);
-  // });
-  //
-  // socket.on("count-song-answer-correct", (currentUserAnsweringToken) => {
-  //   users[currentUserAnsweringToken].points += 200;
-  //   user.points += 200;
-  //   let players = playerTokenArray.map((token) => users[token]);
-  //   socket.broadcast.emit("update-users-data-all-clients", players);
-  // });
-  //
-  // socket.on("count-song-answer-wrong", (currentUserAnsweringToken) => {
-  //   users[currentUserAnsweringToken].points -= 200;
-  //   user.points -= 200;
-  //   let players = playerTokenArray.map((token) => users[token]);
-  //   socket.broadcast.emit("update-users-data-all-clients", players);
-  // });
+  socket.on("artist-name-correct", () => {
+    if (!currentQuestion.artistNameIsOpen) {
+      console.log("artist name is already closed for this question!");
+      return;
+    }
+    playersReadyToAnswer[selectedPlayerId].points += 69;
+    currentQuestion.artistNameIsOpen = false;
+    updatePlayersClient();
+  });
+
+  socket.on("artist-name-wrong", () => {
+    if (!currentQuestion.artistNameIsOpen) {
+      console.log("artist name is already closed for this question!");
+      return;
+    }
+    playersReadyToAnswer[selectedPlayerId].points -= 33;
+    updatePlayersClient();
+  });
+
+  socket.on("track-name-correct", () => {
+    if (!currentQuestion.trackNameIsOpen) {
+      console.log("track name is already closed for this question!");
+      return;
+    }
+    playersReadyToAnswer[selectedPlayerId].points += 111;
+    updatePlayersClient();
+  });
+
+  socket.on("track-name-wrong", () => {
+    if (!currentQuestion.artistNameIsOpen) {
+      console.log("track name is already closed for this question!");
+      return;
+    }
+    playersReadyToAnswer[selectedPlayerId].points -= 22;
+    updatePlayersClient();
+  });
 
   socket.on("disconnect", () => {
-    // console.log(
-    //   `Отключился: ${
-    //     players.get(socket.id)?.name || admin.socketId === socket.id
-    //       ? "admin"
-    //       : "screen"
-    //   }`,
-    // );
+    console.log(
+      `Отключился: ${
+        players.get(socket.id)?.name || admin.socketId === socket.id
+          ? "admin"
+          : "screen"
+      }`,
+    );
   });
 });
 

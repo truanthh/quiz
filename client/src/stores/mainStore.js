@@ -24,8 +24,6 @@ export const mainStore = defineStore("mainStore", () => {
     currentTimeString: "00:00",
   });
 
-  const bla = ref(0);
-
   // presumably only connection stuff here
   const initSocket = () => {
     socket.value = io(import.meta.env.VITE_SERVER_ADDRESS, {
@@ -53,12 +51,9 @@ export const mainStore = defineStore("mainStore", () => {
     });
 
     socket.value.on("update-audioplayer-client-state", (newState) => {
-      // receivedAudioPlayerState.tracks = newState.tracks;
-      // receivedAudioPlayerState.currentTrack = newState.currentTrack;
-      console.log(newState);
       receivedAudioPlayerState.tracks = newState.tracks;
       receivedAudioPlayerState.currentTrack = newState.currentTrack;
-      bla.value += 1;
+      receivedAudioPlayerState.currentTimeString = newState.currentTimeString;
     });
 
     socket.value.on("update-players-ready-to-answer", (players) => {
@@ -105,6 +100,5 @@ export const mainStore = defineStore("mainStore", () => {
     playersReadyToAnswer,
     waitForLogin,
     receivedAudioPlayerState,
-    bla,
   };
 });

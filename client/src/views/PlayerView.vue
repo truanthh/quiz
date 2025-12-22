@@ -60,7 +60,7 @@ onMounted(() => {
           ? 'playerView__mainButton_glowing'
           : 'playerView__mainButton'
       "
-      @click="handleClick"
+      @touchstart="handleClick"
     ></button>
     <!-- <div class="debugInfo">{{ debugLog }}</div> -->
     <!-- <div class="debugInfo">{{ store.connectionInfo.message }}</div> -->

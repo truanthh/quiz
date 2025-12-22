@@ -17,7 +17,7 @@ function showScoreboard() {
   store.socket.emit("request-show-scoreboard");
 }
 
-function showArtist() {
+function showArtistName() {
   store.socket.emit("request-show-artist");
 }
 
@@ -45,32 +45,22 @@ function prevQuestion() {
   store.socket.emit("prev-question");
 }
 
-function countArtistAnswerCorrect(user) {
-  store.socket.emit(
-    "count-artist-answer-correct",
-    currentUserAnswering.value.token,
-  );
+function artistNameCorrect() {
+  showArtistName();
+  store.socket.emit("artist-name-correct");
 }
 
-function countArtistAnswerWrong(user) {
-  store.socket.emit(
-    "count-artist-answer-wrong",
-    currentUserAnswering.value.token,
-  );
+function artistNameWrong() {
+  store.socket.emit("artist-name-wrong");
 }
 
-function countTrackAnswerCorrect(user) {
-  store.socket.emit(
-    "count-track-answer-correct",
-    currentUserAnswering.value.token,
-  );
+function trackNameCorrect() {
+  showTrackName();
+  store.socket.emit("track-name-correct");
 }
 
-function countTrackAnswerWrong(user) {
-  store.socket.emit(
-    "count-track-answer-wrong",
-    currentUserAnswering.value.token,
-  );
+function trackNameWrong() {
+  store.socket.emit("track-name-wrong");
 }
 
 function prevPlayer() {
@@ -151,11 +141,37 @@ onMounted(() => {
       <div class="admin__trackInfo__trackName">{{ currentTrack.name }}</div>
     </div>
     <div class="admin__buttonsRow">
-      <button class="admin__button_default" @click="showArtist">
-        show artist
+      <button class="admin__button_default" @click="prevPlayer">
+        prevPlayer
+      </button>
+      <button class="admin__button_default" @click="nextPlayer">
+        nextPlayer
+      </button>
+    </div>
+    <div class="admin__buttonsRow">
+      <button class="admin__button_red" @click="artistNameWrong">
+        artist name
+      </button>
+      <button class="admin__button_green" @click="artistNameCorrect">
+        artist name
+      </button>
+    </div>
+    <div class="admin__buttonsRow">
+      <button class="admin__button_red" @click="trackNameWrong">
+        track name
+      </button>
+      <button class="admin__button_green" @click="trackNameCorrect">
+        track name
+      </button>
+    </div>
+    <br />
+    <br />
+    <div class="admin__buttonsRow">
+      <button class="admin__button_default" @click="showArtistName">
+        show artist name
       </button>
       <button class="admin__button_default" @click="showTrackName">
-        show trackname
+        show track name
       </button>
     </div>
     <div class="admin__buttonsRow">
@@ -164,22 +180,6 @@ onMounted(() => {
       </button>
       <button class="admin__button_default" @click="showScoreboard">
         show scoreboard
-      </button>
-    </div>
-    <div class="admin__buttonsRow">
-      <button class="admin__button_default" @click="countTrackAnswerWrong">
-        track wrong
-      </button>
-      <button class="admin__button_default" @click="countTrackAnswerCorrect">
-        track correct
-      </button>
-    </div>
-    <div class="admin__buttonsRow">
-      <button class="admin__button_default" @click="prevPlayer">
-        prevPlayer
-      </button>
-      <button class="admin__button_default" @click="nextPlayer">
-        nextPlayer
       </button>
     </div>
   </div>
@@ -215,6 +215,28 @@ onMounted(() => {
       border-radius: 2px;
       align-items: center;
       justify-content: center;
+    }
+    &_green {
+      display: flex;
+      width: 50%;
+      height: 100px;
+      outline: none;
+      border: 1px solid gray;
+      border-radius: 2px;
+      align-items: center;
+      justify-content: center;
+      background-color: green;
+    }
+    &_red {
+      display: flex;
+      width: 50%;
+      height: 100px;
+      outline: none;
+      border: 1px solid gray;
+      border-radius: 2px;
+      align-items: center;
+      justify-content: center;
+      background-color: #e55353;
     }
   }
   &__trackInfo {
