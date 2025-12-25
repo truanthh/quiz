@@ -27,11 +27,22 @@ const props = defineProps({
   state: {
     type: Object,
     default: {
-      tracks: "defaulttracks",
-      currentTrack: "defaultcurrenttrack",
-      isPlaying: false,
-      currentTime: 0,
-      currentTimeString: "00:00",
+      questions: [],
+      currentQuestion: {},
+      currentQuestionId: 0,
+      players: [],
+      playerTokens: [],
+      playersReadyToAnswer: [
+        { name: "blankstore", hasPressedReady: false, avatar: 0 },
+      ],
+      selectedPlayerId: 0,
+      audioPlayer: {
+        currentTrack: { posterImg: "" },
+        currentTrackId: 0,
+        isPlaying: false,
+        currentTimeSeconds: 0,
+        currentTimeString: "00:00",
+      },
     },
   },
 });
@@ -43,7 +54,7 @@ const props = defineProps({
       <div class="poster">
         <img
           class="poster__img"
-          :src="`${state.currentTrack.posterImg}`"
+          :src="`${state.audioPlayer.currentTrack.posterImg}`"
           v-if="isPosterShown && posterExists"
         />
         <img v-else class="poster__gif" :src="pocoyo1" />
@@ -51,25 +62,33 @@ const props = defineProps({
     </div>
     <div class="trackInfo">
       <div class="trackInfo__currentTime">
-        {{ state.currentTimeString }}
+        {{ state.audioPlayer.currentTimeString }}
       </div>
       <div class="trackInfo__artistName">
         <Transition name="fade">
           <span v-if="isArtistNameShown">
-            {{ state.currentTrack.artist }}
+            {{ state.audioPlayer.currentTrack.artist }}
           </span>
-          <spoiler-span class="spoiler" v-else :key="state.currentTrack.artist">
-            {{ state.currentTrack.artist }}
+          <spoiler-span
+            class="spoiler"
+            v-else
+            :key="state.audioPlayer.currentTrack.artist"
+          >
+            {{ state.audioPlayer.currentTrack.artist }}
           </spoiler-span>
         </Transition>
       </div>
       <div class="trackInfo__trackName">
         <Transition name="fade">
           <span v-if="isTrackNameShown" class="spoiler">
-            {{ state.currentTrack.name }}
+            {{ state.audioPlayer.currentTrack.name }}
           </span>
-          <spoiler-span class="spoiler" v-else :key="state.currentTrack.name">
-            {{ state.currentTrack.name }}
+          <spoiler-span
+            class="spoiler"
+            v-else
+            :key="state.audioPlayer.currentTrack.name"
+          >
+            {{ state.audioPlayer.currentTrack.name }}
           </spoiler-span>
         </Transition>
       </div>

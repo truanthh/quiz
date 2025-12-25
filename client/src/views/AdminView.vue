@@ -72,12 +72,11 @@ function nextPlayer() {
 }
 
 onMounted(() => {
-  store.socket.on("update-audioplayer-client-state", (newState) => {
-    currentTrack.value = newState.currentTrack;
-    isPlayingAudioPlayer.value = newState.isPlaying;
-  });
-
-  store.socket.emit("admin-loaded", store.user.token);
+  // store.socket.on("update-client-state", (newState) => {
+  //   currentTrack.value = newState.currentTrack;
+  //   isPlayingAudioPlayer.value = newState.isPlaying;
+  // });
+  // store.socket.emit("admin-loaded", store.user.token);
 });
 </script>
 <template>

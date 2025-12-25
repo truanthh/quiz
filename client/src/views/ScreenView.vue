@@ -3,9 +3,6 @@ import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import { storeToRefs } from "pinia";
 import { useAudioPlayerStore } from "../stores/useAudioPlayerStore.js";
 import { mainStore } from "../stores/mainStore";
-// import BaseTable from "../components/Table/BaseTable.vue";
-// import TableRow from "../components/Table/TableRow.vue";
-// import TableColumn from "../components/Table/TableColumn.vue";
 import tracksData from "../../tracks.json";
 import ItemsBar from "../components/ItemsBar.vue";
 import MainPanel from "../components/MainPanel.vue";
@@ -13,67 +10,68 @@ import PlayerBoardBars from "@/components/PlayerBoardBars.vue";
 import Leaderboard from "@/components/Leaderboard.vue";
 
 const store = mainStore();
-const { players, playersReadyToAnswer, receivedAudioPlayerState } =
-  storeToRefs(store);
+const { gameState } = storeToRefs(store);
 
+// const playersSortedByPoints = computed(() => {
+//   return gameState.players.sort((a, b) => b.points - a.points);
+// });
+
+const playersSortedByPoints = [];
+
+// initializing audioPlayer
 const audioPlayer = useAudioPlayerStore();
 const audioPlayerElement = ref(null);
+audioPlayer.setTracks(tracksData.tracks);
 
+const isArtistNameShown = ref(false);
+const isTrackNameShown = ref(false);
+const isPosterShown = ref(true);
 const isScoreboardShown = ref(false);
-
-const playersSortedByPoints = computed(() => {
-  return players.value.sort((a, b) => b.points - a.points);
-});
-
 const isDebugPanelShown = ref(false);
+
+const currentQuestionState = ref("");
+const countdown = ref(0);
 
 function toggleDebugPanel() {
   isDebugPanelShown.value = !isDebugPanelShown.value;
 }
 
-const isArtistNameShown = ref(false);
-const isTrackNameShown = ref(false);
-const isPosterShown = ref(true);
-
-const currentQuestionState = ref("");
-const countdown = ref(0);
-
 const posterExists = computed(() => {
   return !audioPlayer.currentTrack.posterImg.endsWith("default.jpg");
 });
-
-audioPlayer.setTracks(tracksData.tracks);
 
 // we sending audioplayer state to server every second while track is playing
 // and receiving state from the server to display data
 // why is it being sent by screen and not audioPlayer?
 // maybe because audioplayer is only existing in screen component
-const {
-  currentTimeSeconds,
-  currentTrackIndex,
-  currentTrack,
-  isPlaying,
-  tracks,
-} = storeToRefs(audioPlayer);
+const { currentTimeSeconds, currentTrackIndex, currentTrack, isPlaying } =
+  storeToRefs(audioPlayer);
 
-// const currentTimeString = ref("00:00");
-
+//
 // state that we send to server
-const audioPlayerState = ref({
-  tracks,
-  currentTrack,
-  currentTrackIndex,
-  isPlaying,
-  currentTimeSeconds,
-});
 
-watch(
-  audioPlayerState,
-  (newState) => {
-    store.socket.emit("audioplayer-state-change", newState);
-  },
-  { deep: true },
-);
+function startGame() {
+  console.log(audioPlayer.tracks);
+
+  store.socket.emit("start-game", {
+    tracks: tracksData.tracks,
+    currentTimeSeconds: currentTimeSeconds.value,
+    currentTrackIndex: currentTrackIndex.value,
+    currentTrack: currentTrack.value,
+    isPlaying: isPlaying.value,
+  });
+
+  console.log("PIDARASKA");
+}
+
+watch([currentTrack, currentTrackIndex, isPlaying, currentTimeSeconds], () => {
+  store.socket.emit("audioplayer-state-change", {
+    currentTrack: currentTrack.value,
+    currentTrackIndex: currentTrackIndex.value,
+    isPlaying: isPlaying.value,
+    currentTimeSeconds: currentTimeSeconds.value,
+  });
+});
 
 onMounted(() => {
   store.socket.on("play-track", (time) => {
@@ -111,13 +109,13 @@ onMounted(() => {
     isScoreboardShown.value = !isScoreboardShown.value;
   });
 
-  store.socket.on("select-next-player", (players) => {
-    playersReadyToAnswer.value = players;
-  });
-
-  store.socket.on("select-prev-player", (players) => {
-    playersReadyToAnswer.value = players;
-  });
+  // store.socket.on("select-next-player", (players) => {
+  //   playersReadyToAnswer.value = players;
+  // });
+  //
+  // store.socket.on("select-prev-player", (players) => {
+  //   playersReadyToAnswer.value = players;
+  // });
 
   audioPlayer.initialize(audioPlayerElement.value);
 
@@ -140,6 +138,7 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <div @click="startGame">START GAME</div>
   <div :class="isDebugPanelShown ? 'debugPanel' : 'debugPanel__hidden'">
     <button class="debugPanel__button" @click="toggleDebugPanel"></button>
     {{ isScoreboardShown }}
@@ -155,15 +154,15 @@ onUnmounted(() => {
     <!-- ---------------------- -->
     <div class="screenView">
       <MainPanel
-        :state="receivedAudioPlayerState"
+        :state="gameState"
         :countdown
         :isPosterShown
         :posterExists
         :isArtistNameShown
         :isTrackNameShown
       />
-      <ItemsBar :items="playersReadyToAnswer" />
-      <PlayerBoardBars :items="players" />
+      <ItemsBar :items="gameState.playersReadyToAnswer" />
+      <PlayerBoardBars :items="gameState.players" />
     </div>
   </div>
 </template>
@@ -205,6 +204,7 @@ onUnmounted(() => {
     height: 20px;
   }
 }
+
 .screenView {
   display: flex;
   height: 100%;

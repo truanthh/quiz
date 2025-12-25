@@ -1,7 +1,6 @@
 import { ref, reactive } from "vue";
 import { defineStore } from "pinia";
 import { io } from "socket.io-client";
-import tracksData from "../../tracks.json";
 
 export const mainStore = defineStore("mainStore", () => {
   const isMobile = ref(
@@ -9,29 +8,37 @@ export const mainStore = defineStore("mainStore", () => {
       navigator.userAgent,
     ),
   );
-
-  // socket connections etc
-  const socket = ref(null);
   const connectionInfo = ref({});
+
+  const socket = ref(null);
   const user = ref({});
-  const users = ref([]);
-  const players = ref([]);
   const isAuth = ref(false);
 
-  const playersReadyToAnswer = ref([
-    { name: "blank", hasPressedReady: false, avatar: undefined },
-  ]);
+  const players = ref(false);
 
-  const receivedAudioPlayerState = reactive({
-    tracks: "tracks",
-    currentTrack: "currentTrack",
-    currentTrackIndex: 0,
-    isPlaying: false,
-    currentTimeSeconds: 0,
-    currentTimeString: "00:00",
+  // THIS DATA IS ONLY FOR DISPLAY
+  const gameState = reactive({
+    questions: [],
+    currentQuestion: {},
+    currentQuestionId: 0,
+    players: [
+      { name: "blankplayer1", hasPressedReady: false, avatar: 0, points: 1 },
+      { name: "blankplayer2", hasPressedReady: false, avatar: 0, points: 0 },
+    ],
+    playerTokens: [],
+    playersReadyToAnswer: [
+      { name: "blankstore", hasPressedReady: false, avatar: 0 },
+    ],
+    selectedPlayerId: 0,
+    audioPlayer: {
+      currentTrack: { posterImg: "", artist: "", name: "" },
+      currentTrackId: 0,
+      isPlaying: false,
+      currentTimeSeconds: 0,
+      currentTimeString: "00:00",
+    },
   });
 
-  // presumably only connection stuff here
   const initSocket = () => {
     socket.value = io(import.meta.env.VITE_SERVER_ADDRESS, {
       auth: { token: localStorage.getItem("token"), role: user.value.role },
@@ -49,22 +56,27 @@ export const mainStore = defineStore("mainStore", () => {
       connectionInfo.value.status = "Отключено от сервера";
     });
 
-    socket.value.on("update-players", (data) => {
+    socket.value.on("update-client-players", (data) => {
       players.value = data;
     });
 
-    socket.value.on("update-user-data", (user) => {
-      user.value = user;
-    });
+    socket.value.on("update-client-game-state", (newState) => {
+      // AP
+      gameState.audioPlayer.currentTrack = newState.audioPlayer.currentTrack;
+      gameState.audioPlayer.currentTimeSeconds =
+        newState.audioPlayer.currentTimeSeconds;
+      gameState.audioPlayer.currentTimeString =
+        newState.audioPlayer.currentTimeString;
 
-    socket.value.on("update-audioplayer-client-state", (newState) => {
-      receivedAudioPlayerState.tracks = newState.tracks;
-      receivedAudioPlayerState.currentTrack = newState.currentTrack;
-      receivedAudioPlayerState.currentTimeString = newState.currentTimeString;
-    });
+      // questions
+      gameState.questions = newState.questions;
+      gameState.currentQuestion = newState.currentQuestion;
 
-    socket.value.on("update-players-ready-to-answer", (players) => {
-      playersReadyToAnswer.value = players;
+      // players
+      gameState.players = newState.players;
+      gameState.playerTokens = newState.playerTokens;
+      gameState.playersReadyToAnswer = newState.playersReadyToAnswer;
+      gameState.selectedPlayerId = newState.selectedPlayerId;
     });
   };
 
@@ -90,23 +102,21 @@ export const mainStore = defineStore("mainStore", () => {
   }
 
   const login = (payload) => {
-    const data = { ...payload, tracksData };
-    socket.value.emit("login", data);
+    // const data = { ...payload, tracksData };
+    socket.value.emit("login", payload);
   };
 
   // const isQuestionActive = ref(false);
   return {
+    isMobile,
+    connectionInfo,
     login,
+    waitForLogin,
+    isAuth,
+    user,
     socket,
     initSocket,
-    isAuth,
-    connectionInfo,
-    user,
-    users,
-    players,
-    playersReadyToAnswer,
-    waitForLogin,
-    receivedAudioPlayerState,
-    isMobile,
+    gameState,
+    // players,
   };
 });
