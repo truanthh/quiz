@@ -53,14 +53,9 @@ let currentQuestionId = 0;
 let currentQuestion = {};
 
 // audioPlayer state
-const audioPlayer = {
-  tracks: "",
-  currentTrack: "",
-  isPlaying: false,
-  currentTimeSeconds: 0,
-  currentTimeString: "00:00",
-};
+// current audio state
 
+// this is session state essentially
 function initQuestions() {
   audioPlayer.tracks.forEach((track) => {
     questions.push({
@@ -94,7 +89,7 @@ function generateAvatarNumber() {
   return avatarNumber;
 }
 
-function secondsToString(seconds) {
+function convertTime(seconds) {
   let sec = seconds;
   let min = 0;
 
@@ -106,9 +101,46 @@ function secondsToString(seconds) {
   return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
 }
 
-// i need this to restore state for screen after reconnecting
-function updateAudioPlayerStateAllClients() {
-  io.to(screen.socketId).emit("update-audioplayer-client-state", audioPlayer);
+const game = {
+  questions: [],
+  currentQuestion: {},
+  currentQuestionId: 0,
+  players: [],
+  playersReadyToAnswer: [],
+  audioPlayer: {
+    currentTrack: "",
+    currentTrackId,
+    isPlaying: false,
+    currentTimeSeconds: 0,
+    currentTimeString: "00:00",
+  },
+};
+
+// function updateAudioPlayerStateAllClients() {
+//   io.emit("update-audioplayer-client-state", game.audioPlayer);
+// }
+
+function initGame(tracks) {
+  tracks.forEach((track) => {
+    game.questions.push({
+      track,
+      state: "",
+      artistNameIsOpen: true,
+      trackNameIsOpen: true,
+    });
+  });
+  game.currentQuestion = game.questions[currentQuestionId];
+  if (game.questions.length !== 0) {
+    console.log("questions loaded successfully!");
+  }
+  game.players = getPlayers();
+}
+
+function updateGameStateAllClients() {
+  io.emit(screen.socketId).emit("update-game-state", {
+    players: getPlayers(),
+    questions,
+  });
 }
 
 // same shit here
@@ -277,9 +309,7 @@ io.on("connection", (socket) => {
     audioPlayer.currentTrack = newState.currentTrack;
     audioPlayer.isPlaying = newState.isPlaying;
     audioPlayer.currentTimeSeconds = newState.currentTimeSeconds;
-    audioPlayer.currentTimeString = secondsToString(
-      audioPlayer.currentTimeSeconds,
-    );
+    audioPlayer.currentTimeString = convertTime(audioPlayer.currentTimeSeconds);
     updateAudioPlayerStateAllClients();
   });
 
@@ -428,6 +458,7 @@ io.on("connection", (socket) => {
       return;
     }
     playersReadyToAnswer[selectedPlayerId].points += 111;
+    currentQuestion.trackNameIsOpen = false;
     updatePlayersClient();
   });
 

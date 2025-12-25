@@ -206,27 +206,8 @@ onMounted(() => {
     }
   }
   &__button {
-    &_default {
-      display: flex;
-      width: 50%;
-      height: 100px;
-      outline: none;
-      border: 1px solid gray;
-      border-radius: 2px;
-      align-items: center;
-      justify-content: center;
-    }
-    &_green {
-      display: flex;
-      width: 50%;
-      height: 100px;
-      outline: none;
-      border: 1px solid gray;
-      border-radius: 2px;
-      align-items: center;
-      justify-content: center;
-      background-color: green;
-    }
+    &_default,
+    &_green,
     &_red {
       display: flex;
       width: 50%;
@@ -236,6 +217,18 @@ onMounted(() => {
       border-radius: 2px;
       align-items: center;
       justify-content: center;
+      transition: transform 0.1s ease;
+
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+
+    &_green {
+      background-color: green;
+    }
+
+    &_red {
       background-color: #e55353;
     }
   }

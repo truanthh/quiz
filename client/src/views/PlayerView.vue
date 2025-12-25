@@ -60,7 +60,9 @@ onMounted(() => {
           ? 'playerView__mainButton_glowing'
           : 'playerView__mainButton'
       "
-      @touchstart="handleClick"
+      v-on="
+        store.isMobile ? { touchstart: handleClick } : { click: handleClick }
+      "
     ></button>
     <!-- <div class="debugInfo">{{ debugLog }}</div> -->
     <!-- <div class="debugInfo">{{ store.connectionInfo.message }}</div> -->

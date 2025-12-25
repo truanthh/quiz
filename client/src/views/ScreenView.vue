@@ -7,9 +7,10 @@ import { mainStore } from "../stores/mainStore";
 // import TableRow from "../components/Table/TableRow.vue";
 // import TableColumn from "../components/Table/TableColumn.vue";
 import tracksData from "../../tracks.json";
-import PlayerBoardBars from "../components/PlayerBoardBars.vue";
 import ItemsBar from "../components/ItemsBar.vue";
 import MainPanel from "../components/MainPanel.vue";
+import PlayerBoardBars from "@/components/PlayerBoardBars.vue";
+import Leaderboard from "@/components/Leaderboard.vue";
 
 const store = mainStore();
 const { players, playersReadyToAnswer, receivedAudioPlayerState } =
@@ -141,27 +142,11 @@ onUnmounted(() => {
 <template>
   <div :class="isDebugPanelShown ? 'debugPanel' : 'debugPanel__hidden'">
     <button class="debugPanel__button" @click="toggleDebugPanel"></button>
-    {{ playersSortedByPoints }}
+    {{ isScoreboardShown }}
   </div>
   <div class="screenView__container">
     <!-- AUDIO AND SCOREBOARD -->
-    <div
-      :class="
-        isScoreboardShown
-          ? 'screenView__scoreboard'
-          : 'screenView__scoreboard_hidden'
-      "
-    >
-      <div class="screenView__scoreboard__line" v-for="player of players">
-        <div class="screenView__scoreboard__line__playerName">
-          {{ player.name }}
-        </div>
-        -----------
-        <div class="screenView__scoreboard__line__playerPoints">
-          {{ player.points }}
-        </div>
-      </div>
-    </div>
+    <Leaderboard :items="playersSortedByPoints" :isShown="isScoreboardShown" />
     <audio
       :src="audioPlayer.currentTrack.src"
       ref="audioPlayerElement"
@@ -229,32 +214,6 @@ onUnmounted(() => {
   // justify-content: center;
   align-items: center;
   gap: 6%;
-  &__scoreboard {
-    display: flex;
-    flex-direction: column;
-    background-color: white;
-    position: fixed;
-    height: 90%;
-    width: 90%;
-    top: 5%;
-    left: 5%;
-    z-index: 100;
-    border: 3px solid black;
-    border-radius: 10px;
-    font-size: 40px;
-    font-weight: bold;
-    // justify-content: center;
-    align-items: center;
-    &_hidden {
-      display: none;
-    }
-    &__line {
-      display: flex;
-      width: 30%;
-      background-color: khaki;
-      justify-content: start;
-    }
-  }
   &__container {
     height: 100%;
   }

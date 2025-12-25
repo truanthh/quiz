@@ -4,6 +4,13 @@ import { io } from "socket.io-client";
 import tracksData from "../../tracks.json";
 
 export const mainStore = defineStore("mainStore", () => {
+  const isMobile = ref(
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent,
+    ),
+  );
+
+  // socket connections etc
   const socket = ref(null);
   const connectionInfo = ref({});
   const user = ref({});
@@ -100,5 +107,6 @@ export const mainStore = defineStore("mainStore", () => {
     playersReadyToAnswer,
     waitForLogin,
     receivedAudioPlayerState,
+    isMobile,
   };
 });
