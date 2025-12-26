@@ -8,9 +8,10 @@ import ItemsBar from "../components/ItemsBar.vue";
 import MainPanel from "../components/MainPanel.vue";
 import PlayerBoardBars from "@/components/PlayerBoardBars.vue";
 import Leaderboard from "@/components/Leaderboard.vue";
+import PlayerBoardChess from "@/components/PlayerBoardChess.vue";
 
 const store = mainStore();
-const { gameState } = storeToRefs(store);
+const { gameState, players } = storeToRefs(store);
 
 // const playersSortedByPoints = computed(() => {
 //   return gameState.players.sort((a, b) => b.points - a.points);
@@ -23,91 +24,70 @@ const audioPlayer = useAudioPlayerStore();
 const audioPlayerElement = ref(null);
 audioPlayer.setTracks(tracksData.tracks);
 
-const isArtistNameShown = ref(false);
-const isTrackNameShown = ref(false);
-const isPosterShown = ref(true);
 const isScoreboardShown = ref(false);
 const isDebugPanelShown = ref(false);
 
-const currentQuestionState = ref("");
 const countdown = ref(0);
 
 function toggleDebugPanel() {
   isDebugPanelShown.value = !isDebugPanelShown.value;
 }
 
-const posterExists = computed(() => {
-  return !audioPlayer.currentTrack.posterImg.endsWith("default.jpg");
-});
-
 // we sending audioplayer state to server every second while track is playing
 // and receiving state from the server to display data
 // why is it being sent by screen and not audioPlayer?
 // maybe because audioplayer is only existing in screen component
-const { currentTimeSeconds, currentTrackIndex, currentTrack, isPlaying } =
+const { currentTimeSeconds, isPlaying, currentTrackIndex } =
   storeToRefs(audioPlayer);
 
-//
-// state that we send to server
+watch(
+  () => gameState.value.currentQuestionId,
+  (newId) => {
+    audioPlayer.changeTrack(newId);
+  },
+  // { deep: true },
+);
+
+watch(
+  [currentTimeSeconds, isPlaying, currentTrackIndex],
+  () => {
+    store.socket.emit("audioplayer-state-change", {
+      currentTimeSeconds: currentTimeSeconds.value,
+      isPlaying: isPlaying.value,
+      currentTrackIndex: currentTrackIndex.value,
+    });
+  },
+  // { deep: true },
+);
+
+// const questionId = computed(() => {
+//   return gameState.currentTrackIndex;
+// });
 
 function startGame() {
-  console.log(audioPlayer.tracks);
-
-  store.socket.emit("start-game", {
-    tracks: tracksData.tracks,
-    currentTimeSeconds: currentTimeSeconds.value,
-    currentTrackIndex: currentTrackIndex.value,
-    currentTrack: currentTrack.value,
-    isPlaying: isPlaying.value,
-  });
-
-  console.log("PIDARASKA");
+  store.socket.emit("start-game", tracksData.tracks);
 }
-
-watch([currentTrack, currentTrackIndex, isPlaying, currentTimeSeconds], () => {
-  store.socket.emit("audioplayer-state-change", {
-    currentTrack: currentTrack.value,
-    currentTrackIndex: currentTrackIndex.value,
-    isPlaying: isPlaying.value,
-    currentTimeSeconds: currentTimeSeconds.value,
-  });
-});
 
 onMounted(() => {
   store.socket.on("play-track", (time) => {
     audioPlayer.play(time);
   });
+
   store.socket.on("pause-track", audioPlayer.pause);
+
   store.socket.on("countdown", (seconds) => {
     countdown.value = seconds;
-  });
-
-  store.socket.on("change-current-question", (currQuestionId) => {
-    audioPlayer.changeTrack(currQuestionId);
-    isTrackNameShown.value = false;
-    isArtistNameShown.value = false;
-    isPosterShown.value = false;
-  });
-
-  store.socket.on("current-question-state-changed", (state) => {
-    currentQuestionState.value = state;
-  });
-
-  store.socket.on("show-trackname", () => {
-    isTrackNameShown.value = true;
-  });
-
-  store.socket.on("show-artist", () => {
-    isArtistNameShown.value = true;
-  });
-
-  store.socket.on("show-poster", () => {
-    isPosterShown.value = true;
   });
 
   store.socket.on("show-scoreboard", () => {
     isScoreboardShown.value = !isScoreboardShown.value;
   });
+
+  // store.socket.on("update-client-game-state", (newState) => {
+  //   if (newState.currentQuestionId !== gameState.currentQuestionId) {
+  //     audioPlayer.changeTrack(newState.currentQuestionId);
+  //   }
+  // });
 
   // store.socket.on("select-next-player", (players) => {
   //   playersReadyToAnswer.value = players;
@@ -115,6 +95,18 @@ onMounted(() => {
   //
   // store.socket.on("select-prev-player", (players) => {
   //   playersReadyToAnswer.value = players;
+  // });
+
+  // store.socket.on("show-trackname", () => {
+  //   isTrackNameShown.value = true;
+  // });
+  //
+  // store.socket.on("show-artist", () => {
+  //   isArtistNameShown.value = true;
+  // });
+  //
+  // store.socket.on("show-poster", () => {
+  //   isPosterShown.value = true;
   // });
 
   audioPlayer.initialize(audioPlayerElement.value);
@@ -138,12 +130,18 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div @click="startGame">START GAME</div>
   <div :class="isDebugPanelShown ? 'debugPanel' : 'debugPanel__hidden'">
     <button class="debugPanel__button" @click="toggleDebugPanel"></button>
-    {{ isScoreboardShown }}
+    {{ gameState }}
   </div>
   <div class="screenView__container">
+    <button
+      @click="startGame"
+      v-if="!gameState.hasStarted"
+      class="startGameButton"
+    >
+      START GAME
+    </button>
     <!-- AUDIO AND SCOREBOARD -->
     <Leaderboard :items="playersSortedByPoints" :isShown="isScoreboardShown" />
     <audio
@@ -153,20 +151,25 @@ onUnmounted(() => {
     ></audio>
     <!-- ---------------------- -->
     <div class="screenView">
-      <MainPanel
-        :state="gameState"
-        :countdown
-        :isPosterShown
-        :posterExists
-        :isArtistNameShown
-        :isTrackNameShown
-      />
+      <MainPanel class="bla" :state="gameState" :countdown />
       <ItemsBar :items="gameState.playersReadyToAnswer" />
-      <PlayerBoardBars :items="gameState.players" />
+      <PlayerBoardBars :items="gameState.players" v-if="gameState.hasStarted" />
+      <PlayerBoardChess :items="players" v-else class="pregame__players" />
     </div>
   </div>
 </template>
 <style lang="scss" scoped>
+.startGameButton {
+  position: fixed;
+  top: 0;
+  right: 50vw;
+}
+.pregame__players {
+  height: 250px;
+  width: 800px;
+  // background-color: orange;
+}
+
 .debugPanel {
   opacity: 0.5;
   width: 700px;
@@ -216,6 +219,7 @@ onUnmounted(() => {
   gap: 6%;
   &__container {
     height: 100%;
+    position: relative;
   }
 }
 

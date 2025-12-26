@@ -1,62 +1,28 @@
 <script setup>
 import { ref, onMounted } from "vue";
-// import { storeToRefs } from "pinia";
 import { mainStore } from "../stores/mainStore.js";
+import { storeToRefs } from "pinia";
 
 const store = mainStore();
-// const debugLog = ref("");
-// const counter = ref(0);
-
-const currentTime = ref("00:00");
-const isPlaying = ref(false);
-const isPlayerReady = ref(false);
-const currentQuestionState = ref("");
+const { gameState, user } = storeToRefs(store);
 
 function handleClick() {
   store.socket.emit("button-pressed-player", store.user);
 }
 
-onMounted(() => {
-  store.socket.on("update-audioplayer-client-state", (newState) => {
-    isPlaying.value = newState.isPlaying;
-    // currentTime.value = store.formatTime(newState.currentTime);
-  });
-
-  store.socket.on("question-state-changed", (newState) => {
-    currentQuestionState.value = newState;
-  });
-
-  store.socket.on("you-are-ready", () => {
-    isPlayerReady.value = true;
-  });
-
-  store.socket.on("reset-players", () => {
-    isPlayerReady.value = false;
-  });
-});
+onMounted(() => {});
 </script>
 <template>
   <div class="playerView__container">
     <div class="playerView__infoPanel">
-      <div class="debugInfoo">{{ store.user.name }}</div>
-      <!-- <div class="debugInfoo">{{ currentTime }}</div> -->
       <div class="debugInfoo" style="font-size: 24px">
         {{ currentQuestionState }}
-      </div>
-      <div class="debugInfoo" style="font-size: 24px" v-if="isPlayerReady">
-        READY
-      </div>
-      <div
-        class="debugInfoo"
-        style="font-size: 24px"
-        v-else-if="!isPlayerReady"
-      >
-        NOT READY
       </div>
     </div>
     <button
       :class="
-        !isPlayerReady && /open|countdown/gi.test(currentQuestionState)
+        !user.isReady &&
+        /open|countdown/gi.test(gameState.currentQuestion.state)
           ? 'playerView__mainButton_glowing'
           : 'playerView__mainButton'
       "
@@ -64,10 +30,6 @@ onMounted(() => {
         store.isMobile ? { touchstart: handleClick } : { click: handleClick }
       "
     ></button>
-    <!-- <div class="debugInfo">{{ debugLog }}</div> -->
-    <!-- <div class="debugInfo">{{ store.connectionInfo.message }}</div> -->
-    <!-- <div class="debugInfo">{{ store.connectionInfo.connectedAt }}</div> -->
-    <!-- <div class="debugInfo">{{ store.user.token }}</div> -->
   </div>
 </template>
 <style lang="scss" scoped>

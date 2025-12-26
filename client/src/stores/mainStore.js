@@ -11,21 +11,20 @@ export const mainStore = defineStore("mainStore", () => {
   const connectionInfo = ref({});
 
   const socket = ref(null);
-  const user = ref({});
   const isAuth = ref(false);
 
+  const user = ref({ isReady: false });
   const players = ref(false);
 
   // THIS DATA IS ONLY FOR DISPLAY
   const gameState = reactive({
+    hasStarted: false,
     questions: [],
     currentQuestion: {},
     currentQuestionId: 0,
     players: [
       { name: "blankplayer1", hasPressedReady: false, avatar: 0, points: 1 },
-      { name: "blankplayer2", hasPressedReady: false, avatar: 0, points: 0 },
     ],
-    playerTokens: [],
     playersReadyToAnswer: [
       { name: "blankstore", hasPressedReady: false, avatar: 0 },
     ],
@@ -60,21 +59,26 @@ export const mainStore = defineStore("mainStore", () => {
       players.value = data;
     });
 
+    socket.value.on("update-client-user-state", (userState) => {
+      user.value.isReady = userState.hasPressedReady;
+    });
+
     socket.value.on("update-client-game-state", (newState) => {
+      //general
+      gameState.hasStarted = newState.hasStarted;
+
       // AP
       gameState.audioPlayer.currentTrack = newState.audioPlayer.currentTrack;
-      gameState.audioPlayer.currentTimeSeconds =
-        newState.audioPlayer.currentTimeSeconds;
       gameState.audioPlayer.currentTimeString =
         newState.audioPlayer.currentTimeString;
 
       // questions
       gameState.questions = newState.questions;
+      gameState.currentQuestionId = newState.currentQuestionId;
       gameState.currentQuestion = newState.currentQuestion;
 
       // players
       gameState.players = newState.players;
-      gameState.playerTokens = newState.playerTokens;
       gameState.playersReadyToAnswer = newState.playersReadyToAnswer;
       gameState.selectedPlayerId = newState.selectedPlayerId;
     });
@@ -117,6 +121,6 @@ export const mainStore = defineStore("mainStore", () => {
     socket,
     initSocket,
     gameState,
-    // players,
+    players,
   };
 });

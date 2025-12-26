@@ -5,11 +5,11 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
   //
   //
   // -------- AUDIOPLAYER STATE ------------------------
+  // const duration = ref(0);
   const isPlaying = ref(false);
   const currentTrackIndex = ref(0);
   const volume = ref(0.5);
   const tracks = ref([]);
-  const duration = ref(0);
   const currentTimeSeconds = ref(0);
   const currentTrack = computed(() => tracks.value[currentTrackIndex.value]);
 

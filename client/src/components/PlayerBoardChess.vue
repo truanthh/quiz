@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from "vue";
+import { getAvatar, getGif } from "@/utils/avatars";
 
 const props = defineProps({
   items: {
@@ -45,10 +46,10 @@ const chess = computed(() => {
       <div class="player">
         <img
           class="player__avatar"
-          :src="`../ui/avatars/${player.avatar}.png`"
+          :src="getAvatar(player.avatar)"
           v-if="!player.hasPressedReady"
         />
-        <img class="player__altAvatar" :src="`../ui/gifs/dog${1}.gif`" v-else />
+        <img class="player__altAvatar" :src="getGif()" v-else />
         <div class="player__name">
           {{ player ? player.name.toUpperCase() : 0 }}
         </div>

@@ -48,13 +48,16 @@ let screen = {
 // const tracks = [{ name: "blank", artist: "blank" }];
 
 const game = {
+  hasStarted: false,
   questions: [],
   currentQuestion: {},
   currentQuestionId: 0,
   players: [],
-  playerTokens: [],
   playersReadyToAnswer: [{ name: "blank", hasPressedReady: false, avatar: 0 }],
   selectedPlayerId: 0,
+  // this state is only for storing
+  // the actual audio player is on screen page,
+  // this is for syncing
   audioPlayer: {
     currentTrack: "",
     currentTrackId: 0,
@@ -63,6 +66,10 @@ const game = {
     currentTimeString: "00:00",
   },
 };
+
+function updateClientUserState(user) {
+  io.emit("update-client-user-state", user);
+}
 
 function updateClientGameState() {
   io.emit("update-client-game-state", game);
@@ -90,68 +97,79 @@ function getSelectedPlayer() {
   return game.playersReadyToAnswer[game.selectedPlayerId];
 }
 
-function getPlayersCurrentGame() {
-  if (game.players.size) {
-    return Array.from(game.players.values());
-  }
-
-  return [];
-}
-
 function setAudioPlayerState(newState) {
-  game.audioPlayer.currentTrack = newState.currentTrack;
+  // state sent by screen
   game.audioPlayer.currentTrackId = newState.currentTrackIndex; // xd
   game.audioPlayer.isPlaying = newState.isPlaying;
   game.audioPlayer.currentTimeSeconds = newState.currentTimeSeconds;
+
+  // state calculated
+  game.questions[game.audioPlayer.currentTrackId].track;
   game.audioPlayer.currentTimeString = convertTime(
     game.audioPlayer.currentTimeSeconds,
   );
 }
 
-// to init game we need tracks, players, and audioplayer data
-function initGame(apState) {
-  game.players = players;
-  game.playerTokens = playerTokens;
-  if (apState.tracks.length === 0) {
+function initGame(tracks) {
+  // saving players
+  players.forEach((player, socketId) => {
+    game.players.push(player);
+  });
+  resetPlayers();
+  if (tracks.length === 0) {
     console.log("error getting tracks!");
   }
-  apState.tracks.forEach((track) => {
+  tracks.forEach((track) => {
     game.questions.push({
       track,
+      time: "00:00",
       state: "",
       isArtistNameRevealed: false,
       isTrackNameRevealed: false,
+      isPosterRevealed: false,
     });
   });
   game.currentQuestion = game.questions[game.currentQuestionId];
-  // console.log(game.questions);
   if (game.questions.length !== 0) {
     console.log("questions loaded successfully!");
   }
-  setAudioPlayerState(apState);
+  game.hasStarted = true;
+  updateClientGameState();
 }
 
 function setPlayerReady(player) {
   player.hasPressedReady = true;
   game.playersReadyToAnswer.push(player);
+  updateClientUserState(player);
   updateClientGameState();
 }
 
 function resetPlayers() {
-  const players = getPlayersCurrentGame();
-  if (players.length === 0) {
-    console.log("error getting players array! mb no players?");
+  if (game.players.length === 0) {
+    console.log("error resetting players array! mb no players?");
     return;
   }
-  for (let player of players) {
+  for (let player of game.players) {
     player.hasPressedReady = false;
   }
   game.playersReadyToAnswer.length = 0;
-  updateClientGameState();
 }
 
-function changeCurrentQuestionState(state) {
+function setCurrentQuestionState(state) {
   game.currentQuestion.state = state;
+}
+
+// and reveal poster
+// question is closed when artist name and track named are guessed correct
+function closeQuestion() {
+  if (
+    game.currentQuestion.isArtistNameRevealed &&
+    game.currentQuestion.isTrackNameRevealed
+  ) {
+    game.currentQuestion.isPosterRevealed = true;
+    setCurrentQuestionState("closed");
+  }
+  updateClientGameState();
 }
 
 // RECONNECT
@@ -166,19 +184,21 @@ io.on("connection", (socket) => {
   let oldSocketIdPlayer = playerTokens.get(token);
 
   if (token) {
+    // ADMIN
     if (token === admin.token) {
       admin.socketId = socket.id;
       socket.emit("login-successful", admin);
     }
-    //
+    // SCREEN
     else if (token === screen.token) {
       screen.socketId = socket.id;
+      updateClientPlayers();
       updateClientGameState();
 
       // getting players, playersReady and tracks data
       socket.emit("login-successful", screen);
     }
-    //
+    // PLAYER
     else if (oldSocketIdPlayer) {
       const playerOld = players.get(oldSocketIdPlayer);
       players.delete(oldSocketIdPlayer);
@@ -252,7 +272,6 @@ io.on("connection", (socket) => {
   // and needs to be sent to everyone else to update clients
   // I NEED TO NOT LET THIS EVENT FIRE BEFORE INITIALIZING GAME
   socket.on("audioplayer-state-change", (newState) => {
-    console.log("AP STATE CHANGE");
     setAudioPlayerState(newState);
     updateClientGameState();
   });
@@ -260,32 +279,27 @@ io.on("connection", (socket) => {
   // track can only be played by admin
   // so we need to send event to everyone but the sender
   socket.on("request-play-track", () => {
-    if (!audioPlayer.isPlaying) {
-      io.to(screen.socketId).emit(
-        "play-track",
-        game.audioPlayer.currentTimeSeconds,
-      );
+    if (!game.audioPlayer.isPlaying) {
+      console.log("trying to play!");
+      io.to(screen.socketId).emit("play-track");
     }
-    if (currentQuestion.state === "") {
-      changeCurrentQuestionState("open");
+    if (game.currentQuestion.state === "") {
+      setCurrentQuestionState("open");
       updateClientGameState();
     }
   });
 
   socket.on("request-pause-track", () => {
-    if (!audioPlayer.isPlaying) {
-      io.to(screen.socketId).emit(
-        "play-track",
-        game.audioPlayer.currentTimeSeconds,
-      );
-    }
-    if (
-      currentQuestion.state === "open" ||
-      currentQuestion.state === "pending"
-    ) {
-      changeCurrentQuestionState("");
-      updateClientGameState();
-    }
+    io.to(screen.socketId).emit("pause-track");
+    // if (game.audioPlayer.isPlaying) {
+    // }
+    // if (
+    //   game.currentQuestion.state === "open" ||
+    //   game.currentQuestion.state === "pending"
+    // ) {
+    //   setCurrentQuestionState("");
+    //   updateClientGameState();
+    // }
   });
 
   socket.on("request-select-prev-player", () => {
@@ -315,8 +329,10 @@ io.on("connection", (socket) => {
       return;
     }
     resetPlayers();
-    currentQuestionId++;
-    currentQuestion = questions[currentQuestionId];
+    game.currentQuestionId++;
+    game.currentQuestion = game.questions[game.currentQuestionId];
+    // ???
+    // game.audioPlayer.currentTimeString = "00:00";
     updateClientGameState();
   });
 
@@ -325,31 +341,32 @@ io.on("connection", (socket) => {
       return;
     }
     resetPlayers();
-    currentQuestionId--;
-    currentQuestion = questions[currentQuestionId];
+    game.currentQuestionId--;
+    game.currentQuestion = game.questions[game.currentQuestionId];
     updateClientGameState();
   });
 
   socket.on("button-pressed-player", (sender) => {
-    const player = game.players.get(game.playerTokens.get(sender.token));
+    // need to change this later
+    const player = players.get(playerTokens.get(sender.token));
 
     // question states - no state(empty string), open, countdown, pending, closed
-
     if (game.currentQuestion.state === "open" && !player.hasPressedReady) {
       io.to(screen.socketId).emit("pause-track");
       setPlayerReady(player);
       // countdown is also a question state
       // pause track. count down.
-      changeCurrentQuestionState("countdown");
+      setCurrentQuestionState("countdown");
       updateClientGameState();
-      let seconds = 5;
+      let seconds = 3;
       let id = setInterval(() => {
         io.emit("countdown", seconds);
         seconds--;
         if (seconds === 0) {
           clearInterval(id);
-          changeCurrentQuestionState("pending");
+          setCurrentQuestionState("pending");
           updateClientGameState();
+          io.emit("countdown", seconds);
         }
       }, 1000);
     } else if (
@@ -362,18 +379,27 @@ io.on("connection", (socket) => {
 
   // THESE ONLY SENT BY ADMIN
   socket.on("artist-name-correct", () => {
-    if (game.currentQuestion.isArtistNameRevealed) {
-      console.log("artist name is already revealed for this question!");
+    if (
+      game.currentQuestion.isArtistNameRevealed ||
+      game.currentQuestion.state !== "pending"
+    ) {
+      console.log("error revealing artist!");
       return;
     }
+    // reveal artist
+    game.currentQuestion.isArtistNameRevealed = true;
     getSelectedPlayer().points += 69;
-    game.currentQuestion.isArtistNameRevealed = false;
-    updateClientGameState();
+    // try to close question if whole track is guessed
+    // state also updates here
+    closeQuestion();
   });
 
   socket.on("artist-name-wrong", () => {
-    if (currentQuestion.isArtistNameRevealed) {
-      console.log("artist name is already revealed for this question!");
+    if (
+      game.currentQuestion.isArtistNameRevealed ||
+      game.currentQuestion.state !== "pending"
+    ) {
+      console.log("error revealing artist!");
       return;
     }
     getSelectedPlayer().points -= 33;
@@ -381,36 +407,45 @@ io.on("connection", (socket) => {
   });
 
   socket.on("track-name-correct", () => {
-    if (currentQuestion.isTrackNameRevealed) {
-      console.log("track name is already revealed for this question!");
+    if (
+      game.currentQuestion.isTrackNameRevealed ||
+      game.currentQuestion.state !== "pending"
+    ) {
+      console.log("error revealing track name!");
       return;
     }
+    // reveal track name
+    game.currentQuestion.isTrackNameRevealed = true;
     getSelectedPlayer().points += 111;
-    game.currentQuestion.isTrackNameRevealed = false;
-    updateClientGameState();
+    closeQuestion();
+    // try to close question if whole track is guessed
+    // state also updates here
   });
 
   socket.on("track-name-wrong", () => {
-    if (currentQuestion.isTrackNameRevealed) {
-      console.log("track name is already revealed for this question!");
+    if (
+      game.currentQuestion.isTrackNameRevealed ||
+      game.currentQuestion.state !== "pending"
+    ) {
+      console.log("error revealing track name!");
       return;
     }
     getSelectedPlayer().points -= 22;
     updateClientGameState();
   });
 
-  socket.on("request-show-artist", () => {
-    io.to(screen.socketId).emit("show-artist");
-  });
-
-  socket.on("request-show-trackname", () => {
-    io.to(screen.socketId).emit("show-trackname");
-  });
-
-  socket.on("request-show-poster", () => {
-    io.to(screen.socketId).emit("show-poster");
-  });
-
+  // socket.on("request-show-artist", () => {
+  //   io.to(screen.socketId).emit("show-artist");
+  // });
+  //
+  // socket.on("request-show-trackname", () => {
+  //   io.to(screen.socketId).emit("show-trackname");
+  // });
+  //
+  // socket.on("request-show-poster", () => {
+  //   io.to(screen.socketId).emit("show-poster");
+  // });
+  //
   socket.on("request-show-scoreboard", () => {
     io.to(screen.socketId).emit("show-scoreboard");
   });

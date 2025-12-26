@@ -1,25 +1,7 @@
 <script setup>
 import "spoilerjs/spoiler-span";
-import ImageSkeleton from "../components/ImageSkeleton.vue";
-import pocoyo1 from "../../assets/gifs/pocoyo1.gif";
 
 const props = defineProps({
-  isPosterShown: {
-    type: Boolean,
-    default: false,
-  },
-  posterExists: {
-    type: Boolean,
-    default: false,
-  },
-  isTrackNameShown: {
-    type: Boolean,
-    default: false,
-  },
-  isArtistNameShown: {
-    type: Boolean,
-    default: false,
-  },
   countdown: {
     type: Number,
     default: 0,
@@ -28,7 +10,13 @@ const props = defineProps({
     type: Object,
     default: {
       questions: [],
-      currentQuestion: {},
+      currentQuestion: {
+        track: "blah",
+        state: "",
+        isArtistNameRevealed: false,
+        isTrackNameRevealed: false,
+        isPosterRevealed: false,
+      },
       currentQuestionId: 0,
       players: [],
       playerTokens: [],
@@ -36,6 +24,8 @@ const props = defineProps({
         { name: "blankstore", hasPressedReady: false, avatar: 0 },
       ],
       selectedPlayerId: 0,
+      // THIS AUDIOPLAYER STATE SHOULD NOT BE USED
+      // TO DISPLAY TRACK INFO EXCEPT CURRENT TIME
       audioPlayer: {
         currentTrack: { posterImg: "" },
         currentTrackId: 0,
@@ -50,14 +40,27 @@ const props = defineProps({
 
 <template>
   <div class="mainPanel__container">
+    <span class="countdown"> #{{ state.currentQuestionId + 1 }} </span>
+    <span class="countdown"> _ {{ countdown + 1 }} </span>
     <div class="poster__container">
       <div class="poster">
-        <img
-          class="poster__img"
-          :src="`${state.audioPlayer.currentTrack.posterImg}`"
-          v-if="isPosterShown && posterExists"
-        />
-        <img v-else class="poster__gif" :src="pocoyo1" />
+        <Transition name="fade">
+          <img
+            v-if="state.currentQuestion?.isPosterRevealed"
+            class="poster__img"
+            :src="`${state.currentQuestion?.track.posterImg}`"
+          />
+          <div class="spoilerPoster" v-else>
+            <spoiler-span> deeznutsdeeznuts </spoiler-span>
+            <spoiler-span> deeznutsdeeznuts </spoiler-span>
+            <spoiler-span> deeznutsdeeznuts </spoiler-span>
+            <spoiler-span> deeznutsdeeznuts </spoiler-span>
+            <spoiler-span> deeznutsdeeznuts </spoiler-span>
+            <spoiler-span> deeznutsdeeznuts </spoiler-span>
+            <spoiler-span> deeznutsdeeznuts </spoiler-span>
+            <spoiler-span> deeznutsdeeznuts </spoiler-span>
+          </div>
+        </Transition>
       </div>
     </div>
     <div class="trackInfo">
@@ -66,39 +69,53 @@ const props = defineProps({
       </div>
       <div class="trackInfo__artistName">
         <Transition name="fade">
-          <span v-if="isArtistNameShown">
-            {{ state.audioPlayer.currentTrack.artist }}
+          <span v-if="state.currentQuestion?.isArtistNameRevealed">
+            {{ state.currentQuestion?.track.artist }}
           </span>
           <spoiler-span
             class="spoiler"
             v-else
-            :key="state.audioPlayer.currentTrack.artist"
+            :key="state.currentQuestion?.track.artist"
           >
-            {{ state.audioPlayer.currentTrack.artist }}
+            {{ state.currentQuestion?.track.artist }}
           </spoiler-span>
         </Transition>
       </div>
       <div class="trackInfo__trackName">
         <Transition name="fade">
-          <span v-if="isTrackNameShown" class="spoiler">
-            {{ state.audioPlayer.currentTrack.name }}
+          <span
+            v-if="state.currentQuestion?.isTrackNameRevealed"
+            class="spoiler"
+          >
+            {{ state.currentQuestion?.track.name }}
           </span>
           <spoiler-span
             class="spoiler"
             v-else
-            :key="state.audioPlayer.currentTrack.name"
+            :key="state.currentQuestion?.track.name"
           >
-            {{ state.audioPlayer.currentTrack.name }}
+            {{ state.currentQuestion?.track.name }}
           </spoiler-span>
         </Transition>
       </div>
     </div>
-    <span class="countdown" v-if="countdown !== 0"> {{ countdown }}</span>
-    <span class="countdown" v-else> ~ </span>
+    <!-- <span class="countdown" v-else> ~ </span> -->
   </div>
 </template>
 
 <style lang="scss" scoped>
+.spoilerPoster {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  font-size: 2.3em;
+  line-height: 80%;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+}
+
 .countdown {
   font-size: 33px;
   color: white;
@@ -108,11 +125,10 @@ const props = defineProps({
   &__container {
     display: flex;
     margin-top: 2%;
-    width: 100%;
-    height: 30%;
+    width: 100vw;
+    height: 30vh;
     // background-color: khaki;
     justify-content: center;
-    gap: 2%;
   }
 }
 .emptySpace {
@@ -144,7 +160,7 @@ const props = defineProps({
     width: 100%;
     height: 100%;
     justify-content: center;
-    align-items: center;
+    // align-items: center;
     font-size: 30px;
     font-weight: bold;
     word-break: break-all;
@@ -159,7 +175,7 @@ const props = defineProps({
     height: 100%;
     font-size: 40px;
     font-weight: bold;
-    justify-content: center;
+    // justify-content: center;
     align-items: center;
     word-break: break-all;
     // text-align: center;
@@ -178,6 +194,7 @@ const props = defineProps({
     align-items: center;
     justify-content: center;
     aspect-ratio: 1 / 1;
+    margin-right: 5%;
   }
   &__img {
     height: 100%;
