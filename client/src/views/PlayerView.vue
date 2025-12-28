@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { onMounted } from "vue";
 import { mainStore } from "../stores/mainStore.js";
 import { storeToRefs } from "pinia";
 
@@ -16,7 +16,7 @@ onMounted(() => {});
   <div class="playerView__container">
     <div class="playerView__infoPanel">
       <div class="debugInfoo" style="font-size: 24px">
-        {{ currentQuestionState }}
+        {{ store.user.name }}
       </div>
     </div>
     <button

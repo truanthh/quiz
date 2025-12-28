@@ -9,15 +9,10 @@ import MainPanel from "../components/MainPanel.vue";
 import PlayerBoardBars from "@/components/PlayerBoardBars.vue";
 import Leaderboard from "@/components/Leaderboard.vue";
 import PlayerBoardChess from "@/components/PlayerBoardChess.vue";
+import CountdownPopup from "@/components/CountdownPopup.vue";
 
 const store = mainStore();
 const { gameState, players } = storeToRefs(store);
-
-// const playersSortedByPoints = computed(() => {
-//   return gameState.players.sort((a, b) => b.points - a.points);
-// });
-
-const playersSortedByPoints = [];
 
 // initializing audioPlayer
 const audioPlayer = useAudioPlayerStore();
@@ -49,12 +44,12 @@ watch(
 );
 
 watch(
-  [currentTimeSeconds, isPlaying, currentTrackIndex],
+  [currentTimeSeconds, isPlaying],
   () => {
     store.socket.emit("audioplayer-state-change", {
       currentTimeSeconds: currentTimeSeconds.value,
       isPlaying: isPlaying.value,
-      currentTrackIndex: currentTrackIndex.value,
+      // currentTrackIndex: currentTrackIndex.value,
     });
   },
   // { deep: true },
@@ -82,12 +77,6 @@ onMounted(() => {
   store.socket.on("show-scoreboard", () => {
     isScoreboardShown.value = !isScoreboardShown.value;
   });
-
-  // store.socket.on("update-client-game-state", (newState) => {
-  //   if (newState.currentQuestionId !== gameState.currentQuestionId) {
-  //     audioPlayer.changeTrack(newState.currentQuestionId);
-  //   }
-  // });
 
   // store.socket.on("select-next-player", (players) => {
   //   playersReadyToAnswer.value = players;
@@ -130,10 +119,11 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div :class="isDebugPanelShown ? 'debugPanel' : 'debugPanel__hidden'">
-    <button class="debugPanel__button" @click="toggleDebugPanel"></button>
-    {{ gameState }}
-  </div>
+  <CountdownPopup :value="countdown" v-if="countdown !== 0" />
+  <!-- <div :class="isDebugPanelShown ? 'debugPanel' : 'debugPanel_hidden'"> -->
+  <!--   <button class="debugPanel__button" @click="toggleDebugPanel"></button> -->
+  <!--   {{ gameState.players }} -->
+  <!-- </div> -->
   <div class="screenView__container">
     <button
       @click="startGame"
@@ -143,7 +133,7 @@ onUnmounted(() => {
       START GAME
     </button>
     <!-- AUDIO AND SCOREBOARD -->
-    <Leaderboard :items="playersSortedByPoints" :isShown="isScoreboardShown" />
+    <Leaderboard :items="gameState.players" :isShown="isScoreboardShown" />
     <audio
       :src="audioPlayer.currentTrack.src"
       ref="audioPlayerElement"
@@ -152,7 +142,11 @@ onUnmounted(() => {
     <!-- ---------------------- -->
     <div class="screenView">
       <MainPanel class="bla" :state="gameState" :countdown />
-      <ItemsBar :items="gameState.playersReadyToAnswer" />
+      <ItemsBar
+        :items="
+          gameState.playersReadyToAnswer.slice(gameState.selectedPlayerId)
+        "
+      />
       <PlayerBoardBars :items="gameState.players" v-if="gameState.hasStarted" />
       <PlayerBoardChess :items="players" v-else class="pregame__players" />
     </div>
@@ -184,7 +178,9 @@ onUnmounted(() => {
   overflow: hidden;
   font-size: 12px;
   font-weight: bold;
-  &__hidden {
+  z-index: 1000;
+  &_hidden {
+    z-index: 1000;
     opacity: 0.5;
     width: 100px;
     height: 20px;

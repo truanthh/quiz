@@ -2,16 +2,12 @@
 import "spoilerjs/spoiler-span";
 
 const props = defineProps({
-  countdown: {
-    type: Number,
-    default: 0,
-  },
   state: {
     type: Object,
     default: {
       questions: [],
       currentQuestion: {
-        track: "blah",
+        track: { name: "trackname", artist: "artistname" },
         state: "",
         isArtistNameRevealed: false,
         isTrackNameRevealed: false,
@@ -40,8 +36,7 @@ const props = defineProps({
 
 <template>
   <div class="mainPanel__container">
-    <span class="countdown"> #{{ state.currentQuestionId + 1 }} </span>
-    <span class="countdown"> _ {{ countdown + 1 }} </span>
+    <div class="questionId">#{{ state.currentQuestionId + 1 }}</div>
     <div class="poster__container">
       <div class="poster">
         <Transition name="fade">
@@ -65,7 +60,7 @@ const props = defineProps({
     </div>
     <div class="trackInfo">
       <div class="trackInfo__currentTime">
-        {{ state.audioPlayer.currentTimeString }}
+        {{ state.currentQuestion.currentTimeString }}
       </div>
       <div class="trackInfo__artistName">
         <Transition name="fade">
@@ -116,9 +111,12 @@ const props = defineProps({
   align-items: center;
 }
 
-.countdown {
+.questionId {
+  position: fixed;
   font-size: 33px;
   color: white;
+  top: 0;
+  left: 0;
 }
 
 .mainPanel {

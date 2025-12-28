@@ -14,7 +14,11 @@ export const mainStore = defineStore("mainStore", () => {
   const isAuth = ref(false);
 
   const user = ref({ isReady: false });
+
+  // all connected players
   const players = ref(false);
+
+  // audioPlayer state mb should be here
 
   // THIS DATA IS ONLY FOR DISPLAY
   const gameState = reactive({
@@ -68,9 +72,9 @@ export const mainStore = defineStore("mainStore", () => {
       gameState.hasStarted = newState.hasStarted;
 
       // AP
-      gameState.audioPlayer.currentTrack = newState.audioPlayer.currentTrack;
-      gameState.audioPlayer.currentTimeString =
-        newState.audioPlayer.currentTimeString;
+      // gameState.audioPlayer.currentTrack = newState.audioPlayer.currentTrack;
+      // gameState.audioPlayer.currentTimeString =
+      //   newState.audioPlayer.currentTimeString;
 
       // questions
       gameState.questions = newState.questions;

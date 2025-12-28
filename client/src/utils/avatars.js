@@ -7,7 +7,26 @@ import avatar5 from "../../assets/avatars/5.png";
 import avatar6 from "../../assets/avatars/6.png";
 import avatar7 from "../../assets/avatars/7.png";
 import avatar8 from "../../assets/avatars/8.png";
-import dog1 from "../../assets/gifs/dog1.gif";
+import avatar9 from "../../assets/avatars/9.png";
+import avatar10 from "../../assets/avatars/10.png";
+import avatar11 from "../../assets/avatars/11.png";
+import avatar12 from "../../assets/avatars/12.png";
+import avatar13 from "../../assets/avatars/13.png";
+import avatar14 from "../../assets/avatars/14.png";
+import avatar15 from "../../assets/avatars/15.png";
+import avatar16 from "../../assets/avatars/16.png";
+import avatar17 from "../../assets/avatars/17.png";
+import avatar18 from "../../assets/avatars/18.png";
+import avatar19 from "../../assets/avatars/19.png";
+import gif1 from "../../assets/gifs/gif1.gif";
+import gif2 from "../../assets/gifs/gif2.webp";
+import gif3 from "../../assets/gifs/gif3.webp";
+import gif4 from "../../assets/gifs/gif4.gif";
+import gif5 from "../../assets/gifs/gif5.gif";
+import gif7 from "../../assets/gifs/gif7.webp";
+import gif9 from "../../assets/gifs/gif9.gif";
+import gif10 from "../../assets/gifs/gif10.gif";
+import gif11 from "../../assets/gifs/gif11.gif";
 
 export const avatarMap = {
   0: avatar0,
@@ -19,20 +38,37 @@ export const avatarMap = {
   6: avatar6,
   7: avatar7,
   8: avatar8,
+  9: avatar9,
+  10: avatar10,
+  11: avatar11,
+  12: avatar12,
+  13: avatar13,
+  14: avatar14,
+  15: avatar15,
+  16: avatar16,
+  17: avatar17,
+  18: avatar18,
+  19: avatar19,
 };
 
 export const gifMap = {
-  dog1: dog1,
+  0: gif1,
+  1: gif1,
+  2: gif2,
+  3: gif3,
+  4: gif4,
+  5: gif5,
+  6: gif7,
+  7: gif9,
+  8: gif10,
+  9: gif11,
 };
 
 export const getAvatar = (id) => {
   return avatarMap[id] || avatarMap[0];
 };
 
-export const getGif = (name) => {
-  if (!name) {
-    return gifMap.dog1;
-  }
-
-  return gifMap[name];
+export const getGif = (id) => {
+  const r = Math.floor(Math.random() * Object.values(gifMap).length);
+  return gifMap[id] || gifMap[r];
 };

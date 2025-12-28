@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from "vue";
 import { getAvatar, getGif } from "@/utils/avatars";
 
 const props = defineProps({
@@ -7,12 +8,16 @@ const props = defineProps({
     default: [],
   },
 });
+
+const bla = computed(() => {
+  return [...props.items];
+});
 </script>
 
 <template>
   <div class="playerBoardBars__container">
     <div class="bar">
-      <div class="cell" v-for="(player, i) of items.slice(0, 4)" :key="i">
+      <div class="cell" v-for="(player, i) of bla.slice(0, 4)" :key="i">
         <div class="player">
           <img
             class="player__avatar"
@@ -20,14 +25,14 @@ const props = defineProps({
             v-if="!player.hasPressedReady"
           />
           <img class="player__altAvatar" :src="getGif()" v-else />
-          <div class="player__name">
+          <div class="player__name" v-if="!player.hasPressedReady">
             {{ player ? player.name.toUpperCase() : 0 }}
           </div>
         </div>
       </div>
     </div>
     <div class="bar">
-      <div class="cell" v-for="(player, i) of items.slice(4)" :key="i">
+      <div class="cell" v-for="(player, i) of bla.slice(4)" :key="i">
         <div class="player">
           <img
             class="player__avatar"
@@ -35,7 +40,7 @@ const props = defineProps({
             v-if="!player.hasPressedReady"
           />
           <img class="player__altAvatar" :src="getGif()" v-else />
-          <div class="player__name">
+          <div class="player__name" v-if="!player.hasPressedReady">
             {{ player ? player.name.toUpperCase() : 0 }}
           </div>
         </div>
@@ -47,6 +52,7 @@ const props = defineProps({
 <style lang="scss" scoped>
 .playerBoardBars {
   &__container {
+    z-index: 90;
     display: flex;
     position: fixed;
     top: 0;

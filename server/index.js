@@ -30,7 +30,9 @@ app.use(express.json());
 
 const players = new Map();
 const playerTokens = new Map();
-const availableAvatars = new Set([1, 2, 3, 4, 5, 6, 7, 8]);
+const availableAvatars = new Set([
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+]);
 
 let admin = {
   socketId: undefined,
@@ -68,7 +70,14 @@ const game = {
 };
 
 function updateClientUserState(user) {
-  io.emit("update-client-user-state", user);
+  io.to(user.socketId).emit("update-client-user-state", user);
+}
+
+function updateResetPlayers() {
+  io.to(getPlayers().map((player) => player.socketId)).emit(
+    "update-client-user-state",
+    { hasPressedReady: false },
+  );
 }
 
 function updateClientGameState() {
@@ -104,26 +113,33 @@ function setAudioPlayerState(newState) {
   game.audioPlayer.currentTimeSeconds = newState.currentTimeSeconds;
 
   // state calculated
-  game.questions[game.audioPlayer.currentTrackId].track;
+  // game.questions[game.audioPlayer.currentTrackId].track;
   game.audioPlayer.currentTimeString = convertTime(
     game.audioPlayer.currentTimeSeconds,
   );
 }
 
+function setCurrentQuestionTime(seconds) {
+  game.currentQuestion.currentTimeSeconds = seconds;
+  game.currentQuestion.currentTimeString = convertTime(seconds);
+}
+
 function initGame(tracks) {
+  if (tracks.length === 0) {
+    console.log("error getting tracks!");
+    return;
+  }
   // saving players
-  players.forEach((player, socketId) => {
+  players.forEach((player) => {
     game.players.push(player);
   });
   resetPlayers();
-  if (tracks.length === 0) {
-    console.log("error getting tracks!");
-  }
   tracks.forEach((track) => {
     game.questions.push({
       track,
-      time: "00:00",
       state: "",
+      currentTimeString: "00:00",
+      currentTimeSeconds: 0,
       isArtistNameRevealed: false,
       isTrackNameRevealed: false,
       isPosterRevealed: false,
@@ -153,6 +169,7 @@ function resetPlayers() {
     player.hasPressedReady = false;
   }
   game.playersReadyToAnswer.length = 0;
+  updateResetPlayers();
 }
 
 function setCurrentQuestionState(state) {
@@ -169,6 +186,26 @@ function closeQuestion() {
     game.currentQuestion.isPosterRevealed = true;
     setCurrentQuestionState("closed");
   }
+  updateClientGameState();
+}
+
+function nextQuestion() {
+  if (game.currentQuestionId === game.questions.length - 1) {
+    return;
+  }
+  resetPlayers();
+  game.currentQuestionId++;
+  game.currentQuestion = game.questions[game.currentQuestionId];
+  updateClientGameState();
+}
+
+function prevQuestion() {
+  if (game.currentQuestionId === 0) {
+    return;
+  }
+  resetPlayers();
+  game.currentQuestionId--;
+  game.currentQuestion = game.questions[game.currentQuestionId];
   updateClientGameState();
 }
 
@@ -273,6 +310,10 @@ io.on("connection", (socket) => {
   // I NEED TO NOT LET THIS EVENT FIRE BEFORE INITIALIZING GAME
   socket.on("audioplayer-state-change", (newState) => {
     setAudioPlayerState(newState);
+    // ????
+    if (newState.isPlaying) {
+      setCurrentQuestionTime(newState.currentTimeSeconds);
+    }
     updateClientGameState();
   });
 
@@ -281,7 +322,10 @@ io.on("connection", (socket) => {
   socket.on("request-play-track", () => {
     if (!game.audioPlayer.isPlaying) {
       console.log("trying to play!");
-      io.to(screen.socketId).emit("play-track");
+      io.to(screen.socketId).emit(
+        "play-track",
+        game.currentQuestion.currentTimeSeconds,
+      );
     }
     if (game.currentQuestion.state === "") {
       setCurrentQuestionState("open");
@@ -306,10 +350,7 @@ io.on("connection", (socket) => {
     const prevPlayerId = game.selectedPlayerId - 1;
     if (prevPlayerId >= 0) {
       game.selectedPlayerId = prevPlayerId;
-      io.to(screen.socketId).emit(
-        "select-prev-player",
-        game.playersReadyToAnswer.slice(game.selectedPlayerId),
-      );
+      updateClientGameState();
     }
   });
 
@@ -317,37 +358,19 @@ io.on("connection", (socket) => {
     const nextPlayerId = game.selectedPlayerId + 1;
     if (nextPlayerId < game.playersReadyToAnswer.length) {
       game.selectedPlayerId = nextPlayerId;
-      io.to(screen.socketId).emit(
-        "select-next-player",
-        game.playersReadyToAnswer.slice(game.selectedPlayerId),
-      );
+      updateClientGameState();
     }
   });
 
   socket.on("next-question", () => {
-    if (game.currentQuestionId === game.questions.length - 1) {
-      return;
-    }
-    resetPlayers();
-    game.currentQuestionId++;
-    game.currentQuestion = game.questions[game.currentQuestionId];
-    // ???
-    // game.audioPlayer.currentTimeString = "00:00";
-    updateClientGameState();
+    nextQuestion();
   });
 
   socket.on("prev-question", () => {
-    if (game.currentQuestionId === 0) {
-      return;
-    }
-    resetPlayers();
-    game.currentQuestionId--;
-    game.currentQuestion = game.questions[game.currentQuestionId];
-    updateClientGameState();
+    prevQuestion();
   });
 
   socket.on("button-pressed-player", (sender) => {
-    // need to change this later
     const player = players.get(playerTokens.get(sender.token));
 
     // question states - no state(empty string), open, countdown, pending, closed
@@ -359,14 +382,14 @@ io.on("connection", (socket) => {
       setCurrentQuestionState("countdown");
       updateClientGameState();
       let seconds = 3;
+      io.emit("countdown", seconds);
       let id = setInterval(() => {
-        io.emit("countdown", seconds);
         seconds--;
+        io.emit("countdown", seconds);
         if (seconds === 0) {
           clearInterval(id);
           setCurrentQuestionState("pending");
           updateClientGameState();
-          io.emit("countdown", seconds);
         }
       }, 1000);
     } else if (

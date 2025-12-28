@@ -1,18 +1,27 @@
 <script setup>
+import { computed } from "vue";
+
 const props = defineProps({
   items: {
     type: Array,
-    default: [],
+    default: [
+      { name: "cat", points: 2 },
+      { name: "dog", points: 1 },
+    ],
   },
   isShown: {
     type: Boolean,
     default: true,
   },
 });
+
+const itemsSorted = computed(() => {
+  return props.items.sort((a, b) => a.points - b.points);
+});
 </script>
 
 <template>
-  <div :class="isShown ? 'leaderboard' : 'leaderboard_hidden'">
+  <div :class="isShown ? 'leaderboard' : 'leaderboard_hidden'" :key="keyIsOp">
     <div class="leaderboard__header">
       <h1>Таблица лидеров</h1>
       <div class="leaderboard__subtitle">Топ игроков</div>
@@ -26,8 +35,8 @@ const props = defineProps({
       </div>
 
       <div
-        v-for="(player, index) of items"
-        :key="player.name"
+        v-for="(player, index) of itemsSorted"
+        :key="index"
         class="grid__row"
         :class="{ 'grid__row--top': index < 3 }"
       >
@@ -97,9 +106,10 @@ const props = defineProps({
 .grid {
   width: 100%;
   max-width: 1200px;
-  margin: 0 auto;
+  // margin: 0 auto;
+  margin-right: 300px;
   display: grid;
-  grid-template-columns: 120px 1fr 180px;
+  grid-template-columns: 120px 120px 180px;
   gap: 1px;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 16px;
