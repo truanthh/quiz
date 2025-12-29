@@ -10,6 +10,7 @@ import PlayerBoardBars from "@/components/PlayerBoardBars.vue";
 import Leaderboard from "@/components/Leaderboard.vue";
 import PlayerBoardChess from "@/components/PlayerBoardChess.vue";
 import CountdownPopup from "@/components/CountdownPopup.vue";
+import { getSound } from "@/utils/sounds.js";
 
 const store = mainStore();
 const { gameState, players } = storeToRefs(store);
@@ -20,7 +21,7 @@ const audioPlayerElement = ref(null);
 audioPlayer.setTracks(tracksData.tracks);
 
 const isScoreboardShown = ref(false);
-const isDebugPanelShown = ref(false);
+const isDebugPanelShown = ref(true);
 
 const countdown = ref(0);
 
@@ -44,13 +45,17 @@ watch(
 );
 
 watch(
-  [currentTimeSeconds, isPlaying],
-  () => {
-    store.socket.emit("audioplayer-state-change", {
-      currentTimeSeconds: currentTimeSeconds.value,
-      isPlaying: isPlaying.value,
-      // currentTrackIndex: currentTrackIndex.value,
-    });
+  [currentTimeSeconds, isPlaying, currentTrackIndex],
+  (oldState, newState) => {
+    // sending current track time to server
+    // and isplaying state
+    if (newState[2] === oldState[2]) {
+      store.socket.emit("audioplayer-state-change", {
+        currentTimeSeconds: currentTimeSeconds.value,
+        isPlaying: isPlaying.value,
+        // currentTrackIndex: currentTrackIndex.value,
+      });
+    }
   },
   // { deep: true },
 );
@@ -64,6 +69,27 @@ function startGame() {
 }
 
 onMounted(() => {
+  store.socket.on("play-sound-countdown", () => {
+    playSound(getSound("countdown"));
+  });
+
+  store.socket.on("play-sound-timeout", () => {
+    console.log(getSound("timeout"));
+    playSound(getSound("timeout"));
+  });
+
+  store.socket.on("play-sound-success", () => {
+    playSound(getSound("success"));
+  });
+
+  store.socket.on("play-sound-failure", () => {
+    playSound(getSound("failure"));
+  });
+
+  store.socket.on("stop-sounds", () => {
+    stopSounds();
+  });
+
   store.socket.on("play-track", (time) => {
     audioPlayer.play(time);
   });
@@ -77,14 +103,6 @@ onMounted(() => {
   store.socket.on("show-scoreboard", () => {
     isScoreboardShown.value = !isScoreboardShown.value;
   });
-
-  // store.socket.on("select-next-player", (players) => {
-  //   playersReadyToAnswer.value = players;
-  // });
-  //
-  // store.socket.on("select-prev-player", (players) => {
-  //   playersReadyToAnswer.value = players;
-  // });
 
   // store.socket.on("show-trackname", () => {
   //   isTrackNameShown.value = true;
@@ -116,15 +134,35 @@ onUnmounted(() => {
     audioPlayer.updateTime,
   );
 });
+
+const audioSecondary = ref(null);
+audioSecondary.value = new Audio();
+const bla = ref(false);
+
+audioSecondary.value.onended = () => {
+  bla.value = false;
+};
+
+function playSound(src) {
+  audioSecondary.value.src = src;
+  audioSecondary.value.play();
+  bla.value = true;
+}
+
+function stopSounds() {
+  audioSecondary.value.pause();
+  bla.value = false;
+}
 </script>
 
 <template>
   <CountdownPopup :value="countdown" v-if="countdown !== 0" />
   <!-- <div :class="isDebugPanelShown ? 'debugPanel' : 'debugPanel_hidden'"> -->
   <!--   <button class="debugPanel__button" @click="toggleDebugPanel"></button> -->
-  <!--   {{ gameState.players }} -->
+  <!--   {{ gameState.currentQuestion }} -->
   <!-- </div> -->
   <div class="screenView__container">
+    <!-- <button @click="playSound(countdownSound)">playsound</button> -->
     <button
       @click="startGame"
       v-if="!gameState.hasStarted"

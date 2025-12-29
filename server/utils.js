@@ -26,3 +26,11 @@ export function generateAvatarNumber(availableAvatars) {
 
   return avatarNumber;
 }
+
+export function initAvatars(avatarContainer, n) {
+  avatarContainer.clear();
+
+  for (let i = 1; i <= n; i++) {
+    avatarContainer.add(i);
+  }
+}

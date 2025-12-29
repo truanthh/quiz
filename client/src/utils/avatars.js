@@ -23,10 +23,13 @@ import gif2 from "../../assets/gifs/gif2.webp";
 import gif3 from "../../assets/gifs/gif3.webp";
 import gif4 from "../../assets/gifs/gif4.gif";
 import gif5 from "../../assets/gifs/gif5.gif";
-import gif7 from "../../assets/gifs/gif7.webp";
+import gif6 from "../../assets/gifs/gif6.webp";
+import gif7 from "../../assets/gifs/gif7.gif";
+import gif8 from "../../assets/gifs/gif8.gif";
 import gif9 from "../../assets/gifs/gif9.gif";
 import gif10 from "../../assets/gifs/gif10.gif";
 import gif11 from "../../assets/gifs/gif11.gif";
+import gif12 from "../../assets/gifs/gif12.gif";
 
 export const avatarMap = {
   0: avatar0,
@@ -58,10 +61,13 @@ export const gifMap = {
   3: gif3,
   4: gif4,
   5: gif5,
-  6: gif7,
-  7: gif9,
-  8: gif10,
-  9: gif11,
+  6: gif6,
+  7: gif7,
+  8: gif8,
+  9: gif9,
+  10: gif10,
+  11: gif11,
+  12: gif12,
 };
 
 export const getAvatar = (id) => {

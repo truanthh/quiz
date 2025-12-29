@@ -37,27 +37,6 @@ const props = defineProps({
 <template>
   <div class="mainPanel__container">
     <div class="questionId">#{{ state.currentQuestionId + 1 }}</div>
-    <div class="poster__container">
-      <div class="poster">
-        <Transition name="fade">
-          <img
-            v-if="state.currentQuestion?.isPosterRevealed"
-            class="poster__img"
-            :src="`${state.currentQuestion?.track.posterImg}`"
-          />
-          <div class="spoilerPoster" v-else>
-            <spoiler-span> deeznutsdeeznuts </spoiler-span>
-            <spoiler-span> deeznutsdeeznuts </spoiler-span>
-            <spoiler-span> deeznutsdeeznuts </spoiler-span>
-            <spoiler-span> deeznutsdeeznuts </spoiler-span>
-            <spoiler-span> deeznutsdeeznuts </spoiler-span>
-            <spoiler-span> deeznutsdeeznuts </spoiler-span>
-            <spoiler-span> deeznutsdeeznuts </spoiler-span>
-            <spoiler-span> deeznutsdeeznuts </spoiler-span>
-          </div>
-        </Transition>
-      </div>
-    </div>
     <div class="trackInfo">
       <div class="trackInfo__currentTime">
         {{ state.currentQuestion.currentTimeString }}
@@ -91,6 +70,27 @@ const props = defineProps({
           >
             {{ state.currentQuestion?.track.name }}
           </spoiler-span>
+        </Transition>
+      </div>
+    </div>
+    <div class="poster__container">
+      <div class="poster">
+        <Transition name="fade">
+          <img
+            v-if="state.currentQuestion?.isPosterRevealed"
+            class="poster__img"
+            :src="`${state.currentQuestion?.track.posterImg}`"
+          />
+          <div class="spoilerPoster" v-else>
+            <spoiler-span> deeznutsdeeznuts </spoiler-span>
+            <spoiler-span> deeznutsdeeznuts </spoiler-span>
+            <spoiler-span> deeznutsdeeznuts </spoiler-span>
+            <spoiler-span> deeznutsdeeznuts </spoiler-span>
+            <spoiler-span> deeznutsdeeznuts </spoiler-span>
+            <spoiler-span> deeznutsdeeznuts </spoiler-span>
+            <spoiler-span> deeznutsdeeznuts </spoiler-span>
+            <spoiler-span> deeznutsdeeznuts </spoiler-span>
+          </div>
         </Transition>
       </div>
     </div>
@@ -192,7 +192,6 @@ const props = defineProps({
     align-items: center;
     justify-content: center;
     aspect-ratio: 1 / 1;
-    margin-right: 5%;
   }
   &__img {
     height: 100%;

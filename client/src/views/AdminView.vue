@@ -1,17 +1,18 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { mainStore } from "../stores/mainStore";
+import { storeToRefs } from "pinia";
 
 const store = mainStore();
-const users = [];
-const usersReadyToAnswer = ref([]);
+const { gameState, players } = storeToRefs(store);
 
-const usersSorted = computed(() => {
-  return users.toSorted((a, b) => b.points - a.points);
-});
+function playSoundTimeout() {
+  store.socket.emit("request-play-sound-timeout");
+}
 
-const isPlayingAudioPlayer = ref(false);
-const currentTrack = ref({});
+function stopAllSounds() {
+  store.socket.emit("request-stop-sounds");
+}
 
 function showScoreboard() {
   store.socket.emit("request-show-scoreboard");
@@ -26,15 +27,16 @@ function showTrackName() {
 }
 
 function showPoster() {
+  console.log(gameState);
   store.socket.emit("request-show-poster");
 }
 
 function handlePlay() {
-  store.socket.emit("request-play-track", store.user);
+  store.socket.emit("request-play-track");
 }
 
 function handlePause() {
-  store.socket.emit("request-pause-track", store.user);
+  store.socket.emit("request-pause-track");
 }
 
 function nextQuestion() {
@@ -136,8 +138,16 @@ onMounted(() => {
       </div>
     </div>
     <div class="admin__trackInfo">
-      <div class="admin__trackInfo__artist">{{ currentTrack.artist }}</div>
-      <div class="admin__trackInfo__trackName">{{ currentTrack.name }}</div>
+      <div class="admin__trackInfo__artist">
+        artistName: {{ gameState.currentQuestion.track.artist }}
+      </div>
+      <div class="admin__trackInfo__trackName">
+        trackName: {{ gameState.currentQuestion.track.name }}
+      </div>
+      <div class="admin__trackInfo__trackName">
+        playersReady:
+        {{ gameState.playersReadyToAnswer.map((player) => player.name) }}
+      </div>
     </div>
     <div class="admin__buttonsRow">
       <button class="admin__button_default" @click="prevPlayer">
@@ -166,19 +176,27 @@ onMounted(() => {
     <br />
     <br />
     <div class="admin__buttonsRow">
-      <button class="admin__button_default" @click="showArtistName">
-        show artist name
-      </button>
-      <button class="admin__button_default" @click="showTrackName">
-        show track name
-      </button>
-    </div>
-    <div class="admin__buttonsRow">
-      <button class="admin__button_default" @click="showPoster">
+      <button class="admin__button_gray" @click="showPoster">
         show poster
       </button>
       <button class="admin__button_default" @click="showScoreboard">
         show scoreboard
+      </button>
+    </div>
+    <div class="admin__buttonsRow">
+      <button class="admin__button_gray" @click="showArtistName">
+        show artist name
+      </button>
+      <button class="admin__button_gray" @click="showTrackName">
+        show track name
+      </button>
+    </div>
+    <div class="admin__buttonsRow">
+      <button class="admin__button_gray" @click="playSoundTimeout">
+        sound timeout
+      </button>
+      <button class="admin__button_gray" @click="stopAllSounds">
+        stop all sounds
       </button>
     </div>
   </div>
@@ -207,7 +225,8 @@ onMounted(() => {
   &__button {
     &_default,
     &_green,
-    &_red {
+    &_red,
+    &_gray {
       display: flex;
       width: 50%;
       height: 100px;
@@ -230,14 +249,20 @@ onMounted(() => {
     &_red {
       background-color: #e55353;
     }
+
+    &_gray {
+      background-color: lightgray;
+    }
   }
   &__trackInfo {
     margin-bottom: 10px;
     &__artist {
       font-size: 18px;
+      color: black;
     }
     &__trackName {
       font-size: 18px;
+      color: black;
     }
   }
 }

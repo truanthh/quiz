@@ -24,10 +24,22 @@ export const mainStore = defineStore("mainStore", () => {
   const gameState = reactive({
     hasStarted: false,
     questions: [],
-    currentQuestion: {},
+    currentQuestion: {
+      track: {
+        src: "",
+        artist: "",
+        name: "",
+      },
+    },
     currentQuestionId: 0,
     players: [
-      { name: "blankplayer1", hasPressedReady: false, avatar: 0, points: 1 },
+      {
+        name: "blankplayer1",
+        hasPressedReady: false,
+        avatar: 0,
+        altAvatar: 0,
+        points: 1,
+      },
     ],
     playersReadyToAnswer: [
       { name: "blankstore", hasPressedReady: false, avatar: 0 },

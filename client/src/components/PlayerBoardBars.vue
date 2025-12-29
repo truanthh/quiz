@@ -24,7 +24,11 @@ const bla = computed(() => {
             :src="getAvatar(player.avatar)"
             v-if="!player.hasPressedReady"
           />
-          <img class="player__altAvatar" :src="getGif()" v-else />
+          <img
+            class="player__altAvatar"
+            :src="getGif(player.altAvatar)"
+            v-else
+          />
           <div class="player__name" v-if="!player.hasPressedReady">
             {{ player ? player.name.toUpperCase() : 0 }}
           </div>
@@ -39,7 +43,11 @@ const bla = computed(() => {
             :src="getAvatar(player.avatar)"
             v-if="!player.hasPressedReady"
           />
-          <img class="player__altAvatar" :src="getGif()" v-else />
+          <img
+            class="player__altAvatar"
+            :src="getGif(player.altAvatar)"
+            v-else
+          />
           <div class="player__name" v-if="!player.hasPressedReady">
             {{ player ? player.name.toUpperCase() : 0 }}
           </div>

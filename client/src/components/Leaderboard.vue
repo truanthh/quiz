@@ -16,7 +16,7 @@ const props = defineProps({
 });
 
 const itemsSorted = computed(() => {
-  return props.items.sort((a, b) => a.points - b.points);
+  return props.items.sort((a, b) => b.points - a.points);
 });
 </script>
 
@@ -24,7 +24,6 @@ const itemsSorted = computed(() => {
   <div :class="isShown ? 'leaderboard' : 'leaderboard_hidden'" :key="keyIsOp">
     <div class="leaderboard__header">
       <h1>Таблица лидеров</h1>
-      <div class="leaderboard__subtitle">Топ игроков</div>
     </div>
 
     <div class="grid">
@@ -52,7 +51,7 @@ const itemsSorted = computed(() => {
 
 <style lang="scss" scoped>
 .leaderboard {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(to bottom, #ff80aa 2.5%, #ff9999 76%, #ffcccc);
   font-family: "Montserrat", sans-serif;
   display: flex;
   flex-direction: column;
@@ -84,7 +83,7 @@ const itemsSorted = computed(() => {
   &__header {
     text-align: center;
     margin-bottom: 40px;
-    color: white;
+    color: black;
 
     h1 {
       font-size: 48px;
@@ -93,28 +92,21 @@ const itemsSorted = computed(() => {
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
       letter-spacing: 1px;
     }
-
-    &__subtitle {
-      font-size: 20px;
-      font-weight: 500;
-      opacity: 0.9;
-      margin-top: 8px;
-    }
   }
 }
 
 .grid {
   width: 100%;
   max-width: 1200px;
-  // margin: 0 auto;
-  margin-right: 300px;
+  margin: 0 auto;
   display: grid;
-  grid-template-columns: 120px 120px 180px;
-  gap: 1px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  grid-template-columns: 120px 0.5fr 180px;
+  gap: 10px;
+  // background: rgba(255, 255, 255, 0.1);
+  // border-radius: 16px;
+  // overflow: hidden;
+  // box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  justify-content: center;
 
   &__header-row {
     display: contents;
@@ -125,10 +117,11 @@ const itemsSorted = computed(() => {
       padding: 24px 20px;
       font-size: 22px;
       font-weight: 700;
-      color: white;
+      color: black;
       text-transform: uppercase;
       letter-spacing: 1px;
-      border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+      // border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+      border-bottom: 4px solid black;
     }
   }
 
@@ -160,10 +153,11 @@ const itemsSorted = computed(() => {
     padding: 20px;
     font-size: 20px;
     font-weight: 600;
-    color: white;
+    color: black;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(5px);
     transition: all 0.3s ease;
+    border: 2px solid black;
 
     &:nth-child(3n + 1) {
       justify-content: center;
@@ -185,7 +179,7 @@ const itemsSorted = computed(() => {
         background: rgba(255, 255, 255, 0.2);
         font-weight: 800;
         font-size: 24px;
-        color: white;
+        color: black;
       }
     }
 
@@ -193,12 +187,14 @@ const itemsSorted = computed(() => {
       padding-left: 30px;
       font-size: 22px;
       font-weight: 600;
+      color: black;
     }
 
     &--points {
       font-size: 24px;
       font-weight: 700;
-      color: #ffd700;
+      // color: #ffd700;
+      color: black;
     }
   }
 

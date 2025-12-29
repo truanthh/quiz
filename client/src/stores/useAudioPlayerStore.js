@@ -90,9 +90,12 @@ export const useAudioPlayerStore = defineStore("audioPlayer", () => {
       pause();
       audioElementRef.value.src = tracks.value[index].src;
       // currentTimeString.value = "00:00";
-      // ????
     }
   }
+
+  // function playSoundAndRestoreState(src) {
+  //   const prevSrc = audioElementRef.value.src;
+  // }
 
   function nextTrack() {
     changeTrack((currentTrackIndex.value + 1) % tracks.value.length);

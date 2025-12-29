@@ -5,10 +5,13 @@ import cors from "cors";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import { fileURLToPath } from "url";
-import { convertTime, generateAvatarNumber } from "./utils.js";
+import { convertTime, generateAvatarNumber, initAvatars } from "./utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const AVATARS_AMOUNT = 19;
+const GIFS_AMOUNT = 12;
 
 const app = express();
 const server = createServer(app);
@@ -30,9 +33,13 @@ app.use(express.json());
 
 const players = new Map();
 const playerTokens = new Map();
-const availableAvatars = new Set([
-  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-]);
+
+const availableAvatars = new Set();
+const availableAltAvatars = new Set();
+
+// XD
+initAvatars(availableAvatars, AVATARS_AMOUNT);
+initAvatars(availableAltAvatars, GIFS_AMOUNT);
 
 let admin = {
   socketId: undefined,
@@ -68,6 +75,14 @@ const game = {
     currentTimeString: "00:00",
   },
 };
+
+function resetAltAvatars() {
+  initAvatars(availableAltAvatars, GIFS_AMOUNT);
+
+  game.players.forEach((player) => {
+    player.altAvatar = generateAvatarNumber(availableAltAvatars);
+  });
+}
 
 function updateClientUserState(user) {
   io.to(user.socketId).emit("update-client-user-state", user);
@@ -136,7 +151,7 @@ function initGame(tracks) {
   resetPlayers();
   tracks.forEach((track) => {
     game.questions.push({
-      track,
+      track: track,
       state: "",
       currentTimeString: "00:00",
       currentTimeSeconds: 0,
@@ -187,6 +202,7 @@ function closeQuestion() {
     setCurrentQuestionState("closed");
   }
   updateClientGameState();
+  stopAllSounds();
 }
 
 function nextQuestion() {
@@ -196,7 +212,9 @@ function nextQuestion() {
   resetPlayers();
   game.currentQuestionId++;
   game.currentQuestion = game.questions[game.currentQuestionId];
+  resetAltAvatars();
   updateClientGameState();
+  stopAllSounds();
 }
 
 function prevQuestion() {
@@ -207,6 +225,15 @@ function prevQuestion() {
   game.currentQuestionId--;
   game.currentQuestion = game.questions[game.currentQuestionId];
   updateClientGameState();
+  stopAllSounds();
+}
+
+function playSound(soundName) {
+  io.to(screen.socketId).emit(`play-sound-${soundName}`);
+}
+
+function stopAllSounds() {
+  io.to(screen.socketId).emit(`stop-sounds`);
 }
 
 // RECONNECT
@@ -224,11 +251,16 @@ io.on("connection", (socket) => {
     // ADMIN
     if (token === admin.token) {
       admin.socketId = socket.id;
+
+      updateClientPlayers();
+      updateClientGameState();
+
       socket.emit("login-successful", admin);
     }
     // SCREEN
     else if (token === screen.token) {
       screen.socketId = socket.id;
+
       updateClientPlayers();
       updateClientGameState();
 
@@ -273,6 +305,7 @@ io.on("connection", (socket) => {
         points: 0,
         hasPressedReady: false,
         avatar: generateAvatarNumber(availableAvatars),
+        altAvatar: generateAvatarNumber(availableAltAvatars),
         role: payload.role,
       };
       players.set(socket.id, player);
@@ -321,7 +354,6 @@ io.on("connection", (socket) => {
   // so we need to send event to everyone but the sender
   socket.on("request-play-track", () => {
     if (!game.audioPlayer.isPlaying) {
-      console.log("trying to play!");
       io.to(screen.socketId).emit(
         "play-track",
         game.currentQuestion.currentTimeSeconds,
@@ -383,6 +415,7 @@ io.on("connection", (socket) => {
       updateClientGameState();
       let seconds = 3;
       io.emit("countdown", seconds);
+      playSound("countdown");
       let id = setInterval(() => {
         seconds--;
         io.emit("countdown", seconds);
@@ -400,6 +433,14 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("request-stop-sounds", () => {
+    stopAllSounds();
+  });
+
+  socket.on("request-play-sound-timeout", () => {
+    playSound("timeout");
+  });
+
   // THESE ONLY SENT BY ADMIN
   socket.on("artist-name-correct", () => {
     if (
@@ -415,6 +456,7 @@ io.on("connection", (socket) => {
     // try to close question if whole track is guessed
     // state also updates here
     closeQuestion();
+    playSound("success");
   });
 
   socket.on("artist-name-wrong", () => {
@@ -427,6 +469,7 @@ io.on("connection", (socket) => {
     }
     getSelectedPlayer().points -= 33;
     updateClientGameState();
+    playSound("failure");
   });
 
   socket.on("track-name-correct", () => {
@@ -443,6 +486,7 @@ io.on("connection", (socket) => {
     closeQuestion();
     // try to close question if whole track is guessed
     // state also updates here
+    playSound("success");
   });
 
   socket.on("track-name-wrong", () => {
@@ -455,6 +499,7 @@ io.on("connection", (socket) => {
     }
     getSelectedPlayer().points -= 22;
     updateClientGameState();
+    playSound("failure");
   });
 
   // socket.on("request-show-artist", () => {
