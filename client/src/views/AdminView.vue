@@ -27,7 +27,6 @@ function showTrackName() {
 }
 
 function showPoster() {
-  console.log(gameState);
   store.socket.emit("request-show-poster");
 }
 
@@ -48,7 +47,6 @@ function prevQuestion() {
 }
 
 function artistNameCorrect() {
-  showArtistName();
   store.socket.emit("artist-name-correct");
 }
 
@@ -57,7 +55,6 @@ function artistNameWrong() {
 }
 
 function trackNameCorrect() {
-  showTrackName();
   store.socket.emit("track-name-correct");
 }
 
@@ -138,11 +135,18 @@ onMounted(() => {
       </div>
     </div>
     <div class="admin__trackInfo">
+      <div class="admin__trackInfo__trackName">
+        players:
+        {{ players.map((player) => player.name) }}
+      </div>
       <div class="admin__trackInfo__artist">
         artistName: {{ gameState.currentQuestion.track.artist }}
       </div>
       <div class="admin__trackInfo__trackName">
         trackName: {{ gameState.currentQuestion.track.name }}
+      </div>
+      <div class="admin__trackInfo__artist">
+        question state: {{ gameState.currentQuestion.state }}
       </div>
       <div class="admin__trackInfo__trackName">
         playersReady:
@@ -152,14 +156,6 @@ onMounted(() => {
         selectedPlayerId:
         {{ gameState.selectedPlayerId }}
       </div>
-    </div>
-    <div class="admin__buttonsRow">
-      <button class="admin__button_default" @click="prevPlayer">
-        prevPlayer
-      </button>
-      <button class="admin__button_default" @click="nextPlayer">
-        nextPlayer
-      </button>
     </div>
     <div class="admin__buttonsRow">
       <button class="admin__button_red" @click="artistNameWrong">
@@ -177,8 +173,14 @@ onMounted(() => {
         track name
       </button>
     </div>
-    <br />
-    <br />
+    <div class="admin__buttonsRow">
+      <button class="admin__button_default" @click="prevPlayer">
+        prevPlayer
+      </button>
+      <button class="admin__button_default" @click="nextPlayer">
+        nextPlayer
+      </button>
+    </div>
     <div class="admin__buttonsRow">
       <button class="admin__button_gray" @click="showPoster">
         show poster
@@ -188,19 +190,19 @@ onMounted(() => {
       </button>
     </div>
     <div class="admin__buttonsRow">
-      <button class="admin__button_gray" @click="showArtistName">
-        show artist name
-      </button>
-      <button class="admin__button_gray" @click="showTrackName">
-        show track name
-      </button>
-    </div>
-    <div class="admin__buttonsRow">
       <button class="admin__button_gray" @click="playSoundTimeout">
         sound timeout
       </button>
       <button class="admin__button_gray" @click="stopAllSounds">
         stop all sounds
+      </button>
+    </div>
+    <div class="admin__buttonsRow">
+      <button class="admin__button_gray" @click="showArtistName">
+        show artist name
+      </button>
+      <button class="admin__button_gray" @click="showTrackName">
+        show track name
       </button>
     </div>
   </div>

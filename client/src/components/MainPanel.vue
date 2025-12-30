@@ -145,12 +145,14 @@ const props = defineProps({
     font-size: 18px;
     color: white;
     width: 100%;
+    font-family: "Montserrat";
   }
   &__currentTime {
     display: flex;
     width: 100%;
     font-weight: bold;
     font-size: 40px;
+    font-family: "Montserrat";
     // padding-left: 15%;
     margin-bottom: 5%;
     color: white;
@@ -160,6 +162,7 @@ const props = defineProps({
     width: 100%;
     font-size: 30px;
     font-weight: bold;
+    font-family: "Montserrat";
   }
   &__trackName {
     display: flex;
@@ -167,6 +170,7 @@ const props = defineProps({
     font-size: 40px;
     font-weight: bold;
     margin-bottom: 5%;
+    font-family: "Montserrat";
   }
 }
 
@@ -186,6 +190,8 @@ const props = defineProps({
     height: 100%;
     width: 100%;
     object-fit: cover;
+    border-radius: 1%;
+    border: 4px solid white;
   }
   &__gif {
     height: 100%;

@@ -103,7 +103,7 @@ const bla = computed(() => {
     max-width: 100%;
     aspect-ratio: 1 / 1;
     object-fit: cover;
-    border-radius: 50%;
+    border-radius: 1%;
     border: 4px solid yellow;
   }
   &__altAvatar {

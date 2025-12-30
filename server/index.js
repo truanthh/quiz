@@ -163,6 +163,7 @@ function initGame(tracks) {
   game.currentQuestion = game.questions[game.currentQuestionId];
   if (game.questions.length !== 0) {
     console.log("questions loaded successfully!");
+    console.log(game.questions);
   }
   game.hasStarted = true;
   updateClientGameState();
@@ -216,7 +217,7 @@ function nextQuestion() {
   game.selectedPlayerId = 0;
   resetAltAvatars();
   updateClientGameState();
-  stopAllSounds();
+  playSound("next");
 }
 
 function prevQuestion() {
@@ -233,6 +234,7 @@ function prevQuestion() {
 }
 
 function playSound(soundName) {
+  stopAllSounds();
   io.to(screen.socketId).emit(`play-sound-${soundName}`);
 }
 
@@ -427,6 +429,7 @@ io.on("connection", (socket) => {
           clearInterval(id);
           setCurrentQuestionState("pending");
           updateClientGameState();
+          playSound("timeout");
         }
       }, 1000);
     } else if (
@@ -456,7 +459,7 @@ io.on("connection", (socket) => {
     }
     // reveal artist
     game.currentQuestion.isArtistNameRevealed = true;
-    getSelectedPlayer().points += 69;
+    getSelectedPlayer().points += game.currentQuestion.artistReward;
     // try to close question if whole track is guessed
     // state also updates here
     closeQuestion();
@@ -471,7 +474,7 @@ io.on("connection", (socket) => {
       console.log("error revealing artist!");
       return;
     }
-    getSelectedPlayer().points -= 33;
+    getSelectedPlayer().points -= game.currentQuestion.artistReward;
     updateClientGameState();
     playSound("failure");
   });
@@ -486,7 +489,7 @@ io.on("connection", (socket) => {
     }
     // reveal track name
     game.currentQuestion.isTrackNameRevealed = true;
-    getSelectedPlayer().points += 111;
+    getSelectedPlayer().points += game.currentQuestion.nameReward;
     closeQuestion();
     // try to close question if whole track is guessed
     // state also updates here
@@ -501,23 +504,26 @@ io.on("connection", (socket) => {
       console.log("error revealing track name!");
       return;
     }
-    getSelectedPlayer().points -= 22;
+    getSelectedPlayer().points -= game.currentQuestion.nameReward;
     updateClientGameState();
     playSound("failure");
   });
 
-  // socket.on("request-show-artist", () => {
-  //   io.to(screen.socketId).emit("show-artist");
-  // });
-  //
-  // socket.on("request-show-trackname", () => {
-  //   io.to(screen.socketId).emit("show-trackname");
-  // });
-  //
-  // socket.on("request-show-poster", () => {
-  //   io.to(screen.socketId).emit("show-poster");
-  // });
-  //
+  socket.on("request-show-poster", () => {
+    game.currentQuestion.isPosterRevealed = true;
+    updateClientGameState();
+  });
+
+  socket.on("request-show-artist", () => {
+    game.currentQuestion.isArtistNameRevealed = true;
+    updateClientGameState();
+  });
+
+  socket.on("request-show-trackname", () => {
+    game.currentQuestion.isTrackNameRevealed = true;
+    updateClientGameState();
+  });
+
   socket.on("request-show-scoreboard", () => {
     io.to(screen.socketId).emit("show-scoreboard");
   });

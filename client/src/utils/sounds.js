@@ -7,13 +7,18 @@ import victory2 from "../../assets/sounds/victory2.mp3";
 import victory3 from "../../assets/sounds/victory3.mp3";
 import failure1 from "../../assets/sounds/failure1.mp3";
 import failure2 from "../../assets/sounds/failure2.mp3";
+import next from "../../assets/sounds/next.mp3";
 
-export const soundMap = {
+const soundMap = {
+  next: next,
   timeout: timeout,
   countdown: countdown,
   success: {
     0: success1,
     1: success2,
+    2: success1,
+    3: success1,
+    4: success1,
   },
   victory: {
     0: victory1,
@@ -23,6 +28,9 @@ export const soundMap = {
   failure: {
     0: failure1,
     1: failure2,
+    2: failure1,
+    3: failure1,
+    4: failure1,
   },
 };
 

@@ -77,11 +77,16 @@ onMounted(() => {
   });
 
   store.socket.on("play-sound-success", () => {
+    console.log(getSound("success"));
     playSound(getSound("success"));
   });
 
   store.socket.on("play-sound-failure", () => {
     playSound(getSound("failure"));
+  });
+
+  store.socket.on("play-sound-next", () => {
+    playSound(getSound("next"));
   });
 
   store.socket.on("stop-sounds", () => {
@@ -108,10 +113,6 @@ onMounted(() => {
   //
   // store.socket.on("show-artist", () => {
   //   isArtistNameShown.value = true;
-  // });
-  //
-  // store.socket.on("show-poster", () => {
-  //   isPosterShown.value = true;
   // });
 
   audioPlayer.initialize(audioPlayerElement.value);
@@ -180,11 +181,14 @@ function stopSounds() {
       <MainPanel class="bla" :state="gameState" :countdown />
       <ItemsBar
         :items="
-          gameState.playersReadyToAnswer.slice(gameState.selectedPlayerId)
+          gameState.playersReadyToAnswer.slice(
+            gameState.selectedPlayerId,
+            gameState.selectedPlayerId + 3,
+          )
         "
       />
       <PlayerBoardBars :items="gameState.players" v-if="gameState.hasStarted" />
-      <PlayerBoardChess :items="players" v-else class="pregame__players" />
+      <!-- <PlayerBoardChess :items="players" v-else class="pregame__players" /> -->
     </div>
   </div>
 </template>
