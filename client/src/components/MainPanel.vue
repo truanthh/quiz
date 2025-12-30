@@ -28,6 +28,42 @@ const props = defineProps({
 <template>
   <div class="mainPanel__container">
     <div class="questionId">#{{ state.currentQuestionId + 1 }}</div>
+    <div class="trackInfo">
+      <div class="trackInfo__currentTime">
+        {{ state.currentQuestion.currentTimeString }}
+      </div>
+      <div class="trackInfo__artistName">
+        <Transition name="fade">
+          <span v-if="state.currentQuestion?.isArtistNameRevealed">
+            {{ state.currentQuestion?.track.artist }}
+          </span>
+          <spoiler-span
+            class="spoiler"
+            v-else
+            :key="state.currentQuestion?.track.artist"
+          >
+            {{ state.currentQuestion?.track.artist }}
+          </spoiler-span>
+        </Transition>
+      </div>
+      <div class="trackInfo__trackName">
+        <Transition name="fade">
+          <span
+            v-if="state.currentQuestion?.isTrackNameRevealed"
+            class="spoiler"
+          >
+            {{ state.currentQuestion?.track.name }}
+          </span>
+          <spoiler-span
+            class="spoiler"
+            v-else
+            :key="state.currentQuestion?.track.name"
+          >
+            {{ state.currentQuestion?.track.name }}
+          </spoiler-span>
+        </Transition>
+      </div>
+    </div>
     <div class="poster__container">
       <div class="poster">
         <Transition name="fade">
