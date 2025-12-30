@@ -20,15 +20,6 @@ const props = defineProps({
         { name: "blankstore", hasPressedReady: false, avatar: 0 },
       ],
       selectedPlayerId: 0,
-      // THIS AUDIOPLAYER STATE SHOULD NOT BE USED
-      // TO DISPLAY TRACK INFO EXCEPT CURRENT TIME
-      audioPlayer: {
-        currentTrack: { posterImg: "" },
-        currentTrackId: 0,
-        isPlaying: false,
-        currentTimeSeconds: 0,
-        currentTimeString: "00:00",
-      },
     },
   },
 });
@@ -37,42 +28,6 @@ const props = defineProps({
 <template>
   <div class="mainPanel__container">
     <div class="questionId">#{{ state.currentQuestionId + 1 }}</div>
-    <div class="trackInfo">
-      <div class="trackInfo__currentTime">
-        {{ state.currentQuestion.currentTimeString }}
-      </div>
-      <div class="trackInfo__artistName">
-        <Transition name="fade">
-          <span v-if="state.currentQuestion?.isArtistNameRevealed">
-            {{ state.currentQuestion?.track.artist }}
-          </span>
-          <spoiler-span
-            class="spoiler"
-            v-else
-            :key="state.currentQuestion?.track.artist"
-          >
-            {{ state.currentQuestion?.track.artist }}
-          </spoiler-span>
-        </Transition>
-      </div>
-      <div class="trackInfo__trackName">
-        <Transition name="fade">
-          <span
-            v-if="state.currentQuestion?.isTrackNameRevealed"
-            class="spoiler"
-          >
-            {{ state.currentQuestion?.track.name }}
-          </span>
-          <spoiler-span
-            class="spoiler"
-            v-else
-            :key="state.currentQuestion?.track.name"
-          >
-            {{ state.currentQuestion?.track.name }}
-          </spoiler-span>
-        </Transition>
-      </div>
-    </div>
     <div class="poster__container">
       <div class="poster">
         <Transition name="fade">
@@ -82,14 +37,25 @@ const props = defineProps({
             :src="`${state.currentQuestion?.track.posterImg}`"
           />
           <div class="spoilerPoster" v-else>
-            <spoiler-span> deeznutsdeeznuts </spoiler-span>
-            <spoiler-span> deeznutsdeeznuts </spoiler-span>
-            <spoiler-span> deeznutsdeeznuts </spoiler-span>
-            <spoiler-span> deeznutsdeeznuts </spoiler-span>
-            <spoiler-span> deeznutsdeeznuts </spoiler-span>
-            <spoiler-span> deeznutsdeeznuts </spoiler-span>
-            <spoiler-span> deeznutsdeeznuts </spoiler-span>
-            <spoiler-span> deeznutsdeeznuts </spoiler-span>
+            <!-- prettier-ignore -->
+            <spoiler-span class="spanana">
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+            </spoiler-span>
           </div>
         </Transition>
       </div>
@@ -99,6 +65,12 @@ const props = defineProps({
 </template>
 
 <style lang="scss" scoped>
+.spanana {
+  font-size: 16px;
+  word-break: break-all;
+  overflow: hidden;
+  line-height: 0.9;
+}
 .spoilerPoster {
   display: flex;
   flex-direction: column;
@@ -106,9 +78,9 @@ const props = defineProps({
   width: 100%;
   font-size: 2.3em;
   line-height: 80%;
-  text-align: center;
-  justify-content: center;
-  align-items: center;
+  // text-align: center;
+  // justify-content: center;
+  // align-items: center;
 }
 
 .questionId {
