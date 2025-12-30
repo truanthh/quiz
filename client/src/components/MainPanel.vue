@@ -27,8 +27,42 @@ const props = defineProps({
 
 <template>
   <div class="mainPanel__container">
-    <div class="questionId">#{{ state.currentQuestionId + 1 }}</div>
+    <div class="poster__container">
+      <div class="poster">
+        <Transition name="fade">
+          <img
+            v-if="state.currentQuestion?.isPosterRevealed"
+            class="poster__img"
+            :src="`${state.currentQuestion?.track.posterImg}`"
+          />
+          <div class="spoilerPoster" v-else>
+            <!-- prettier-ignore -->
+            <spoiler-span class="spanana">
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+              11111111111111111111111111111111
+            </spoiler-span>
+          </div>
+        </Transition>
+      </div>
+    </div>
     <div class="trackInfo">
+      <div class="trackInfo__questionId">
+        #{{ state.currentQuestionId + 1 }}
+      </div>
       <div class="trackInfo__currentTime">
         {{ state.currentQuestion.currentTimeString }}
       </div>
@@ -64,38 +98,6 @@ const props = defineProps({
         </Transition>
       </div>
     </div>
-    <div class="poster__container">
-      <div class="poster">
-        <Transition name="fade">
-          <img
-            v-if="state.currentQuestion?.isPosterRevealed"
-            class="poster__img"
-            :src="`${state.currentQuestion?.track.posterImg}`"
-          />
-          <div class="spoilerPoster" v-else>
-            <!-- prettier-ignore -->
-            <spoiler-span class="spanana">
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-            </spoiler-span>
-          </div>
-        </Transition>
-      </div>
-    </div>
     <!-- <span class="countdown" v-else> ~ </span> -->
   </div>
 </template>
@@ -114,27 +116,17 @@ const props = defineProps({
   width: 100%;
   font-size: 2.3em;
   line-height: 80%;
-  // text-align: center;
-  // justify-content: center;
-  // align-items: center;
-}
-
-.questionId {
-  position: fixed;
-  font-size: 33px;
-  color: white;
-  top: 0;
-  left: 0;
 }
 
 .mainPanel {
   &__container {
     display: flex;
+    justify-content: start;
     margin-top: 2%;
-    width: 100vw;
+    width: 50%;
     height: 30vh;
     // background-color: khaki;
-    justify-content: center;
+    margin-left: 10%;
   }
 }
 .emptySpace {
@@ -145,47 +137,36 @@ const props = defineProps({
 .trackInfo {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  // width: 30%;
   height: 100%;
-  // background-color: lightgreen;
+  width: 100%;
+  justify-content: end;
+  &__questionId {
+    display: flex;
+    font-size: 18px;
+    color: white;
+    width: 100%;
+  }
   &__currentTime {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: bold;
-    font-size: 50px;
-    // background-color: orange;
     width: 100%;
-    height: 100%;
-    padding-top: 60px;
+    font-weight: bold;
+    font-size: 40px;
+    // padding-left: 15%;
+    margin-bottom: 5%;
+    color: white;
   }
   &__artistName {
     display: flex;
     width: 100%;
-    height: 100%;
-    justify-content: center;
-    // align-items: center;
     font-size: 30px;
     font-weight: bold;
-    word-break: break-all;
-    // text-align: center;
-    // background-color: aquamarine;
-    padding-top: 20px;
   }
   &__trackName {
     display: flex;
-    // background-color: gray;
     width: 100%;
-    height: 100%;
     font-size: 40px;
     font-weight: bold;
-    // justify-content: center;
-    align-items: center;
-    word-break: break-all;
-    // text-align: center;
-    padding-bottom: 50px;
+    margin-bottom: 5%;
   }
 }
 

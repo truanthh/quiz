@@ -45,17 +45,15 @@ watch(
 );
 
 watch(
-  [currentTimeSeconds, isPlaying, currentTrackIndex],
-  (oldState, newState) => {
+  [currentTimeSeconds, isPlaying],
+  () => {
     // sending current track time to server
     // and isplaying state
-    if (newState[2] === oldState[2]) {
-      store.socket.emit("audioplayer-state-change", {
-        currentTimeSeconds: currentTimeSeconds.value,
-        isPlaying: isPlaying.value,
-        // currentTrackIndex: currentTrackIndex.value,
-      });
-    }
+    store.socket.emit("audioplayer-state-change", {
+      currentTimeSeconds: currentTimeSeconds.value,
+      isPlaying: isPlaying.value,
+      // currentTrackIndex: currentTrackIndex.value,
+    });
   },
   // { deep: true },
 );

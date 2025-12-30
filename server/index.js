@@ -212,6 +212,8 @@ function nextQuestion() {
   resetPlayers();
   game.currentQuestionId++;
   game.currentQuestion = game.questions[game.currentQuestionId];
+  game.audioPlayer.isPlaying = false;
+  game.selectedPlayerId = 0;
   resetAltAvatars();
   updateClientGameState();
   stopAllSounds();
@@ -224,6 +226,8 @@ function prevQuestion() {
   resetPlayers();
   game.currentQuestionId--;
   game.currentQuestion = game.questions[game.currentQuestionId];
+  game.audioPlayer.isPlaying = false;
+  game.selectedPlayerId = 0;
   updateClientGameState();
   stopAllSounds();
 }

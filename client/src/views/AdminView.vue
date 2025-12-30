@@ -148,6 +148,10 @@ onMounted(() => {
         playersReady:
         {{ gameState.playersReadyToAnswer.map((player) => player.name) }}
       </div>
+      <div class="admin__trackInfo__trackName">
+        selectedPlayerId:
+        {{ gameState.selectedPlayerId }}
+      </div>
     </div>
     <div class="admin__buttonsRow">
       <button class="admin__button_default" @click="prevPlayer">
@@ -213,11 +217,11 @@ onMounted(() => {
   &__buttonsRow {
     display: flex;
     width: 100%;
-    height: 80px;
+    height: 10vh;
     &_controls {
       display: flex;
       width: 100%;
-      height: 80px;
+      height: 10vh;
       margin-top: 0px;
       margin-bottom: 30px;
     }
@@ -229,7 +233,7 @@ onMounted(() => {
     &_gray {
       display: flex;
       width: 50%;
-      height: 100px;
+      height: 100%;
       outline: none;
       border: 1px solid gray;
       border-radius: 2px;
@@ -257,11 +261,11 @@ onMounted(() => {
   &__trackInfo {
     margin-bottom: 10px;
     &__artist {
-      font-size: 18px;
+      font-size: 1rem;
       color: black;
     }
     &__trackName {
-      font-size: 18px;
+      font-size: 1rem;
       color: black;
     }
   }

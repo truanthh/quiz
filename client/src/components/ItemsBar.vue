@@ -10,101 +10,58 @@ const props = defineProps({
 </script>
 
 <template>
-  <div class="itemsBar__container">
-    <div class="item_selected__desc">
-      {{ items[0]?.name }}
-    </div>
-
-    <TransitionGroup name="slide" tag="div" class="itemsWrapper">
+  <div class="slider-container">
+    <div class="slider-track" :style="{ width: `${items.length * 100}%` }">
       <div
-        v-for="(item, i) of items"
-        :key="item.avatar"
-        :class="{
-          item: i !== 0,
-          item_selected: i === 0,
+        v-for="(item, index) in items"
+        :key="item.name"
+        class="slide"
+        :style="{
+          width: `${100 / items.length}%`,
+          transform: `translateX(${-index * 100}%)`,
         }"
       >
-        <img class="item__picture" :src="getAvatar(item.avatar)" />
+        <img :src="item.src" :alt="image.alt" />
       </div>
-    </TransitionGroup>
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.itemsBar {
-  &__container {
-    display: flex;
-    position: relative;
-    align-items: end;
-    width: 40%;
-    height: 180px;
-    margin-bottom: 20px;
-    overflow: hidden;
-  }
+.slider-container {
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+  position: relative;
 }
 
-.itemsWrapper {
+.slider-track {
   display: flex;
+  height: 100%;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide {
+  height: 100%;
+  flex-shrink: 0;
+  transition: all 0.4s ease;
+  opacity: 0.9;
+}
+
+.slide img {
   width: 100%;
   height: 100%;
-  align-items: end;
+  object-fit: cover;
 }
 
-.item {
-  display: flex;
-  height: 40%;
-  aspect-ratio: 1 / 1;
-  justify-content: center;
-  align-items: center;
-  transition: all 0.3s ease;
-
-  &_selected {
-    height: 100%;
-    transition: all 0.3s ease;
-  }
-
-  &__desc {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: absolute;
-    top: 14%;
-    left: 35%;
-    font-size: 34px;
-    font-weight: bold;
-    font-family: Montserrat;
-    color: white;
-  }
-
-  &__picture {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 4px solid yellow;
-    transition: all 0.3s ease;
-  }
-}
-
-/* Анимации для TransitionGroup */
-.slide-move, /* применяем transition для перемещаемых элементов */
-.slide-enter-active,
-.slide-leave-active {
-  transition: all 0.3s ease;
-}
-
-.slide-enter-from {
+/* Fade эффект при появлении/исчезновении */
+.slide {
   opacity: 0;
-  transform: translateX(30px);
+  transform: translateX(20px);
 }
 
-.slide-leave-to {
-  opacity: 0;
-  transform: translateX(-30px);
-}
-
-/* Убираем элемент из потока при анимации исчезновения */
-.slide-leave-active {
-  position: absolute;
+.slide.active {
+  opacity: 1;
+  transform: translateX(0);
 }
 </style>
