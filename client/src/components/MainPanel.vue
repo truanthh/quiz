@@ -1,5 +1,7 @@
 <script setup>
 import "spoilerjs/spoiler-span";
+import { computed } from "vue";
+import { getAvatar } from "@/utils/avatars";
 
 const props = defineProps({
   state: {
@@ -17,11 +19,18 @@ const props = defineProps({
       players: [],
       playerTokens: [],
       playersReadyToAnswer: [
-        { name: "blankstore", hasPressedReady: false, avatar: 0 },
+        { name: "blakb", hasPressedReady: false, avatar: 0 },
       ],
       selectedPlayerId: 0,
     },
   },
+});
+
+const hasPoster = computed(() => {
+  if (props.state.currentQuestion.track?.posterImg.endsWith("default.jpg")) {
+    return false;
+  }
+  return true;
 });
 </script>
 
@@ -31,9 +40,13 @@ const props = defineProps({
       <div class="poster">
         <Transition name="fade">
           <img
-            v-if="state.currentQuestion?.isPosterRevealed"
+            v-if="state.currentQuestion.isPosterRevealed || !hasPoster"
             class="poster__img"
-            :src="`${state.currentQuestion?.track.posterImg}`"
+            :src="
+              !hasPoster
+                ? `${getAvatar(-1)}`
+                : `${state.currentQuestion?.track.posterImg}`
+            "
           />
           <div class="spoilerPoster" v-else>
             <!-- prettier-ignore -->

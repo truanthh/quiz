@@ -7,7 +7,7 @@ import "vue-roller/dist/style.css";
 const props = defineProps({
   items: {
     type: Array,
-    default: [{ name: "blank", hasPressedReady: false, avatar: 0 }],
+    default: [{ name: "blakbj", hasPressedReady: false, avatar: 0 }],
   },
 });
 
@@ -21,7 +21,7 @@ function showPoints() {
   timeoutId = setTimeout(() => {
     isPointsVisible.value = false;
     timeoutId = null;
-  }, 10000);
+  }, 4000);
 }
 </script>
 

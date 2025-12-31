@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const AVATARS_AMOUNT = 19;
-const GIFS_AMOUNT = 12;
+const GIFS_AMOUNT = 6;
 
 const app = express();
 const server = createServer(app);
@@ -459,7 +459,9 @@ io.on("connection", (socket) => {
     }
     // reveal artist
     game.currentQuestion.isArtistNameRevealed = true;
-    getSelectedPlayer().points += game.currentQuestion.artistReward;
+    getSelectedPlayer().points +=
+      game.currentQuestion.track.artistNamePoints *
+      game.currentQuestion.track.artistNameDifficulty;
     // try to close question if whole track is guessed
     // state also updates here
     closeQuestion();
@@ -474,7 +476,9 @@ io.on("connection", (socket) => {
       console.log("error revealing artist!");
       return;
     }
-    getSelectedPlayer().points -= game.currentQuestion.artistReward;
+    getSelectedPlayer().points -=
+      game.currentQuestion.track.artistNamePoints *
+      game.currentQuestion.track.artistNameDifficulty;
     updateClientGameState();
     playSound("failure");
   });
@@ -489,7 +493,9 @@ io.on("connection", (socket) => {
     }
     // reveal track name
     game.currentQuestion.isTrackNameRevealed = true;
-    getSelectedPlayer().points += game.currentQuestion.nameReward;
+    getSelectedPlayer().points +=
+      game.currentQuestion.track.trackNamePoints *
+      game.currentQuestion.track.trackNameDifficulty;
     closeQuestion();
     // try to close question if whole track is guessed
     // state also updates here
@@ -504,7 +510,9 @@ io.on("connection", (socket) => {
       console.log("error revealing track name!");
       return;
     }
-    getSelectedPlayer().points -= game.currentQuestion.nameReward;
+    getSelectedPlayer().points -=
+      game.currentQuestion.track.trackNamePoints *
+      game.currentQuestion.track.trackNameDifficulty;
     updateClientGameState();
     playSound("failure");
   });

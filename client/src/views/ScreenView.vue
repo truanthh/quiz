@@ -169,6 +169,9 @@ function stopSounds() {
     >
       START GAME
     </button>
+    <h1 v-if="!gameState.hasStarted" :style="{ color: 'black' }">
+      "SERVER_ADRESS"
+    </h1>
     <!-- AUDIO AND SCOREBOARD -->
     <Leaderboard :items="gameState.players" :isShown="isScoreboardShown" />
     <audio

@@ -23,15 +23,17 @@ import gif2 from "../../assets/gifs/gif2.webp";
 import gif3 from "../../assets/gifs/gif3.webp";
 import gif4 from "../../assets/gifs/gif4.gif";
 import gif5 from "../../assets/gifs/gif5.gif";
-import gif6 from "../../assets/gifs/gif6.webp";
-import gif7 from "../../assets/gifs/gif7.gif";
+import gif6 from "../../assets/gifs/gif6.gif";
+// import gif7 from "../../assets/gifs/gif7.gif";
 import gif8 from "../../assets/gifs/gif8.gif";
 import gif9 from "../../assets/gifs/gif9.gif";
 import gif10 from "../../assets/gifs/gif10.gif";
 import gif11 from "../../assets/gifs/gif11.gif";
 import gif12 from "../../assets/gifs/gif12.gif";
+import music from "../../assets/avatars/music.png";
 
 export const avatarMap = {
+  music: music,
   0: avatar0,
   1: avatar1,
   2: avatar2,
@@ -62,7 +64,7 @@ export const gifMap = {
   4: gif4,
   5: gif5,
   6: gif6,
-  7: gif7,
+  7: gif6,
   8: gif8,
   9: gif9,
   10: gif10,
@@ -71,6 +73,9 @@ export const gifMap = {
 };
 
 export const getAvatar = (id) => {
+  if (id === -1) {
+    return avatarMap["music"];
+  }
   return avatarMap[id] || avatarMap[0];
 };
 
