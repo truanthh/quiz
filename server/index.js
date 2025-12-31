@@ -163,7 +163,7 @@ function initGame(tracks) {
   game.currentQuestion = game.questions[game.currentQuestionId];
   if (game.questions.length !== 0) {
     console.log("questions loaded successfully!");
-    console.log(game.questions);
+    // console.log(game.questions);
   }
   game.hasStarted = true;
   updateClientGameState();
@@ -240,6 +240,10 @@ function playSound(soundName) {
 
 function stopAllSounds() {
   io.to(screen.socketId).emit(`stop-sounds`);
+}
+
+function showPointsGained(points) {
+  io.to(screen.socketId).emit("show-points-gained", points);
 }
 
 // RECONNECT
@@ -459,13 +463,15 @@ io.on("connection", (socket) => {
     }
     // reveal artist
     game.currentQuestion.isArtistNameRevealed = true;
-    getSelectedPlayer().points +=
+    const pointsGained =
       game.currentQuestion.track.artistNamePoints *
       game.currentQuestion.track.artistNameDifficulty;
+    getSelectedPlayer().points += pointsGained;
     // try to close question if whole track is guessed
     // state also updates here
     closeQuestion();
     playSound("success");
+    showPointsGained(pointsGained);
   });
 
   socket.on("artist-name-wrong", () => {
@@ -476,11 +482,13 @@ io.on("connection", (socket) => {
       console.log("error revealing artist!");
       return;
     }
-    getSelectedPlayer().points -=
+    const pointsGained =
       game.currentQuestion.track.artistNamePoints *
       game.currentQuestion.track.artistNameDifficulty;
+    getSelectedPlayer().points -= pointsGained;
     updateClientGameState();
     playSound("failure");
+    showPointsGained(-pointsGained);
   });
 
   socket.on("track-name-correct", () => {
@@ -493,13 +501,15 @@ io.on("connection", (socket) => {
     }
     // reveal track name
     game.currentQuestion.isTrackNameRevealed = true;
-    getSelectedPlayer().points +=
+    const pointsGained =
       game.currentQuestion.track.trackNamePoints *
       game.currentQuestion.track.trackNameDifficulty;
+    getSelectedPlayer().points += pointsGained;
     closeQuestion();
     // try to close question if whole track is guessed
     // state also updates here
     playSound("success");
+    showPointsGained(pointsGained);
   });
 
   socket.on("track-name-wrong", () => {
@@ -510,11 +520,13 @@ io.on("connection", (socket) => {
       console.log("error revealing track name!");
       return;
     }
-    getSelectedPlayer().points -=
+    const pointsGained =
       game.currentQuestion.track.trackNamePoints *
       game.currentQuestion.track.trackNameDifficulty;
+    getSelectedPlayer().points -= pointsGained;
     updateClientGameState();
     playSound("failure");
+    showPointsGained(-pointsGained);
   });
 
   socket.on("request-show-poster", () => {

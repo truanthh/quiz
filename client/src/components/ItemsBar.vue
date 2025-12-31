@@ -1,8 +1,11 @@
 <script setup>
 import { getAvatar } from "@/utils/avatars";
-import { ref } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { Roller } from "vue-roller";
 import "vue-roller/dist/style.css";
+import { mainStore } from "../stores/mainStore";
+
+const store = mainStore();
 
 const props = defineProps({
   items: {
@@ -12,17 +15,60 @@ const props = defineProps({
 });
 
 const isPointsVisible = ref(false);
+// const pointsNumber = ref(0);
 const points = ref("1337");
+const pointsKey = ref(0);
 let timeoutId = null;
+const plusMinus = ref("+");
 
-function showPoints() {
-  isPointsVisible.value = true;
+// const pointsColor = computed(() => {
+//   if(pointsNumber)
+// });
 
-  timeoutId = setTimeout(() => {
-    isPointsVisible.value = false;
+let pointsColor = "green";
+
+function showPoints(newPoints) {
+  // Скрываем текущие цифры (прерываем таймер)
+  if (timeoutId) {
+    clearTimeout(timeoutId);
     timeoutId = null;
-  }, 4000);
+    isPointsVisible.value = false;
+  }
+
+  // Даем Vue время на скрытие компонента
+  setTimeout(() => {
+    // Обновляем значение
+    points.value = newPoints;
+
+    // Меняем ключ, чтобы Vue перерисовал компонент
+    pointsKey.value++;
+
+    // Показываем снова (запускает анимацию)
+    isPointsVisible.value = true;
+
+    // Автоскрытие через 3 секунды
+    timeoutId = setTimeout(() => {
+      isPointsVisible.value = false;
+      timeoutId = null;
+    }, 5000);
+  }, 50); // Небольшая задержка для гарантии перерисовки
 }
+
+onMounted(() => {
+  store.socket.on("show-points-gained", (p) => {
+    if (p >= 0) {
+      points.value = `${Math.abs(p)}`;
+      pointsColor = "green";
+      plusMinus.value = "+";
+    } else {
+      points.value = `${Math.abs(p)}`;
+      pointsColor = "red";
+      plusMinus.value = "-";
+    }
+
+    showPoints(points.value);
+  });
+});
 </script>
 
 <template>
@@ -40,15 +86,26 @@ function showPoints() {
       </div>
     </TransitionGroup>
     <div class="misc">
-      <button @click="showPoints">blabla</button>
+      <!-- <button @click="showPoints(points)">blabla</button> -->
       <div class="misc__playerName">
         {{ items[0]?.name }}
       </div>
       <div class="misc__pointsDisplay">
+        <div
+          class="plusMinus"
+          :style="{ color: pointsColor }"
+          v-if="isPointsVisible"
+        >
+          {{ plusMinus }}
+        </div>
         <Roller
+          class="plusMinus"
           :value="points"
           default-value="0000"
           :duration="2000"
+          :style="{
+            color: pointsColor,
+          }"
           v-if="isPointsVisible"
         >
         </Roller>
@@ -58,6 +115,13 @@ function showPoints() {
 </template>
 
 <style lang="scss" scoped>
+.plusMinus {
+  font-size: 100px;
+  font-family: Montserrat;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
 .bar {
   &__container {
     display: flex;
@@ -91,14 +155,10 @@ function showPoints() {
     // background-color: orange;
   }
   &__pointsDisplay {
-    font-size: 48px;
-    font-weight: bold;
-    font-family: Montserrat;
-    color: white;
+    // font-size: 48px;
     height: 23%;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    padding-left: 8%;
     // background-color: khaki;
   }
 }
