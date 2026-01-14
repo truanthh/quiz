@@ -1,0 +1,52 @@
+// {
+//   "compilerOptions": {
+//     "allowJs": true,
+//     "noEmit": true,
+//     "allowImportingTsExtensions": true,
+//     "target": "ESNext",
+//     "module": "nodenext",
+//     "moduleResolution": "nodenext",
+//     "rootDir": "./",
+//     "outDir": "./build",
+//     "esModuleInterop": true,
+//     "strict": true
+//   }
+// }
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "strict": true, // ← НАЧНИТЕ С false, потом включите
+    "jsx": "preserve",
+    "resolveJsonModule": true,
+    "allowJs": true, // ← ВАЖНО: разрешаем .js файлы
+    "checkJs": false, // пока не проверяем .js
+    "outDir": "./dist",
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "exclude": ["node_modules", "dist"]
+}
+// {
+//   "compilerOptions": {
+//     "target": "ES2022",
+//     "module": "ESNext",
+//     "lib": ["ES2022"],
+//     "moduleResolution": "node",
+//     "outDir": "./dist",
+//     "rootDir": "./src",
+//     "strict": true,
+//     "esModuleInterop": true,
+//     "skipLibCheck": true,
+//     "forceConsistentCasingInFileNames": true,
+//     "resolveJsonModule": true,
+//     "allowSyntheticDefaultImports": true
+//   },
+//   "include": ["src/**/*"],
+//   "exclude": ["node_modules", "dist"]
+// }

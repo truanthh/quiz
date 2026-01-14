@@ -1,0 +1,12 @@
+-- HOME QUIZ 12.01
+
+- [x] deal with basic errors
+- [x] run server
+- [ ] make new page for main menu
+- [ ] organize connections
+- [ ] organize conditions for game start
+- [ ] make game run successfully
+- [ ] redo points system
+- [ ] create handling game sessions so more than 1 session can be ran
+- [ ] change game mechanics so it can be ran by casual users
+- [ ] deploy to a new server
