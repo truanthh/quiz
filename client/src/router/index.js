@@ -4,6 +4,7 @@ import LoginView from "@/views/LoginView.vue";
 import AdminView from "@/views/AdminView.vue";
 import PlayerView from "@/views/PlayerView.vue";
 import ScreenView from "@/views/ScreenView.vue";
+import MainMenuView from "@/views/MainMenuView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -29,6 +30,12 @@ const router = createRouter({
       path: "/admin",
       name: "Admin",
       component: AdminView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/main",
+      name: "MainMenu",
+      component: MainMenuView,
       meta: { requiresAuth: true },
     },
   ],

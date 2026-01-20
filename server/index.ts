@@ -1,18 +1,20 @@
 // index.ts
+import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
-
-import { SocketHandler } from "./ws/SocketHandler";
+import { SocketService } from "./src/SocketService";
+import { GameServer } from "./src/GameServer";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = createServer(app);
+
 const io = new Server(server, {
   cors: {
     origin:
@@ -37,10 +39,8 @@ if (process.env.NODE_ENV === "production") {
 }
 
 // Инициализация Socket.io
-const socketHandler = new SocketHandler(io);
-io.on("connection", (socket) => {
-  socketHandler.handleConnection(socket);
-});
+const gameServer = new GameServer(io);
+gameServer.run();
 
 // Запуск сервера
 const PORT = process.env.PORT || 3000;

@@ -16,7 +16,7 @@ const isAdmin = computed(() => {
 onMounted(async () => {
   await store.waitForLogin();
   if (store.isAuth) {
-    router.push(`/${store.user.role}`);
+    router.push(`/main`);
   }
 });
 
@@ -33,14 +33,14 @@ const handleLogin = async () => {
   await store.waitForLogin();
 
   if (store.isAuth) {
-    router.push(`/${store.user.role}`);
+    router.push(`/main`);
   }
 };
 
 function isLoginDataValid(userName) {
   if (userName.length > 10) return false;
   if (userName.length < 2) return false;
-  if (userName === "admin" || userName === "screen") return false;
+  if (userName === "" || userName === "screen") return false;
 
   return true;
 }
@@ -48,13 +48,8 @@ function isLoginDataValid(userName) {
 <template>
   <div class="login__container">
     <div class="login__form">
-      <h1>Home quiz</h1>
-      <button @click="handleDebug">debug</button>
-      <select class="login__form__input" v-model="role" id="roleSelect">
-        <option value="player" selected>player</option>
-        <option value="screen">screen</option>
-        <option value="admin">admin</option>
-      </select>
+      <h1>Аудиоквиз</h1>
+      <!-- <button @click="">debug</button> -->
       <input
         class="login__form__input"
         v-model="userName"
@@ -63,9 +58,6 @@ function isLoginDataValid(userName) {
         :disabled="isAdmin"
       />
       <button class="elegant-btn-minimal" @click="handleLogin">Войти</button>
-      <div class="debugInfo">{{ store.connectionInfo.message }}</div>
-      <div class="debugInfo">{{ store.connectionInfo.connectedAt }}</div>
-      <div class="debugInfo">{{ store.user.socketId }}</div>
     </div>
   </div>
 </template>
@@ -75,6 +67,7 @@ function isLoginDataValid(userName) {
 }
 .login {
   &__container {
+    margin-top: 100px;
     display: flex;
     flex-direction: column;
     align-items: center;

@@ -1,4 +1,4 @@
-import { UserRole, User, Player, GameState, AudioPlayerState } from "./game";
+import { UserRole, User, Player, AudioPlayerState, Game } from "./game";
 
 export interface ConnectionData {
   message: string;
@@ -20,7 +20,7 @@ export type ServerEvent =
   | { type: "connection-established"; data: ConnectionData }
   | { type: "login-successful"; data: User }
   | { type: "update-client-user-state"; data: Partial<Player> }
-  | { type: "update-client-game-state"; data: GameState }
+  | { type: "update-client-game-state"; data: Game }
   | { type: "update-client-players"; data: Player[] }
   | { type: "countdown"; data: number }
   | { type: "show-points-gained"; data: number }

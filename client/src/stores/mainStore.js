@@ -8,95 +8,33 @@ export const mainStore = defineStore("mainStore", () => {
       navigator.userAgent,
     ),
   );
-  const connectionInfo = ref({});
 
   const socket = ref(null);
   const isAuth = ref(false);
 
-  const user = ref({ isReady: false });
+  const player = ref({ isReady: false });
 
   // all connected players
   const players = ref(false);
 
-  // audioPlayer state mb should be here
-
   // THIS DATA IS ONLY FOR DISPLAY
-  const gameState = reactive({
-    hasStarted: false,
-    questions: [],
-    currentQuestion: {
-      track: {
-        src: "",
-        artist: "",
-        name: "",
-      },
-    },
-    currentQuestionId: 0,
-    players: [
-      {
-        name: "blankplayer1",
-        hasPressedReady: false,
-        avatar: 0,
-        altAvatar: 0,
-        points: 1,
-      },
-    ],
-    playersReadyToAnswer: [
-      { name: "blankstore", hasPressedReady: false, avatar: 0 },
-    ],
-    selectedPlayerId: 0,
-    audioPlayer: {
-      currentTrack: { posterImg: "", artist: "", name: "" },
-      currentTrackId: 0,
-      isPlaying: false,
-      currentTimeSeconds: 0,
-      currentTimeString: "00:00",
-    },
-  });
+  const gameState = reactive({});
 
   const initSocket = () => {
     socket.value = io(import.meta.env.VITE_SERVER_ADDRESS, {
-      auth: { token: localStorage.getItem("token"), role: user.value.role },
-    });
-
-    socket.value.on("connection-established", (data) => {
-      connectionInfo.value = data;
-    });
-
-    socket.value.on("connect", (data) => {
-      connectionInfo.value = data;
-    });
-
-    socket.value.on("disconnect", () => {
-      connectionInfo.value.status = "Отключено от сервера";
+      auth: { token: localStorage.getItem("token"), role: player.value.role },
     });
 
     socket.value.on("update-client-players", (data) => {
-      players.value = data;
+      players.value = [...data];
     });
 
-    socket.value.on("update-client-user-state", (userState) => {
-      user.value.isReady = userState.hasPressedReady;
+    socket.value.on("update-client-player-state", (state) => {
+      player.value = { ...state };
     });
 
-    socket.value.on("update-client-game-state", (newState) => {
-      //general
-      gameState.hasStarted = newState.hasStarted;
-
-      // AP
-      // gameState.audioPlayer.currentTrack = newState.audioPlayer.currentTrack;
-      // gameState.audioPlayer.currentTimeString =
-      //   newState.audioPlayer.currentTimeString;
-
-      // questions
-      gameState.questions = newState.questions;
-      gameState.currentQuestionId = newState.currentQuestionId;
-      gameState.currentQuestion = newState.currentQuestion;
-
-      // players
-      gameState.players = newState.players;
-      gameState.playersReadyToAnswer = newState.playersReadyToAnswer;
-      gameState.selectedPlayerId = newState.selectedPlayerId;
+    socket.value.on("update-client-game-state", (state) => {
+      gameState = { ...state };
     });
   };
 
@@ -109,10 +47,8 @@ export const mainStore = defineStore("mainStore", () => {
       const handleLogin = (payload) => {
         // console.log(payload.audioPlayer);
         clearTimeout(timer);
-        user.value.token = payload.token;
         localStorage.setItem("token", payload.token);
-        user.value.name = payload.name;
-        user.value.role = payload.role;
+        player.value = { ...payload };
         isAuth.value = true;
         res();
       };
@@ -122,21 +58,26 @@ export const mainStore = defineStore("mainStore", () => {
   }
 
   const login = (payload) => {
-    // const data = { ...payload, tracksData };
     socket.value.emit("login", payload);
   };
 
   // const isQuestionActive = ref(false);
   return {
-    isMobile,
-    connectionInfo,
+    // data
+    gameState,
+    player,
+    players,
+
+    // socket
+    socket,
+    initSocket,
+
+    // auth
     login,
     waitForLogin,
     isAuth,
-    user,
-    socket,
-    initSocket,
-    gameState,
-    players,
+
+    // misc
+    isMobile,
   };
 });

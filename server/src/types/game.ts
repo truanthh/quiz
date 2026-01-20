@@ -26,16 +26,12 @@ export interface Question {
   isPosterRevealed: boolean;
 }
 
-export interface Player {
+export type Player = {
   socketId: string;
   token: string;
   name: string;
-  points: number;
-  hasPressedReady: boolean;
-  avatar: number;
-  altAvatar: number;
-  role: UserRole;
-}
+  status: string;
+};
 
 export interface Admin {
   socketId: string;
@@ -60,10 +56,12 @@ export interface AudioPlayerState {
   currentTimeSeconds: number;
 }
 
-export interface GameState {
-  questions: Question[];
+export interface Game {
   players: Player[];
-  hasStarted: boolean;
+  host: Player;
+  screen: Player;
+  questions: Question[];
   currentQuestionId: number;
   selectedPlayerId: number;
+  status: string;
 }
