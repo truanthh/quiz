@@ -2,6 +2,10 @@
 import { mainStore } from "../stores/mainStore";
 
 const store = mainStore();
+
+function handleHostGame() {
+  store.socket.emit("host-game");
+}
 </script>
 
 <template>
@@ -21,8 +25,12 @@ const store = mainStore();
         </ul>
       </div>
       <div class="buttons">
-        <button class="buttons_default">HOST GAME</button>
-        <button class="buttons_default">JOIN GAME</button>
+        <button class="buttons_default" @click="handleHostGame">
+          HOST GAME
+        </button>
+        <button class="buttons_default" @click="handleJoinGame">
+          JOIN GAME
+        </button>
       </div>
     </div>
   </div>
@@ -53,6 +61,7 @@ const store = mainStore();
   &_default {
     height: 30%;
     width: 80%;
+    cursor: pointer;
   }
 }
 .mainMenu {

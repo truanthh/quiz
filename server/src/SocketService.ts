@@ -103,8 +103,8 @@ export class SocketService {
       this.handleLogin(socket, payload);
     });
 
-    socket.on("create-lobby", () => {
-      this.handleCreateLobby(socket);
+    socket.on("host-game", () => {
+      this.handleHostGame(socket);
     });
 
     // Старт игры
@@ -156,10 +156,11 @@ export class SocketService {
     });
   }
 
-  private handleCreateLobby(socket: Socket) {
+  private handleHostGame(socket: Socket) {
     this.gameManager.createLobby(
       this.playerManager.getPlayerBySocketId(socket.id),
     );
+    this.playerManager.createLobby();
   }
 
   private handlePlayTrack() {

@@ -7,10 +7,14 @@ import {
 } from "./types/game.ts";
 
 export class GameSession {
+  public readonly id: string;
+  public readonly createdBy: Player;
   private currentGame: Game | null = null;
   private apState: AudioPlayerState;
 
-  constructor() {
+  constructor(player: Player) {
+    this.id = "game-" + player.name;
+    this.createdBy = player;
     this.apState = {
       tracks: [],
       currentTrackId: 0,
@@ -61,7 +65,7 @@ export class GameSession {
   }
 
   public initGame(
-    player: Player,
+    createdBy: Player,
     screen: Player,
     tracks: Track[],
     players: Player[],
@@ -89,7 +93,7 @@ export class GameSession {
 
     this.currentGame = {
       status: "lobby",
-      host: player,
+      leader: createdBy,
       screen: screen,
       questions: q,
       currentQuestionId: 0,

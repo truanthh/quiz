@@ -11,6 +11,16 @@ export class GameManager {
   public createLobby(player: Player | undefined) {
     if (!player) return;
 
-    console.log("creating game lobby!");
+    const newGame = new GameSession(player);
+
+    console.log(`player: ${player.name} hosted game!`);
+
+    this.addGame(newGame);
+  }
+
+  public transferLeader(gameId: string, currentLeader: Player) {}
+
+  public addGame(game: GameSession) {
+    this.games.set(game.id, game);
   }
 }

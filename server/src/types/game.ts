@@ -58,7 +58,7 @@ export interface AudioPlayerState {
 
 export interface Game {
   players: Player[];
-  host: Player;
+  leader: Player;
   screen: Player;
   questions: Question[];
   currentQuestionId: number;

@@ -2,7 +2,7 @@
 
 - [x] deal with basic errors
 - [x] run server
-- [ ] make new page for main menu
+- [x] make new page for main menu
 - [ ] organize connections
 - [ ] organize conditions for game start
 - [ ] make game run successfully

@@ -11,6 +11,10 @@ export class PlayerManager {
     this.players = players;
   }
 
+  createLobby(player: Player) {
+    player.status = "lobby";
+  }
+
   registerPlayer(socketId: string, userName: string, token: string): Player {
     const player: Player = {
       socketId,
