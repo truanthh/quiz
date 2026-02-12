@@ -1,6 +1,11 @@
 // types/game.ts
 export type UserRole = "admin" | "screen" | "player";
-export type QuestionState = "" | "open" | "countdown" | "pending" | "closed";
+export type QuestionState =
+  | "init"
+  | "open"
+  | "countdown"
+  | "pending"
+  | "closed";
 export type SoundName =
   | "countdown"
   | "timeout"
@@ -9,11 +14,10 @@ export type SoundName =
   | "next";
 
 export interface Track {
-  id: string;
-  name: string;
   artist: string;
-  audioUrl?: string;
-  posterUrl?: string;
+  name: string;
+  src: string;
+  posterImg: string;
 }
 
 export interface Question {
@@ -31,6 +35,7 @@ export type Player = {
   token: string;
   name: string;
   status: string;
+  gameId: string;
 };
 
 export interface Admin {
@@ -56,12 +61,12 @@ export interface AudioPlayerState {
   currentTimeSeconds: number;
 }
 
-export interface Game {
-  players: Player[];
-  leader: Player;
-  screen: Player;
-  questions: Question[];
-  currentQuestionId: number;
-  selectedPlayerId: number;
-  status: string;
-}
+// export interface Game {
+//   players: Player[];
+//   leader: Player;
+//   screen: Player;
+//   questions: Question[];
+//   currentQuestionId: number;
+//   selectedPlayerId: number;
+//   status: string;
+// }

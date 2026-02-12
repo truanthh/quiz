@@ -3,9 +3,11 @@ import { mainStore } from "../stores/mainStore";
 
 const store = mainStore();
 
-function handleHostGame() {
-  store.socket.emit("host-game");
+function handleCreateGame() {
+  store.socket.emit("create-game");
 }
+
+let slots = [0, 1, 2, 3, 4, 5, 6, 7];
 </script>
 
 <template>
@@ -20,23 +22,61 @@ function handleHostGame() {
           <!-- <li>socketId: {{ store.user.socketId }}</li> -->
           Список игроков:
           <li v-for="(player, id) of store.players" :key="id">
-            {{ player.name }}
+            {{ player.name }} :
+            <span style="color: green">{{ player.status }}</span>
           </li>
         </ul>
+        {{ store.lobby?.players }}
       </div>
-      <div class="buttons">
-        <button class="buttons_default" @click="handleHostGame">
-          HOST GAME
-        </button>
-        <button class="buttons_default" @click="handleJoinGame">
-          JOIN GAME
-        </button>
+      <div class="rightSideView">
+        <div class="buttons" v-if="!store.lobby">
+          <button class="buttons_default" @click="handleCreateGame">
+            CREATE GAME
+          </button>
+          <button class="buttons_default" @click="handleJoinGame">
+            JOIN GAME
+          </button>
+        </div>
+        <div class="lobby" v-else>
+          <div class="slot" v-for="n of slots">
+            {{ !store.lobby ? "bla" : store.lobby.players[n]?.name }}
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
+.rightSideView {
+  display: flex;
+  flex-direction: column;
+  background-color: lightgray;
+  align-items: center;
+  justify-content: center;
+  width: 50%;
+  // padding-top: 20px;
+  // gap: 20px;
+}
+.slot {
+  display: flex;
+  border: solid 2px black;
+  border-radius: 4px;
+  background-color: khaki;
+  width: 100%;
+  height: 100%;
+  font-size: 30px;
+  color: black;
+  padding: 20px;
+}
+
+.lobby {
+  display: flex;
+  flex-direction: column;
+  width: 90%;
+  height: 90%;
+}
+
 .title {
   font-size: 48px;
   margin-bottom: 20px;
@@ -51,16 +91,16 @@ function handleHostGame() {
 }
 
 .buttons {
-  display: flex;
-  flex-direction: column;
-  background-color: orange;
-  align-items: center;
-  width: 50%;
-  padding-top: 20px;
-  gap: 20px;
+  // display: flex;
+  // flex-direction: column;
+  // background-color: orange;
+  // align-items: center;
+  // width: 50%;
+  // padding-top: 20px;
+  // gap: 20px;
   &_default {
-    height: 30%;
-    width: 80%;
+    height: 100%;
+    width: 100%;
     cursor: pointer;
   }
 }

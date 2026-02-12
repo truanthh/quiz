@@ -1,4 +1,4 @@
-import { UserRole, User, Player, AudioPlayerState, Game } from "./game";
+import { UserRole, User, Player, AudioPlayerState } from "./game";
 
 export interface ConnectionData {
   message: string;
@@ -20,7 +20,7 @@ export type ServerEvent =
   | { type: "connection-established"; data: ConnectionData }
   | { type: "login-successful"; data: User }
   | { type: "update-client-user-state"; data: Partial<Player> }
-  | { type: "update-client-game-state"; data: Game }
+  | { type: "update-client-game-state"; data: any }
   | { type: "update-client-players"; data: Player[] }
   | { type: "countdown"; data: number }
   | { type: "show-points-gained"; data: number }
@@ -34,7 +34,8 @@ export type ServerEvent =
   | { type: "stop-sounds" }
   | { type: "pause-track" }
   | { type: "error"; data: string }
-  | { type: "show-scoreboard" };
+  | { type: "show-scoreboard" }
+  | { type: "update-lobby"; data: any };
 
 export type ClientEvent =
   // От любого клиента

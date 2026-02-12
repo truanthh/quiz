@@ -17,6 +17,8 @@ export const mainStore = defineStore("mainStore", () => {
   // all connected players
   const players = ref(false);
 
+  const lobby = ref(null);
+
   // THIS DATA IS ONLY FOR DISPLAY
   const gameState = reactive({});
 
@@ -27,6 +29,10 @@ export const mainStore = defineStore("mainStore", () => {
 
     socket.value.on("update-client-players", (data) => {
       players.value = [...data];
+    });
+
+    socket.value.on("update-lobby", (data) => {
+      lobby.value = { ...data };
     });
 
     socket.value.on("update-client-player-state", (state) => {
@@ -67,6 +73,7 @@ export const mainStore = defineStore("mainStore", () => {
     gameState,
     player,
     players,
+    lobby,
 
     // socket
     socket,

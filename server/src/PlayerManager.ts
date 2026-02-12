@@ -1,18 +1,22 @@
 // modules/player/PlayerManager.ts
 import { Player } from "./types";
 // import { initAvatars } from "../utils/avatarManager.ts"
+import { GameSession } from "./GameSession.ts";
 
 export class PlayerManager {
   private players: Map<string, Player>;
   private playerTokens: Map<string, string>;
 
-  constructor(players: Map<string, Player>) {
+  constructor() {
+    this.players = new Map();
     this.playerTokens = new Map();
-    this.players = players;
   }
 
-  createLobby(player: Player) {
-    player.status = "lobby";
+  createGame(player: Player | undefined, gameId: string) {
+    if (!player) return;
+
+    player.status = "in-game";
+    player.gameId = gameId;
   }
 
   registerPlayer(socketId: string, userName: string, token: string): Player {
@@ -21,6 +25,7 @@ export class PlayerManager {
       token,
       name: userName,
       status: "online",
+      gameId: "",
     };
 
     this.players.set(socketId, player);

@@ -12,13 +12,10 @@ export class GameServer {
   private playerManager: PlayerManager;
   private gameManager: GameManager;
 
-  private players: Map<string, Player> = new Map();
-  private games: Map<string, GameSession> = new Map();
-
   constructor(io: SocketServer) {
     this.io = io;
-    this.playerManager = new PlayerManager(this.players);
-    this.gameManager = new GameManager(this.games);
+    this.playerManager = new PlayerManager();
+    this.gameManager = new GameManager();
 
     this.socketService = new SocketService(
       this.io,

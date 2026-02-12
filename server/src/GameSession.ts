@@ -1,115 +1,66 @@
-import {
-  Game,
-  AudioPlayerState,
-  Question,
-  Track,
-  Player,
-} from "./types/game.ts";
+import { Question, Track, Player } from "./types/game.ts";
 
 export class GameSession {
   public readonly id: string;
   public readonly createdBy: Player;
-  private currentGame: Game | null = null;
-  private apState: AudioPlayerState;
+  public players: Player[];
+  public leader: Player;
+  public screen: Player;
+  public questions: Question[];
+  public currentQuestionId: number;
+  public selectedPlayerId: number;
+  public status: string;
 
   constructor(player: Player) {
     this.id = "game-" + player.name;
     this.createdBy = player;
-    this.apState = {
-      tracks: [],
-      currentTrackId: 0,
-      isPlaying: false,
-      currentTimeSeconds: 0,
-    };
+    this.players = [player];
+    this.leader = player;
+    this.screen = player;
+    this.questions = [];
+    this.currentQuestionId = 0;
+    this.selectedPlayerId = 0;
+    this.status = "lobby";
   }
 
-  get game(): Game {
-    if (!this.currentGame) {
-      throw new Error("Game session is not active!");
-    }
-    return this.currentGame;
-  }
-
-  public getCurrentGameState(): Game {
-    return this.game;
-  }
-
-  public getCurrentQuestion(): Question {
-    return this.game.questions[this.game.currentQuestionId];
+  public getCurrentQuestion(): Question | null {
+    return this.questions[this.currentQuestionId];
   }
 
   public nextQuestion(): boolean {
-    if (this.game.currentQuestionId >= this.game.questions.length - 1) {
+    if (this.currentQuestionId >= this.questions.length - 1) {
       return false;
     }
 
     // ?????
     // this.resetPlayersReady();
-    // this.game.audioPlayer.isPlaying = false;
-    // this.game.selectedPlayerId = 0;
-    this.game.currentQuestionId++;
+    // this.audioPlayer.isPlaying = false;
+    // this.selectedPlayerId = 0;
+    this.currentQuestionId++;
     return true;
   }
 
   public prevQuestion(): boolean {
-    if (this.game.currentQuestionId <= 0) {
+    if (this.currentQuestionId <= 0) {
       return false;
     }
 
     // ?????
     // this.resetPlayersReady();
-    // this.game.audioPlayer.isPlaying = false;
-    // this.game.selectedPlayerId = 0;
-    this.game.currentQuestionId--;
+    // this.audioPlayer.isPlaying = false;
+    // this.selectedPlayerId = 0;
+    this.currentQuestionId--;
     return true;
   }
 
-  public initGame(
-    createdBy: Player,
-    screen: Player,
-    tracks: Track[],
-    players: Player[],
-  ): void {
-    // if (this.game.hasStarted) return;
-
-    if (tracks.length === 0) {
-      throw new Error("Cannot init game: no tracks provided");
-    }
-
-    const q = tracks.map(
-      (track: Track) =>
-        ({
-          track: track,
-          state: "",
-          currentTimeString: "00:00",
-          currentTimeSeconds: 0,
-          isArtistNameRevealed: false,
-          isTrackNameRevealed: false,
-          isPosterRevealed: false,
-        }) as Question,
-    );
-
-    const p = [...players];
-
-    this.currentGame = {
-      status: "lobby",
-      leader: createdBy,
-      screen: screen,
-      questions: q,
-      currentQuestionId: 0,
-      players: p,
-      selectedPlayerId: 0,
-    };
-  }
-
   public getPlayersReady(): Player[] | null {
-    // if (!this.game.players.length) return null;
-    // return this.game.players.filter((player) => player.hasPressedReady);
+    // if (!this.players.length) return null;
+    // return this.players.filter((player) => player.hasPressedReady);
     return null;
   }
 
   public setPlayerReady(playerToken: string): true | false {
-    // const player = this.game.players.find((p) => p.token === playerToken);
+    // const player = this.players.find((p) => p.token === playerToken);
     // if (!player || player.hasPressedReady) return false;
     //
     // player.hasPressedReady = true;
@@ -117,23 +68,15 @@ export class GameSession {
   }
 
   public resetPlayersReady(): void {
-    // this.game.players.forEach((player) => {
+    // this.players.forEach((player) => {
     //   player.hasPressedReady = false;
     // });
   }
 
-  public getSelectedPlayer(): Player | null {
-    const p = this.getPlayersReady();
-    if (!p) return null;
-
-    return p[this.game.selectedPlayerId];
-  }
-
-  public getCurrentAudioPlayerState() {
-    return this.apState;
-  }
-
-  public updateAudioPlayerState(newState: AudioPlayerState): void {
-    this.apState = { ...newState };
+  public getSelectedPlayer(): Player | void {
+    // const p = this.getPlayersReady();
+    // if (!p) return null;
+    //
+    // return p[this.selectedPlayerId];
   }
 }

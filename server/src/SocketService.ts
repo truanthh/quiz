@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { PlayerManager } from "./PlayerManager.ts";
 import { GameManager } from "./GameManager.ts";
+import { GameSession } from "./GameSession.ts";
 import { ServerEvent, AudioPlayerState, Track } from "./types";
 import { v4 as uuidv4 } from "uuid";
 
@@ -80,15 +81,30 @@ export class SocketService {
         type: "login-successful",
         data: reconnectedPlayer,
       });
-      this.updateAllClients();
+      this.updateAllClients(socket);
     }
   }
 
-  private updateAllClients(): void {
-    // Обновляем состояние у всех клиентов
+  // private updateLobby(socket: Socket, game: GameSession): void {
+  //   this.emitToSocket(socket.id, {
+  //     type: "update-lobby",
+  //     data: game,
+  //   });
+  // }
+
+  private updateAllClients(socket: Socket): void {
+    // ???? SOME DATA
     this.emitToAll({
       type: "update-client-players",
       data: this.playerManager.getAllPlayers(),
+    });
+
+    // lobby data
+    this.emitToSocket(socket.id, {
+      type: "update-lobby",
+      data: this.gameManager.getGameSessionById(
+        this.playerManager.getPlayerBySocketId(socket.id)?.gameId,
+      ),
     });
 
     // this.emitToAll({
@@ -103,13 +119,13 @@ export class SocketService {
       this.handleLogin(socket, payload);
     });
 
-    socket.on("host-game", () => {
-      this.handleHostGame(socket);
+    socket.on("create-game", () => {
+      this.handleCreateGame(socket);
     });
 
     // Старт игры
     socket.on("start-game", (tracks: Track[]) => {
-      this.handleStartGame(socket, tracks);
+      // this.handleStartGame(socket, tracks);
     });
 
     // Изменение состояния аудиоплеера
@@ -156,11 +172,15 @@ export class SocketService {
     });
   }
 
-  private handleHostGame(socket: Socket) {
-    this.gameManager.createLobby(
-      this.playerManager.getPlayerBySocketId(socket.id),
-    );
-    this.playerManager.createLobby();
+  private handleCreateGame(socket: Socket) {
+    const player = this.playerManager.getPlayerBySocketId(socket.id);
+    if (!player) return;
+
+    let game = this.gameManager.createGame(player);
+    if (!game) return;
+
+    this.playerManager.createGame(player, game.id);
+    this.updateAllClients(socket);
   }
 
   private handlePlayTrack() {
@@ -210,24 +230,24 @@ export class SocketService {
       type: "login-successful",
       data: { ...user, socketId: socket.id },
     });
-    this.updateAllClients();
+    this.updateAllClients(socket);
   }
 
-  private handleStartGame(socket: Socket, tracks: Track[]): void {
-    try {
-      const player = this.playerManager.getPlayerBySocketId(socket.id);
-      if (!player) {
-        return;
-      }
-
-      this.gameManager.createLobby(player);
-      this.updateAllClients();
-    } catch (error) {
-      console.error("Error starting game:", error);
-      // this.emitToScreen({ type: "error", data: "Failed to start game!" });
-      // socket.emit("error", { message: "Failed to start game" });
-    }
-  }
+  // private handleStartGame(socket: Socket, tracks: Track[]): void {
+  //   try {
+  //     const player = this.playerManager.getPlayerBySocketId(socket.id);
+  //     if (!player) {
+  //       return;
+  //     }
+  //
+  //     this.gameManager.createGame(player);
+  //     this.updateAllClients();
+  //   } catch (error) {
+  //     console.error("Error starting game:", error);
+  //     // this.emitToScreen({ type: "error", data: "Failed to start game!" });
+  //     // socket.emit("error", { message: "Failed to start game" });
+  //   }
+  // }
 
   private handleAudioPlayerChange(state: AudioPlayerState): void {
     // this.gameManager.updateAudioPlayerState(state);
