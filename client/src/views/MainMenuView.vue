@@ -29,7 +29,7 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
         {{ store.lobby?.players }}
       </div>
       <div class="rightSideView">
-        <div class="buttons" v-if="!store.lobby">
+        <div class="buttons" v-if="!store.player.gameId">
           <button class="buttons_default" @click="handleCreateGame">
             CREATE GAME
           </button>
@@ -38,8 +38,11 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
           </button>
         </div>
         <div class="lobby" v-else>
-          <div class="slot" v-for="n of slots">
-            {{ !store.lobby ? "bla" : store.lobby.players[n]?.name }}
+          <!-- <div class="slot" v-for="n of slots"> -->
+          <!--   {{ !store.lobby?.players ? "bla" : store.lobby?.players[n].name }} -->
+          <!-- </div> -->
+          <div class="slot" v-for="player of store.lobby.players">
+            {{ player.name }}
           </div>
         </div>
       </div>
@@ -63,8 +66,8 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
   border: solid 2px black;
   border-radius: 4px;
   background-color: khaki;
-  width: 100%;
-  height: 100%;
+  // width: 100%;
+  // height: 100%;
   font-size: 30px;
   color: black;
   padding: 20px;
@@ -73,8 +76,9 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
 .lobby {
   display: flex;
   flex-direction: column;
-  width: 90%;
-  height: 90%;
+  background-color: orange;
+  width: 80%;
+  height: 80%;
 }
 
 .title {

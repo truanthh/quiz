@@ -103,7 +103,7 @@ export class SocketService {
     this.emitToSocket(socket.id, {
       type: "update-lobby",
       data: this.gameManager.getGameSessionById(
-        this.playerManager.getPlayerBySocketId(socket.id)?.gameId,
+        this.playerManager.getPlayerBySocketId(socket.id)?.gameId || "",
       ),
     });
 
