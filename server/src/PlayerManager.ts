@@ -12,11 +12,28 @@ export class PlayerManager {
     this.playerTokens = new Map();
   }
 
-  createGame(player: Player | undefined, gameId: string) {
-    if (!player) return;
+  // createGame(player: Player | undefined, gameId: string) {
+  //   if (!player) return;
+  //
+  //   player.status = "in-game";
+  //   player.gameId = gameId;
+  // }
 
-    player.status = "in-game";
+  public setPlayerStatus(player: Player, status: string) {
+    player.status = status;
+  }
+
+  public setPlayerGameId(player: Player, gameId: string) {
     player.gameId = gameId;
+  }
+
+  public getPlayerBySocketId(socketId: string): Player | undefined {
+    return this.players.get(socketId);
+  }
+
+  private getPlayerByToken(token: string): Player | undefined {
+    const socketId = this.playerTokens.get(token);
+    return socketId ? this.players.get(socketId) : undefined;
   }
 
   registerPlayer(socketId: string, userName: string, token: string): Player {
@@ -58,15 +75,6 @@ export class PlayerManager {
     this.players.delete(socketId);
 
     return true;
-  }
-
-  getPlayerBySocketId(socketId: string): Player | undefined {
-    return this.players.get(socketId);
-  }
-
-  getPlayerByToken(token: string): Player | undefined {
-    const socketId = this.playerTokens.get(token);
-    return socketId ? this.players.get(socketId) : undefined;
   }
 
   getAllPlayers(): Player[] {

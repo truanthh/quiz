@@ -3,24 +3,35 @@ import { Question, Track, Player } from "./types/game.ts";
 export class GameSession {
   public readonly id: string;
   public readonly createdBy: Player;
-  public players: Player[];
-  public leader: Player;
-  public screen: Player;
-  public questions: Question[];
-  public currentQuestionId: number;
-  public selectedPlayerId: number;
-  public status: string;
+  public readonly status: string;
+  private players: Player[];
+  private leader: Player;
+  private screen: Player;
+  private questions: Question[];
+  private currentQuestionId: number;
+  private selectedPlayerId: number;
 
   constructor(player: Player) {
     this.id = "game-" + player.name;
     this.createdBy = player;
-    this.players = [player];
+    this.players = new Array(8).fill(null);
+
     this.leader = player;
     this.screen = player;
     this.questions = [];
     this.currentQuestionId = 0;
     this.selectedPlayerId = 0;
     this.status = "lobby";
+  }
+
+  public addPlayer(player: Player): boolean {
+    const emptySlotIndex = this.players.findIndex((el) => !el);
+
+    if (emptySlotIndex === -1) return false;
+
+    this.players[emptySlotIndex] = player;
+
+    return true;
   }
 
   public getCurrentQuestion(): Question | null {

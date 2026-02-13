@@ -123,6 +123,10 @@ export class SocketService {
       this.handleCreateGame(socket);
     });
 
+    socket.on("join-game", (gameId: string) => {
+      this.handleJoinGame(socket, gameId);
+    });
+
     // Старт игры
     socket.on("start-game", (tracks: Track[]) => {
       // this.handleStartGame(socket, tracks);
@@ -172,6 +176,15 @@ export class SocketService {
     });
   }
 
+  private handleJoinGame(socket: Socket, gameId: string) {
+    const player = this.playerManager.getPlayerBySocketId(socket.id);
+    if (!player) return;
+
+    this.gameManager.joinGame(player, gameId);
+
+    this.updateAllClients(socket);
+  }
+
   private handleCreateGame(socket: Socket) {
     const player = this.playerManager.getPlayerBySocketId(socket.id);
     if (!player) return;
@@ -179,7 +192,7 @@ export class SocketService {
     let game = this.gameManager.createGame(player);
     if (!game) return;
 
-    this.playerManager.createGame(player, game.id);
+    // this.playerManager.createGame(player, game.id);
     this.updateAllClients(socket);
   }
 

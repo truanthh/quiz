@@ -1,10 +1,22 @@
 <script setup>
+import { ref } from "vue";
 import { mainStore } from "../stores/mainStore";
 
 const store = mainStore();
 
+const isWindowActiveJoinGame = ref(false);
+const gameId = ref("");
+
+function toggleJoinGame() {
+  isWindowActiveJoinGame.value = !isWindowActiveJoinGame.value;
+}
+
 function handleCreateGame() {
   store.socket.emit("create-game");
+}
+
+function handleJoinGame() {
+  store.socket.emit("join-game", gameId.value);
 }
 
 let slots = [0, 1, 2, 3, 4, 5, 6, 7];
@@ -12,9 +24,10 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
 
 <template>
   <div class="mainMenu__container">
-    <h1 class="title">Добро пожаловать в Аудиоквиз</h1>
+    <h1 class="title" v-if="!store.isMobile">Добро пожаловать в Аудиоквиз</h1>
     <div class="mainMenu">
       <div class="player">
+        {{ store.lobby?.players }}
         <ul class="list">
           Вы зашли как:
           <li>{{ store.player.name }}</li>
@@ -26,14 +39,19 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
             <span style="color: green">{{ player.status }}</span>
           </li>
         </ul>
-        {{ store.lobby?.players }}
       </div>
       <div class="rightSideView">
         <div class="buttons" v-if="!store.player.gameId">
           <button class="buttons_default" @click="handleCreateGame">
             CREATE GAME
           </button>
-          <button class="buttons_default" @click="handleJoinGame">
+          <div class="joinGameWindow" v-if="isWindowActiveJoinGame">
+            ENTER GAME ID
+            <input v-model="gameId" />
+            <button @click="handleJoinGame">JOIN</button>
+            <button @click="toggleJoinGame">BACK</button>
+          </div>
+          <button class="buttons_default" @click="toggleJoinGame" v-else>
             JOIN GAME
           </button>
         </div>
@@ -41,9 +59,11 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
           <!-- <div class="slot" v-for="n of slots"> -->
           <!--   {{ !store.lobby?.players ? "bla" : store.lobby?.players[n].name }} -->
           <!-- </div> -->
+          lobby id: {{ store.lobby.id }}
           <div class="slot" v-for="player of store.lobby.players">
-            {{ player.name }}
+            {{ player ? player.name : "empty slot" }}
           </div>
+          <!-- ALDKJALDGKJ -->
         </div>
       </div>
     </div>
@@ -51,6 +71,9 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
 </template>
 
 <style lang="scss" scoped>
+.list {
+  margin-top: 20px;
+}
 .rightSideView {
   display: flex;
   flex-direction: column;
@@ -70,13 +93,23 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
   // height: 100%;
   font-size: 30px;
   color: black;
-  padding: 20px;
+  // padding: 20px;
+}
+
+.joinGameWindow {
+  display: flex;
+  flex-direction: column;
+  // background-color: orange;
+  gap: 2px;
+  width: 80%;
+  height: 80%;
 }
 
 .lobby {
   display: flex;
   flex-direction: column;
-  background-color: orange;
+  // background-color: orange;
+  gap: 2px;
   width: 80%;
   height: 80%;
 }
@@ -89,6 +122,7 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
 
 .player {
   display: flex;
+  flex-direction: column;
   background-color: black;
   width: 50%;
   padding-left: 20px;

@@ -15,7 +15,7 @@ export class GameServer {
   constructor(io: SocketServer) {
     this.io = io;
     this.playerManager = new PlayerManager();
-    this.gameManager = new GameManager();
+    this.gameManager = new GameManager(this.playerManager);
 
     this.socketService = new SocketService(
       this.io,

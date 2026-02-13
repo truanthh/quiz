@@ -1,24 +1,48 @@
 import { GameSession } from "./GameSession.ts";
+import { PlayerManager } from "./PlayerManager.ts";
 import { Player } from "./types/index.ts";
 
 export class GameManager {
   private games: Map<string, GameSession>;
+  private playerManager: PlayerManager;
 
-  constructor() {
+  constructor(playerManager: PlayerManager) {
     this.games = new Map();
+    this.playerManager = playerManager;
   }
 
   public createGame(player: Player | undefined): GameSession | undefined {
     if (!player || player.status === "in-game") return;
+
     const newGame = new GameSession(player);
-    console.log(`player: ${player.name} hosted game!`);
     this.games.set(newGame.id, newGame);
+
+    this.joinGame(player, newGame.id);
+
+    console.log(`player: ${player.name} hosted game!`);
     return newGame;
   }
 
-  public joinGame(player: Player | undefined, gameId: string) {
-    if (!player || player.status === "in-game") return;
+  public joinGame(player: Player, gameId: string): boolean {
+    const gameSession = this.getGameSessionById(gameId);
+    if (
+      !gameSession ||
+      gameSession.status !== "lobby" ||
+      !player ||
+      player.status === "in-game"
+    )
+      return false;
+
     console.log(`player: ${player.name} is trying to join ${gameId}`);
+
+    if (gameSession.addPlayer(player)) {
+      console.log(`player: ${player.name} joined ${gameId}`);
+      this.playerManager.setPlayerGameId(player, gameId);
+      this.playerManager.setPlayerStatus(player, "in-game");
+      return true;
+    }
+
+    return false;
   }
 
   // public transferLeader(gameId: string, currentLeader: Player, newLeader: Player) {
