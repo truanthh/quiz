@@ -42,13 +42,13 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
         </ul>
       </div>
       <div class="rightSideView">
-        <div class="buttons" v-if="!store.lobby?.id">
+        <div class="buttons" v-if="!store.player.gameId">
           <button class="buttons_default" @click="handleCreateGame">
             CREATE GAME
           </button>
           <div
             class="joinGameWindow"
-            v-if="isWindowActiveJoinGame && !store.player.gameId"
+            v-if="isWindowActiveJoinGame"
           >
             ENTER GAME ID
             <input v-model="gameId" />

@@ -59,6 +59,14 @@ export class SocketService {
     }
   }
 
+  private emitToGroup(arr: string[],event: ServerEvent): void {
+    if ("data" in event) {
+      this.io.to(arr).emit(event.type, event.data);
+    } else {
+      this.io.to(arr).emit(event.type);
+    }
+  }
+
   private handleReconnect(socket: Socket, token: string): void {
     // Попытка реконнекта игрока
     const reconnectedPlayer = this.playerManager.reconnectPlayer(
@@ -75,24 +83,35 @@ export class SocketService {
   }
 
   private updateAllClients(socket: Socket): void {
-    // ???? SOME DATA
+    // shouldnt update all server players every time
+    const playerSocketId = this.playerManager.getPlayerBySocketId(socket.id);
+
     this.emitToAll({
       type: "update-client-players",
       data: this.playerManager.getAllPlayers(),
     });
 
-    // lobby data
-    this.emitToAll({
-      type: "update-lobby",
-      data: this.gameManager.getGameSessionById(
-        this.playerManager.getPlayerBySocketId(socket.id)?.gameId || "",
-      ),
+    this.emitToSocket(this.playerManager.getPlayerBySocketId(socket.id).socketId, {
+      type: "update-client-player-state",
+      data: this.playerManager.getPlayerBySocketId(socket.id),
     });
 
-    // this.emitToAll({
-    //   type: "update-client-game-state",
-    //   data: this.gameManager.getCurrentGameState(),
+    // this.emitToGroup(this.playerManager.getPlayerBySocketId(socket.id).socketId, {
+    //   type: "update"
     // });
+
+    // updating player lobby data if in lobby
+
+    const playerGameSession = this.gameManager.getGameSessionById(playerSocketId?.gameId || "");
+
+    if(playerGameSession){
+      const socketIdsLobby = playerGameSession?.getPlayers().map(player => player.socketId);
+
+      this.emitToGroup(socketIdsLobby, {
+        type: "update-lobby", 
+        data: playerGameSession,
+      });
+    }
   }
 
   private registerEventHandlers(socket: Socket): void {

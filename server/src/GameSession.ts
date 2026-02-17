@@ -24,6 +24,10 @@ export class GameSession {
     this.status = "lobby";
   }
 
+  public getPlayers(): Player[]{
+    return this.players.filter(p => p !== null);
+  }
+
   public addPlayer(player: Player): boolean {
     const emptySlotIndex = this.players.findIndex((el) => !el);
 
