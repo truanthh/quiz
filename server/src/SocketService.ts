@@ -59,17 +59,6 @@ export class SocketService {
     }
   }
 
-  // private emitToScreen(event: ServerEvent): void {
-  //   const screen = this.playerManager.getScreen();
-  //   if (screen.socketId) {
-  //     if ("data" in event) {
-  //       this.io.to(screen.socketId).emit(event.type, event.data);
-  //     } else {
-  //       this.io.to(screen.socketId).emit(event.type);
-  //     }
-  //   }
-  // }
-
   private handleReconnect(socket: Socket, token: string): void {
     // Попытка реконнекта игрока
     const reconnectedPlayer = this.playerManager.reconnectPlayer(
@@ -85,13 +74,6 @@ export class SocketService {
     }
   }
 
-  // private updateLobby(socket: Socket, game: GameSession): void {
-  //   this.emitToSocket(socket.id, {
-  //     type: "update-lobby",
-  //     data: game,
-  //   });
-  // }
-
   private updateAllClients(socket: Socket): void {
     // ???? SOME DATA
     this.emitToAll({
@@ -100,7 +82,7 @@ export class SocketService {
     });
 
     // lobby data
-    this.emitToSocket(socket.id, {
+    this.emitToAll({
       type: "update-lobby",
       data: this.gameManager.getGameSessionById(
         this.playerManager.getPlayerBySocketId(socket.id)?.gameId || "",

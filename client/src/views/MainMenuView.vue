@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { mainStore } from "../stores/mainStore";
+import { storeToRefs } from "pinia";
 
 const store = mainStore();
 
@@ -34,18 +35,21 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
           <!-- <li>token: {{ store.user.token }}</li> -->
           <!-- <li>socketId: {{ store.user.socketId }}</li> -->
           Список игроков:
-          <li v-for="(player, id) of store.players" :key="id">
+          <li v-for="(player, i) of store.players" :key="i">
             {{ player.name }} :
             <span style="color: green">{{ player.status }}</span>
           </li>
         </ul>
       </div>
       <div class="rightSideView">
-        <div class="buttons" v-if="!store.player.gameId">
+        <div class="buttons" v-if="!store.lobby?.id">
           <button class="buttons_default" @click="handleCreateGame">
             CREATE GAME
           </button>
-          <div class="joinGameWindow" v-if="isWindowActiveJoinGame">
+          <div
+            class="joinGameWindow"
+            v-if="isWindowActiveJoinGame && !store.player.gameId"
+          >
             ENTER GAME ID
             <input v-model="gameId" />
             <button @click="handleJoinGame">JOIN</button>
@@ -60,7 +64,11 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
           <!--   {{ !store.lobby?.players ? "bla" : store.lobby?.players[n].name }} -->
           <!-- </div> -->
           lobby id: {{ store.lobby.id }}
-          <div class="slot" v-for="player of store.lobby.players">
+          <div
+            class="slot"
+            v-for="player of store.lobby.players"
+            :key="player?.name"
+          >
             {{ player ? player.name : "empty slot" }}
           </div>
           <!-- ALDKJALDGKJ -->
