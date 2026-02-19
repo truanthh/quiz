@@ -2,16 +2,16 @@ import { Server, Socket } from "socket.io";
 import { PlayerManager } from "./PlayerManager.ts";
 import { GameManager } from "./GameManager.ts";
 import { GameSession } from "./GameSession.ts";
-// import { ServerEvent, AudioPlayerState, Track } from "./types";
+import { AudioPlayerState, Track } from "./types";
 import { v4 as uuidv4 } from "uuid";
-import { ServerEvent, ServerEventType } from "../../shared/events.ts";
+import { ServerEvent } from "../../shared/events.ts";
 
 export class SocketService {
   constructor(
     private io: Server,
     private playerManager: PlayerManager,
     private gameManager: GameManager,
-  ) {}
+  ) { }
 
   public initialize(): void {
     console.log("Initializing socket handlers...");
@@ -26,7 +26,7 @@ export class SocketService {
 
     // Приветственное сообщение
     this.emitToSocket(socket.id, {
-      type: ServerEventType.CONNECTION_ESTABLISHED,
+      type: "connection-established",
       data: {
         message: "Подключение успешно",
         socketId: socket.id,
@@ -76,7 +76,7 @@ export class SocketService {
     );
     if (reconnectedPlayer) {
       this.emitToSocket(socket.id, {
-        type: ServerEventType.LOGIN_SUCCESS,
+        type: "login-success",
         data: reconnectedPlayer,
       });
       this.updateAllClients(socket);
@@ -89,12 +89,12 @@ export class SocketService {
     if (!player) return;
 
     this.emitToAll({
-      type: "update-client-players",
+      type: "players-updated",
       data: this.playerManager.getAllPlayers(),
     });
 
     this.emitToSocket(player.socketId, {
-      type: "update-client-player",
+      type: "player-updated",
       data: player,
     });
 
@@ -108,7 +108,7 @@ export class SocketService {
         .map((player) => player.socketId);
 
       this.emitToGroup(socketIdsLobby, {
-        type: "update-lobby",
+        type: "player-lobby-updated",
         data: playerGameSession,
       });
     }
@@ -214,16 +214,16 @@ export class SocketService {
     // });
   }
 
-  private handleSelectPrevPlayer() {}
-  private handleSelectNextPlayer() {}
-  private handleNextQuestion() {}
-  private handlePrevQuestion() {}
-  private handleAnswerCorrect(type: string) {}
-  private handleAnswerWrong(type: string) {}
-  private handleShowArtist() {}
-  private handleShowPoster() {}
-  private handleShowTrackName() {}
-  private handleShowScoreboard() {}
+  private handleSelectPrevPlayer() { }
+  private handleSelectNextPlayer() { }
+  private handleNextQuestion() { }
+  private handlePrevQuestion() { }
+  private handleAnswerCorrect(type: string) { }
+  private handleAnswerWrong(type: string) { }
+  private handleShowArtist() { }
+  private handleShowPoster() { }
+  private handleShowTrackName() { }
+  private handleShowScoreboard() { }
 
   private handleDisconnect(socket: Socket) {
     console.log(`Отключился: ${socket.id}`);
@@ -241,7 +241,7 @@ export class SocketService {
     );
 
     this.emitToSocket(socket.id, {
-      type: "login-successful",
+      type: "login-success",
       data: { ...user, socketId: socket.id },
     });
     this.updateAllClients(socket);

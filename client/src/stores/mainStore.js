@@ -19,8 +19,8 @@ export const mainStore = defineStore("mainStore", () => {
   // this player
   const player = ref({ isReady: false });
 
-  // lobby for this player
-  const lobby = ref(null);
+  // gamesession for this player
+  const gameSession = ref(null);
 
   // THIS DATA IS ONLY FOR DISPLAY
   const gameState = reactive({});
@@ -30,21 +30,21 @@ export const mainStore = defineStore("mainStore", () => {
       auth: { token: localStorage.getItem("token"), role: player.value.role },
     });
 
-    socket.value.on("update-client-players", (data) => {
+    socket.value.on("players-updated", (data) => {
       players.value = [...data];
     });
 
-    socket.value.on("update-lobby", (data) => {
-      lobby.value = { ...data };
-    });
-
-    socket.value.on("update-client-player", (playerData) => {
+    socket.value.on("player-updated", (playerData) => {
       player.value = { ...playerData };
     });
 
-    socket.value.on("update-client-game-state", (state) => {
-      gameState = { ...state };
+    socket.value.on("player-lobby-updated", (data) => {
+      gameSession.value = { ...data };
     });
+
+    // socket.value.on("update-client-game-state", (state) => {
+    //   gameState = { ...state };
+    // });
   };
 
   function waitForLogin() {
@@ -62,7 +62,7 @@ export const mainStore = defineStore("mainStore", () => {
         res();
       };
 
-      socket.value.once("login-successful", handleLogin);
+      socket.value.once("login-success", handleLogin);
     });
   }
 

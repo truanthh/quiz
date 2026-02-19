@@ -66,10 +66,11 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
           lobby id: {{ store.lobby.id }}
           <div
             class="slot"
-            v-for="player of store.lobby.players"
+           v-for="player of store.lobby.players"
             :key="player?.name"
           >
             {{ player ? player.name : "empty slot" }}
+            <button @click="handleKickPlayer"> KICK </button>
           </div>
           <!-- ALDKJALDGKJ -->
         </div>
