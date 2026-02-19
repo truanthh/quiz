@@ -26,6 +26,7 @@ export type ServerEvent =
   | { type: "show-points-gained"; data: number }
   | { type: "play-track"; data: number }
   | { type: "play-sound"; data: string }
+  | { type: "update-client-player"; data: Player }
   // | { type: "play-sound-countdown" }
   // | { type: "play-sound-timeout" }
   // | { type: "play-sound-success" }

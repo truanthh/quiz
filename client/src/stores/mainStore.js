@@ -9,14 +9,17 @@ export const mainStore = defineStore("mainStore", () => {
     ),
   );
 
+  // login info
   const socket = ref(null);
   const isAuth = ref(false);
 
-  const player = ref({ isReady: false });
-
-  // all connected players
+  // all players on the server
   const players = ref(false);
 
+  // this player
+  const player = ref({ isReady: false });
+
+  // lobby for this player
   const lobby = ref(null);
 
   // THIS DATA IS ONLY FOR DISPLAY
@@ -35,8 +38,8 @@ export const mainStore = defineStore("mainStore", () => {
       lobby.value = { ...data };
     });
 
-    socket.value.on("update-client-player-state", (state) => {
-      player.value = { ...state };
+    socket.value.on("update-client-player", (playerData) => {
+      player.value = { ...playerData };
     });
 
     socket.value.on("update-client-game-state", (state) => {

@@ -2,8 +2,9 @@ import { Server, Socket } from "socket.io";
 import { PlayerManager } from "./PlayerManager.ts";
 import { GameManager } from "./GameManager.ts";
 import { GameSession } from "./GameSession.ts";
-import { ServerEvent, AudioPlayerState, Track } from "./types";
+// import { ServerEvent, AudioPlayerState, Track } from "./types";
 import { v4 as uuidv4 } from "uuid";
+import { ServerEvent, ServerEventType } from "../../shared/events.ts";
 
 export class SocketService {
   constructor(
@@ -25,7 +26,7 @@ export class SocketService {
 
     // Приветственное сообщение
     this.emitToSocket(socket.id, {
-      type: "connection-established",
+      type: ServerEventType.CONNECTION_ESTABLISHED,
       data: {
         message: "Подключение успешно",
         socketId: socket.id,
@@ -59,7 +60,7 @@ export class SocketService {
     }
   }
 
-  private emitToGroup(arr: string[],event: ServerEvent): void {
+  private emitToGroup(arr: string[], event: ServerEvent): void {
     if ("data" in event) {
       this.io.to(arr).emit(event.type, event.data);
     } else {
@@ -75,7 +76,7 @@ export class SocketService {
     );
     if (reconnectedPlayer) {
       this.emitToSocket(socket.id, {
-        type: "login-successful",
+        type: ServerEventType.LOGIN_SUCCESS,
         data: reconnectedPlayer,
       });
       this.updateAllClients(socket);
@@ -84,31 +85,30 @@ export class SocketService {
 
   private updateAllClients(socket: Socket): void {
     // shouldnt update all server players every time
-    const playerSocketId = this.playerManager.getPlayerBySocketId(socket.id);
+    const player = this.playerManager.getPlayerBySocketId(socket.id);
+    if (!player) return;
 
     this.emitToAll({
       type: "update-client-players",
       data: this.playerManager.getAllPlayers(),
     });
 
-    this.emitToSocket(this.playerManager.getPlayerBySocketId(socket.id).socketId, {
-      type: "update-client-player-state",
-      data: this.playerManager.getPlayerBySocketId(socket.id),
+    this.emitToSocket(player.socketId, {
+      type: "update-client-player",
+      data: player,
     });
 
-    // this.emitToGroup(this.playerManager.getPlayerBySocketId(socket.id).socketId, {
-    //   type: "update"
-    // });
+    const playerGameSession = this.gameManager.getGameSessionById(
+      player?.gameId || "",
+    );
 
-    // updating player lobby data if in lobby
-
-    const playerGameSession = this.gameManager.getGameSessionById(playerSocketId?.gameId || "");
-
-    if(playerGameSession){
-      const socketIdsLobby = playerGameSession?.getPlayers().map(player => player.socketId);
+    if (playerGameSession) {
+      const socketIdsLobby = playerGameSession
+        ?.getPlayers()
+        .map((player) => player.socketId);
 
       this.emitToGroup(socketIdsLobby, {
-        type: "update-lobby", 
+        type: "update-lobby",
         data: playerGameSession,
       });
     }
