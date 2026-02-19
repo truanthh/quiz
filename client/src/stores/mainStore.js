@@ -1,4 +1,4 @@
-import { ref, reactive } from "vue";
+import { ref, reactive, computed } from "vue";
 import { defineStore } from "pinia";
 import { io } from "socket.io-client";
 
@@ -22,6 +22,11 @@ export const mainStore = defineStore("mainStore", () => {
   // gamesession for this player
   const gameSession = ref(null);
 
+  // if player is this gamesession leader
+  const isLeader = computed(() => {
+    return player.value.token === gameSession.value.leader;
+  })
+
   // THIS DATA IS ONLY FOR DISPLAY
   const gameState = reactive({});
 
@@ -38,8 +43,8 @@ export const mainStore = defineStore("mainStore", () => {
       player.value = { ...playerData };
     });
 
-    socket.value.on("player-lobby-updated", (data) => {
-      gameSession.value = { ...data };
+    socket.value.on("player-gamesession-updated", (gameSessionData) => {
+      gameSession.value = { ...gameSessionData };
     });
 
     // socket.value.on("update-client-game-state", (state) => {
@@ -76,7 +81,8 @@ export const mainStore = defineStore("mainStore", () => {
     gameState,
     player,
     players,
-    lobby,
+    gameSession,
+    isLeader,
 
     // socket
     socket,

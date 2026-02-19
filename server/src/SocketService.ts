@@ -71,8 +71,7 @@ export class SocketService {
   private handleReconnect(socket: Socket, token: string): void {
     // Попытка реконнекта игрока
     const reconnectedPlayer = this.playerManager.reconnectPlayer(
-      token,
-      socket.id,
+      token, socket.id,
     );
     if (reconnectedPlayer) {
       this.emitToSocket(socket.id, {
@@ -108,7 +107,7 @@ export class SocketService {
         .map((player) => player.socketId);
 
       this.emitToGroup(socketIdsLobby, {
-        type: "player-lobby-updated",
+        type: "player-gamesession-updated",
         data: playerGameSession,
       });
     }

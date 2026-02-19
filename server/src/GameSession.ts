@@ -2,29 +2,29 @@ import { Question, Track, Player } from "./types/game.ts";
 
 export class GameSession {
   public readonly id: string;
-  public readonly createdBy: Player;
+  public readonly createdBy: string;
   public readonly status: string;
   private players: Player[];
-  private leader: Player;
-  private screen: Player;
+  private leader: string;
+  private screen: string;
   private questions: Question[];
   private currentQuestionId: number;
   private selectedPlayerId: number;
 
   constructor(player: Player) {
-    this.id = "game-" + player.name;
-    this.createdBy = player;
+    this.id = player.name;
+    this.createdBy = player.token;
     this.players = new Array(8).fill(null);
 
-    this.leader = player;
-    this.screen = player;
+    this.leader = player.token;
+    this.screen = player.token;
     this.questions = [];
     this.currentQuestionId = 0;
     this.selectedPlayerId = 0;
     this.status = "lobby";
   }
 
-  public getPlayers(): Player[]{
+  public getPlayers(): Player[] {
     return this.players.filter(p => p !== null);
   }
 

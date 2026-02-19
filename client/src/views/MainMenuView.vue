@@ -25,10 +25,10 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
 
 <template>
   <div class="mainMenu__container">
-    <h1 class="title" v-if="!store.isMobile">Добро пожаловать в Аудиоквиз</h1>
+    <h1 class="title" v-if="!store.isMobile"> store.gameSessioin </h1>
     <div class="mainMenu">
       <div class="player">
-        {{ store.lobby?.players }}
+        {{ store.gameSession?.players }}
         <ul class="list">
           Вы зашли как:
           <li>{{ store.player.name }}</li>
@@ -59,18 +59,18 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
             JOIN GAME
           </button>
         </div>
-        <div class="lobby" v-else>
+        <div class="gameSession" v-else>
           <!-- <div class="slot" v-for="n of slots"> -->
-          <!--   {{ !store.lobby?.players ? "bla" : store.lobby?.players[n].name }} -->
+          <!--   {{ !store.gameSession?.players ? "bla" : store.gameSession?.players[n].name }} -->
           <!-- </div> -->
-          lobby id: {{ store.lobby.id }}
+          gameSession id: {{ store.gameSession.id }}
           <div
             class="slot"
-           v-for="player of store.lobby.players"
+           v-for="player of store.gameSession.players"
             :key="player?.name"
           >
             {{ player ? player.name : "empty slot" }}
-            <button @click="handleKickPlayer"> KICK </button>
+            <button @click="handleKickPlayer" v-if="store.isLeader && player ? player.token !== store.player.token : true" class="btn__kick"> KICK </button>
           </div>
           <!-- ALDKJALDGKJ -->
         </div>
@@ -80,6 +80,9 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
 </template>
 
 <style lang="scss" scoped>
+.btn__kick{
+  display: flex;
+}
 .list {
   margin-top: 20px;
 }
@@ -95,6 +98,7 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
 }
 .slot {
   display: flex;
+  justify-content: space-between;
   border: solid 2px black;
   border-radius: 4px;
   background-color: khaki;
@@ -114,7 +118,7 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
   height: 80%;
 }
 
-.lobby {
+.gameSession {
   display: flex;
   flex-direction: column;
   // background-color: orange;
