@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { mainStore } from "../stores/mainStore";
 import { storeToRefs } from "pinia";
+import Lobby from "../components/Lobby.vue"
 
 const store = mainStore();
 
@@ -46,10 +47,7 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
           <button class="buttons_default" @click="handleCreateGame">
             CREATE GAME
           </button>
-          <div
-            class="joinGameWindow"
-            v-if="isWindowActiveJoinGame"
-          >
+          <div class="joinGameWindow" v-if="isWindowActiveJoinGame">
             ENTER GAME ID
             <input v-model="gameId" />
             <button @click="handleJoinGame">JOIN</button>
@@ -59,33 +57,17 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
             JOIN GAME
           </button>
         </div>
-        <div class="gameSession" v-else>
-          <!-- <div class="slot" v-for="n of slots"> -->
-          <!--   {{ !store.gameSession?.players ? "bla" : store.gameSession?.players[n].name }} -->
-          <!-- </div> -->
-          gameSession id: {{ store.gameSession.id }}
-          <div
-            class="slot"
-           v-for="player of store.gameSession.players"
-            :key="player?.name"
-          >
-            {{ player ? player.name : "empty slot" }}
-            <button @click="handleKickPlayer" v-if="store.isLeader && player ? player.token !== store.player.token : true" class="btn__kick"> KICK </button>
-          </div>
-          <!-- ALDKJALDGKJ -->
-        </div>
+        <Lobby />
       </div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.btn__kick{
-  display: flex;
-}
 .list {
   margin-top: 20px;
 }
+
 .rightSideView {
   display: flex;
   flex-direction: column;
@@ -96,29 +78,8 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
   // padding-top: 20px;
   // gap: 20px;
 }
-.slot {
-  display: flex;
-  justify-content: space-between;
-  border: solid 2px black;
-  border-radius: 4px;
-  background-color: khaki;
-  // width: 100%;
-  // height: 100%;
-  font-size: 30px;
-  color: black;
-  // padding: 20px;
-}
 
 .joinGameWindow {
-  display: flex;
-  flex-direction: column;
-  // background-color: orange;
-  gap: 2px;
-  width: 80%;
-  height: 80%;
-}
-
-.gameSession {
   display: flex;
   flex-direction: column;
   // background-color: orange;
@@ -142,6 +103,7 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
 }
 
 .buttons {
+
   // display: flex;
   // flex-direction: column;
   // background-color: orange;
@@ -155,10 +117,12 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
     cursor: pointer;
   }
 }
+
 .mainMenu {
   display: flex;
   width: 80%;
   height: 80%;
+
   &__container {
     display: flex;
     flex-direction: column;
