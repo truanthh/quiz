@@ -24,8 +24,8 @@ export const mainStore = defineStore("mainStore", () => {
 
   // if player is this gamesession leader
   const isLeader = computed(() => {
-    return player.value.token === gameSession.value.leader;
-  })
+    return player.value.token === gameSession.value?.leader;
+  });
 
   // THIS DATA IS ONLY FOR DISPLAY
   const gameState = reactive({});

@@ -25,7 +25,11 @@ export class GameSession {
   }
 
   public getPlayers(): Player[] {
-    return this.players.filter(p => p !== null);
+    return this.players.filter((p) => p !== null);
+  }
+
+  public getLeader(): string {
+    return this.leader;
   }
 
   public addPlayer(player: Player): boolean {

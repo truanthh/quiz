@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { mainStore } from "../stores/mainStore";
 import { storeToRefs } from "pinia";
-import Lobby from "../components/Lobby.vue"
+import Lobby from "../components/Lobby.vue";
 
 const store = mainStore();
 
@@ -26,10 +26,13 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
 
 <template>
   <div class="mainMenu__container">
-    <h1 class="title" v-if="!store.isMobile"> store.gameSessioin </h1>
+    <div class="title" :style="{ 'font-size': '8px' }">
+      {{ store.gameSession }}
+      {{ store.player.gameId }}
+    </div>
     <div class="mainMenu">
       <div class="player">
-        {{ store.gameSession?.players }}
+        <span v-if="!store.isMobile">{{ store.gameSession?.players }}</span>
         <ul class="list">
           Вы зашли как:
           <li>{{ store.player.name }}</li>
@@ -39,12 +42,18 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
           <li v-for="(player, i) of store.players" :key="i">
             {{ player.name }} :
             <span style="color: green">{{ player.status }}</span>
+            :
+            <span style="color: red">{{ player.gameId }}</span>
           </li>
         </ul>
       </div>
       <div class="rightSideView">
         <div class="buttons" v-if="!store.player.gameId">
-          <button class="buttons_default" @click="handleCreateGame">
+          <button
+            class="buttons_default"
+            @click="handleCreateGame"
+            v-if="!isWindowActiveJoinGame"
+          >
             CREATE GAME
           </button>
           <div class="joinGameWindow" v-if="isWindowActiveJoinGame">
@@ -57,7 +66,7 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
             JOIN GAME
           </button>
         </div>
-        <Lobby />
+        <Lobby v-if="store.player.gameId !== ''" />
       </div>
     </div>
   </div>
@@ -103,7 +112,6 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
 }
 
 .buttons {
-
   // display: flex;
   // flex-direction: column;
   // background-color: orange;

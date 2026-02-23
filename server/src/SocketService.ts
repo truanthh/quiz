@@ -11,7 +11,7 @@ export class SocketService {
     private io: Server,
     private playerManager: PlayerManager,
     private gameManager: GameManager,
-  ) { }
+  ) {}
 
   public initialize(): void {
     console.log("Initializing socket handlers...");
@@ -71,7 +71,8 @@ export class SocketService {
   private handleReconnect(socket: Socket, token: string): void {
     // Попытка реконнекта игрока
     const reconnectedPlayer = this.playerManager.reconnectPlayer(
-      token, socket.id,
+      token,
+      socket.id,
     );
     if (reconnectedPlayer) {
       this.emitToSocket(socket.id, {
@@ -97,16 +98,17 @@ export class SocketService {
       data: player,
     });
 
+    // if player has gamesession then update every gamesession.players? supposedly after some action?
     const playerGameSession = this.gameManager.getGameSessionById(
-      player?.gameId || "",
+      player.gameId,
     );
 
     if (playerGameSession) {
-      const socketIdsLobby = playerGameSession
+      const gameSessionSocketIds = playerGameSession
         ?.getPlayers()
         .map((player) => player.socketId);
 
-      this.emitToGroup(socketIdsLobby, {
+      this.emitToGroup(gameSessionSocketIds, {
         type: "player-gamesession-updated",
         data: playerGameSession,
       });
@@ -117,6 +119,10 @@ export class SocketService {
     // Логин нового пользователя
     socket.on("login", (payload) => {
       this.handleLogin(socket, payload);
+    });
+
+    socket.on("cancel-game", () => {
+      this.handleCancelGame(socket);
     });
 
     socket.on("create-game", () => {
@@ -196,6 +202,31 @@ export class SocketService {
     this.updateAllClients(socket);
   }
 
+  private handleCancelGame(socket: Socket) {
+    const player = this.playerManager.getPlayerBySocketId(socket.id);
+    if (!player) return;
+
+    const deletedGamesession = this.gameManager.deleteGame(player);
+    if (!deletedGamesession) return;
+
+    // updating every player - player data
+    const playerSocketIds = deletedGamesession.getPlayers().map((player) => {
+      this.emitToSocket(player.socketId, {
+        type: "player-updated",
+        data: player,
+      });
+      return player.socketId;
+    });
+
+    // updating every player - gamesession data
+    this.emitToGroup(playerSocketIds, {
+      type: "player-gamesession-updated",
+      data: null,
+    });
+
+    this.updateAllClients(socket);
+  }
+
   private handlePlayTrack() {
     // this.emitToScreen({
     //   type: "play-track",
@@ -213,16 +244,16 @@ export class SocketService {
     // });
   }
 
-  private handleSelectPrevPlayer() { }
-  private handleSelectNextPlayer() { }
-  private handleNextQuestion() { }
-  private handlePrevQuestion() { }
-  private handleAnswerCorrect(type: string) { }
-  private handleAnswerWrong(type: string) { }
-  private handleShowArtist() { }
-  private handleShowPoster() { }
-  private handleShowTrackName() { }
-  private handleShowScoreboard() { }
+  private handleSelectPrevPlayer() {}
+  private handleSelectNextPlayer() {}
+  private handleNextQuestion() {}
+  private handlePrevQuestion() {}
+  private handleAnswerCorrect(type: string) {}
+  private handleAnswerWrong(type: string) {}
+  private handleShowArtist() {}
+  private handleShowPoster() {}
+  private handleShowTrackName() {}
+  private handleShowScoreboard() {}
 
   private handleDisconnect(socket: Socket) {
     console.log(`Отключился: ${socket.id}`);

@@ -23,6 +23,28 @@ export class GameManager {
     return newGame;
   }
 
+  public deleteGame(player: Player | undefined): GameSession | null {
+    if (!player || player.status === "online") return null;
+
+    // making sure gameSession exists and player is the leader
+    const gameSession = this.getGameSessionById(player.gameId);
+
+    if (!gameSession) return null;
+    if (gameSession.getLeader() !== player.token) return null;
+
+    this.games.delete(gameSession.id);
+
+    const players = gameSession.getPlayers();
+
+    for (let player of players) {
+      this.playerManager.setPlayerGameId(player, "");
+      this.playerManager.setPlayerStatus(player, "online");
+      console.log("lasjdkf");
+    }
+
+    return gameSession;
+  }
+
   public joinGame(player: Player, gameId: string): boolean {
     const gameSession = this.getGameSessionById(gameId);
     if (
