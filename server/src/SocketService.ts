@@ -2,7 +2,7 @@ import { Server, Socket } from "socket.io";
 import { PlayerManager } from "./PlayerManager.ts";
 import { GameManager } from "./GameManager.ts";
 import { GameSession } from "./GameSession.ts";
-import { AudioPlayerState, Track } from "./types";
+import { AudioPlayerState, Track, Player } from "./types";
 import { v4 as uuidv4 } from "uuid";
 import { ServerEvent } from "../../shared/events.ts";
 
@@ -11,7 +11,7 @@ export class SocketService {
     private io: Server,
     private playerManager: PlayerManager,
     private gameManager: GameManager,
-  ) {}
+  ) { }
 
   public initialize(): void {
     console.log("Initializing socket handlers...");
@@ -19,100 +19,6 @@ export class SocketService {
     this.io.on("connection", (socket: Socket) => {
       this.handleConnection(socket);
     });
-  }
-
-  public handleConnection(socket: Socket): void {
-    console.log(`Подключился: ${socket.id}`);
-
-    // Приветственное сообщение
-    this.emitToSocket(socket.id, {
-      type: "connection-established",
-      data: {
-        message: "Подключение успешно",
-        socketId: socket.id,
-        connectedAt: new Date().toLocaleString(),
-      },
-    });
-
-    // Обработка реконнекта по токену
-    const token = socket.handshake.auth.token;
-    if (token) {
-      this.handleReconnect(socket, token);
-    }
-
-    // Регистрация обработчиков событий
-    this.registerEventHandlers(socket);
-  }
-
-  private emitToSocket(socketId: string, event: ServerEvent): void {
-    if ("data" in event) {
-      this.io.to(socketId).emit(event.type, event.data);
-    } else {
-      this.io.to(socketId).emit(event.type);
-    }
-  }
-
-  private emitToAll(event: ServerEvent): void {
-    if ("data" in event) {
-      this.io.emit(event.type, event.data);
-    } else {
-      this.io.emit(event.type);
-    }
-  }
-
-  private emitToGroup(arr: string[], event: ServerEvent): void {
-    if ("data" in event) {
-      this.io.to(arr).emit(event.type, event.data);
-    } else {
-      this.io.to(arr).emit(event.type);
-    }
-  }
-
-  private handleReconnect(socket: Socket, token: string): void {
-    // Попытка реконнекта игрока
-    const reconnectedPlayer = this.playerManager.reconnectPlayer(
-      token,
-      socket.id,
-    );
-    if (reconnectedPlayer) {
-      this.emitToSocket(socket.id, {
-        type: "login-success",
-        data: reconnectedPlayer,
-      });
-      this.updateAllClients(socket);
-    }
-  }
-
-  private updateAllClients(socket: Socket): void {
-    // shouldnt update all server players every time
-    const player = this.playerManager.getPlayerBySocketId(socket.id);
-    if (!player) return;
-
-    this.emitToAll({
-      type: "players-updated",
-      data: this.playerManager.getAllPlayers(),
-    });
-
-    this.emitToSocket(player.socketId, {
-      type: "player-updated",
-      data: player,
-    });
-
-    // if player has gamesession then update every gamesession.players? supposedly after some action?
-    const playerGameSession = this.gameManager.getGameSessionById(
-      player.gameId,
-    );
-
-    if (playerGameSession) {
-      const gameSessionSocketIds = playerGameSession
-        ?.getPlayers()
-        .map((player) => player.socketId);
-
-      this.emitToGroup(gameSessionSocketIds, {
-        type: "player-gamesession-updated",
-        data: playerGameSession,
-      });
-    }
   }
 
   private registerEventHandlers(socket: Socket): void {
@@ -182,13 +88,84 @@ export class SocketService {
     });
   }
 
+  public handleConnection(socket: Socket): void {
+    console.log(`Подключился: ${socket.id}`);
+
+    // Приветственное сообщение
+    this.emitToSocket(socket.id, {
+      type: "connection-established",
+      data: {
+        message: "Подключение успешно",
+        socketId: socket.id,
+        connectedAt: new Date().toLocaleString(),
+      },
+    });
+
+    // Обработка реконнекта по токену
+    const token = socket.handshake.auth.token;
+    if (token) {
+      this.handleReconnect(socket, token);
+    }
+
+    // Регистрация обработчиков событий
+    this.registerEventHandlers(socket);
+  }
+
+
+  private handleReconnect(socket: Socket, token: string): void {
+    // Попытка реконнекта игрока
+    const reconnectedPlayer = this.playerManager.reconnectPlayer(
+      token,
+      socket.id,
+    );
+    if (reconnectedPlayer) {
+      this.emitToSocket(socket.id, {
+        type: "login-success",
+        data: reconnectedPlayer,
+      });
+      this.updateAllPlayersOnPlayerAction(socket);
+    }
+  }
+
+
+  private updatePlayer(player: Player): void {
+    this.emitToSocket(player.socketId, {
+      type: "player-updated",
+      data: { ...player, gameSession: this.gameManager.getGameSessionById(player.gameId) }
+    });
+  }
+
+  private updateGameSessionPlayers(gameSession: GameSession): void {
+    if (!gameSession) return;
+
+    const players = gameSession.getPlayers();
+
+    for (let player of players) {
+      this.emitToSocket(player.socketId, {
+        type: "player-updated",
+        data: { ...player, gameSession: gameSession.status === "deleted" ? null : gameSession }
+      })
+    }
+  }
+
+  private updateAllPlayersOnPlayerAction(socket: Socket): void {
+    const player = this.playerManager.getPlayerBySocketId(socket.id);
+    if (!player) return;
+
+    this.emitToAll({
+      type: "players-updated",
+      data: this.playerManager.getAllPlayers(),
+    });
+
+  }
+
   private handleJoinGame(socket: Socket, gameId: string) {
     const player = this.playerManager.getPlayerBySocketId(socket.id);
     if (!player) return;
 
     this.gameManager.joinGame(player, gameId);
 
-    this.updateAllClients(socket);
+    this.updateAllPlayersOnPlayerAction(socket);
   }
 
   private handleCreateGame(socket: Socket) {
@@ -198,8 +175,7 @@ export class SocketService {
     let game = this.gameManager.createGame(player);
     if (!game) return;
 
-    // this.playerManager.createGame(player, game.id);
-    this.updateAllClients(socket);
+    // this.updateAllPlayersOnPlayerAction(socket);
   }
 
   private handleCancelGame(socket: Socket) {
@@ -209,22 +185,7 @@ export class SocketService {
     const deletedGamesession = this.gameManager.deleteGame(player);
     if (!deletedGamesession) return;
 
-    // updating every player - player data
-    const playerSocketIds = deletedGamesession.getPlayers().map((player) => {
-      this.emitToSocket(player.socketId, {
-        type: "player-updated",
-        data: player,
-      });
-      return player.socketId;
-    });
-
-    // updating every player - gamesession data
-    this.emitToGroup(playerSocketIds, {
-      type: "player-gamesession-updated",
-      data: null,
-    });
-
-    this.updateAllClients(socket);
+    this.updateGameSessionPlayers(deletedGamesession);
   }
 
   private handlePlayTrack() {
@@ -244,16 +205,16 @@ export class SocketService {
     // });
   }
 
-  private handleSelectPrevPlayer() {}
-  private handleSelectNextPlayer() {}
-  private handleNextQuestion() {}
-  private handlePrevQuestion() {}
-  private handleAnswerCorrect(type: string) {}
-  private handleAnswerWrong(type: string) {}
-  private handleShowArtist() {}
-  private handleShowPoster() {}
-  private handleShowTrackName() {}
-  private handleShowScoreboard() {}
+  private handleSelectPrevPlayer() { }
+  private handleSelectNextPlayer() { }
+  private handleNextQuestion() { }
+  private handlePrevQuestion() { }
+  private handleAnswerCorrect(type: string) { }
+  private handleAnswerWrong(type: string) { }
+  private handleShowArtist() { }
+  private handleShowPoster() { }
+  private handleShowTrackName() { }
+  private handleShowScoreboard() { }
 
   private handleDisconnect(socket: Socket) {
     console.log(`Отключился: ${socket.id}`);
@@ -274,7 +235,7 @@ export class SocketService {
       type: "login-success",
       data: { ...user, socketId: socket.id },
     });
-    this.updateAllClients(socket);
+    this.updateAllPlayersOnPlayerAction(socket);
   }
 
   // private handleStartGame(socket: Socket, tracks: Track[]): void {
@@ -285,7 +246,7 @@ export class SocketService {
   //     }
   //
   //     this.gameManager.createGame(player);
-  //     this.updateAllClients();
+  //     this.updateAllPlayersOnPlayerAction();
   //   } catch (error) {
   //     console.error("Error starting game:", error);
   //     // this.emitToScreen({ type: "error", data: "Failed to start game!" });
@@ -333,7 +294,7 @@ export class SocketService {
     //   if (seconds === 0) {
     //     clearInterval(intervalId);
     //     this.gameManager.getCurrentQuestion().state = "pending";
-    //     this.updateAllClients();
+    //     this.updateAllPlayersOnPlayerAction();
     //     this.playSound("timeout");
     //   }
     // }, 1000);
@@ -343,5 +304,27 @@ export class SocketService {
     // this.emitToScreen({ type: "play-sound", data: name });
   }
 
-  // ... остальные методы обработчиков
+  private emitToSocket(socketId: string, event: ServerEvent): void {
+    if ("data" in event) {
+      this.io.to(socketId).emit(event.type, event.data);
+    } else {
+      this.io.to(socketId).emit(event.type);
+    }
+  }
+
+  private emitToAll(event: ServerEvent): void {
+    if ("data" in event) {
+      this.io.emit(event.type, event.data);
+    } else {
+      this.io.emit(event.type);
+    }
+  }
+
+  private emitToGroup(arr: string[], event: ServerEvent): void {
+    if ("data" in event) {
+      this.io.to(arr).emit(event.type, event.data);
+    } else {
+      this.io.to(arr).emit(event.type);
+    }
+  }
 }

@@ -12,13 +12,6 @@ export class PlayerManager {
     this.playerTokens = new Map();
   }
 
-  // createGame(player: Player | undefined, gameId: string) {
-  //   if (!player) return;
-  //
-  //   player.status = "in-game";
-  //   player.gameId = gameId;
-  // }
-
   public setPlayerStatus(player: Player, status: string) {
     player.status = status;
   }

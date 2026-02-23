@@ -29,7 +29,7 @@ export type ServerEvent =
   | { type: "connection-established"; data: any }
   | { type: "login-success"; data: Player }
   | { type: "players-updated"; data: any }
-  | { type: "player-updated"; data: Player }
+  | { type: "player-updated"; data: any }
   | { type: "player-gamesession-updated"; data: GameSession | null }
   | { type: "play-track" };
 

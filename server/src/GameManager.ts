@@ -1,6 +1,6 @@
-import { GameSession } from "./GameSession.ts";
 import { PlayerManager } from "./PlayerManager.ts";
 import { Player } from "./types/index.ts";
+import { GameSession } from "./GameSession.ts";
 
 export class GameManager {
   private games: Map<string, GameSession>;

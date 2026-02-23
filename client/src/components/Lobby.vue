@@ -28,21 +28,12 @@ function handleCancelGame() {
 
 <template>
   <div class="lobby__container">
-    <div
-      class="lobby__slot"
-      v-for="player of store.gameSession.players"
-      :key="player?.name"
-    >
+    <div class="lobby__slot" v-for="player of store.player?.gameSession?.players" :key="player?.name">
       {{ player ? player.name : "open" }}
-      <button
-        @click="handleKickPlayer"
-        v-if="
-          store.isLeader &&
-          (player ? player.token !== store.player.token : true)
-        "
-        class="button__kick"
-      >
-        KICK
+      <button @click="handleKickPlayer" v-if="
+        store.isLeader &&
+        (player ? player.token !== store.player.token : true)
+      " class="button__kick"> KICK
       </button>
     </div>
     <div class="controlButtons">
@@ -89,6 +80,7 @@ function handleCancelGame() {
   &__kick {
     width: 10%;
   }
+
   &__start,
   &__cancel {
     width: 20%;

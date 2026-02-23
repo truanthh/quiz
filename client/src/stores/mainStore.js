@@ -17,14 +17,12 @@ export const mainStore = defineStore("mainStore", () => {
   const players = ref(false);
 
   // this player
+  // gamesession is here
   const player = ref({ isReady: false });
-
-  // gamesession for this player
-  const gameSession = ref(null);
 
   // if player is this gamesession leader
   const isLeader = computed(() => {
-    return player.value.token === gameSession.value?.leader;
+    return player.value.token === player.value.gameSession?.leader;
   });
 
   // THIS DATA IS ONLY FOR DISPLAY
@@ -41,10 +39,6 @@ export const mainStore = defineStore("mainStore", () => {
 
     socket.value.on("player-updated", (playerData) => {
       player.value = { ...playerData };
-    });
-
-    socket.value.on("player-gamesession-updated", (gameSessionData) => {
-      gameSession.value = { ...gameSessionData };
     });
 
     // socket.value.on("update-client-game-state", (state) => {
@@ -81,7 +75,6 @@ export const mainStore = defineStore("mainStore", () => {
     gameState,
     player,
     players,
-    gameSession,
     isLeader,
 
     // socket
