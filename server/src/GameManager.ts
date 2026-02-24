@@ -45,7 +45,7 @@ export class GameManager {
     return gameSession;
   }
 
-  public joinGame(player: Player, gameId: string): boolean {
+  public joinGame(player: Player, gameId: string): GameSession | null {
     const gameSession = this.getGameSessionById(gameId);
     if (
       !gameSession ||
@@ -53,7 +53,7 @@ export class GameManager {
       !player ||
       player.status === "in-game"
     )
-      return false;
+      return null;
 
     console.log(`player: ${player.name} is trying to join ${gameId}`);
 
@@ -61,10 +61,10 @@ export class GameManager {
       console.log(`player: ${player.name} joined ${gameId}`);
       this.playerManager.setPlayerGameId(player, gameId);
       this.playerManager.setPlayerStatus(player, "in-game");
-      return true;
+      return gameSession;
     }
 
-    return false;
+    return null;
   }
 
   // public transferLeader(gameId: string, currentLeader: Player, newLeader: Player) {

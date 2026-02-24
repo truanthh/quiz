@@ -11,7 +11,7 @@ export class SocketService {
     private io: Server,
     private playerManager: PlayerManager,
     private gameManager: GameManager,
-  ) { }
+  ) {}
 
   public initialize(): void {
     console.log("Initializing socket handlers...");
@@ -111,7 +111,6 @@ export class SocketService {
     this.registerEventHandlers(socket);
   }
 
-
   private handleReconnect(socket: Socket, token: string): void {
     // Попытка реконнекта игрока
     const reconnectedPlayer = this.playerManager.reconnectPlayer(
@@ -123,15 +122,18 @@ export class SocketService {
         type: "login-success",
         data: reconnectedPlayer,
       });
-      this.updateAllPlayersOnPlayerAction(socket);
+      // this.updateAllPlayersOnPlayerAction(socket);
+      this.updatePlayer(reconnectedPlayer);
     }
   }
-
 
   private updatePlayer(player: Player): void {
     this.emitToSocket(player.socketId, {
       type: "player-updated",
-      data: { ...player, gameSession: this.gameManager.getGameSessionById(player.gameId) }
+      data: {
+        ...player,
+        gameSession: this.gameManager.getGameSessionById(player.gameId),
+      },
     });
   }
 
@@ -143,8 +145,11 @@ export class SocketService {
     for (let player of players) {
       this.emitToSocket(player.socketId, {
         type: "player-updated",
-        data: { ...player, gameSession: gameSession.status === "deleted" ? null : gameSession }
-      })
+        data: {
+          ...player,
+          gameSession: gameSession.status === "deleted" ? null : gameSession,
+        },
+      });
     }
   }
 
@@ -156,15 +161,16 @@ export class SocketService {
       type: "players-updated",
       data: this.playerManager.getAllPlayers(),
     });
-
   }
 
   private handleJoinGame(socket: Socket, gameId: string) {
     const player = this.playerManager.getPlayerBySocketId(socket.id);
     if (!player) return;
 
-    this.gameManager.joinGame(player, gameId);
+    const gameSession = this.gameManager.joinGame(player, gameId);
+    if (!gameSession) return;
 
+    this.updateGameSessionPlayers(gameSession);
     this.updateAllPlayersOnPlayerAction(socket);
   }
 
@@ -172,10 +178,12 @@ export class SocketService {
     const player = this.playerManager.getPlayerBySocketId(socket.id);
     if (!player) return;
 
-    let game = this.gameManager.createGame(player);
-    if (!game) return;
+    let gameSession = this.gameManager.createGame(player);
+    if (!gameSession) return;
 
     // this.updateAllPlayersOnPlayerAction(socket);
+    this.updateGameSessionPlayers(gameSession);
+    this.updateAllPlayersOnPlayerAction(socket);
   }
 
   private handleCancelGame(socket: Socket) {
@@ -186,6 +194,7 @@ export class SocketService {
     if (!deletedGamesession) return;
 
     this.updateGameSessionPlayers(deletedGamesession);
+    this.updateAllPlayersOnPlayerAction(socket);
   }
 
   private handlePlayTrack() {
@@ -205,16 +214,16 @@ export class SocketService {
     // });
   }
 
-  private handleSelectPrevPlayer() { }
-  private handleSelectNextPlayer() { }
-  private handleNextQuestion() { }
-  private handlePrevQuestion() { }
-  private handleAnswerCorrect(type: string) { }
-  private handleAnswerWrong(type: string) { }
-  private handleShowArtist() { }
-  private handleShowPoster() { }
-  private handleShowTrackName() { }
-  private handleShowScoreboard() { }
+  private handleSelectPrevPlayer() {}
+  private handleSelectNextPlayer() {}
+  private handleNextQuestion() {}
+  private handlePrevQuestion() {}
+  private handleAnswerCorrect(type: string) {}
+  private handleAnswerWrong(type: string) {}
+  private handleShowArtist() {}
+  private handleShowPoster() {}
+  private handleShowTrackName() {}
+  private handleShowScoreboard() {}
 
   private handleDisconnect(socket: Socket) {
     console.log(`Отключился: ${socket.id}`);

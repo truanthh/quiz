@@ -1,11 +1,6 @@
 <script setup>
 import { ref } from "vue";
 import { mainStore } from "../stores/mainStore";
-import { storeToRefs } from "pinia";
-import Lobby from "../components/Lobby.vue";
-
-const store = mainStore();
-
 const isWindowActiveJoinGame = ref(false);
 const gameId = ref("");
 
@@ -27,17 +22,35 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
 <template>
   <div class="mainMenu__container">
     <div class="title" :style="{ 'font-size': '14px' }">
-      {{ store.player }}
-      {{ store.player.gameId }}
+      <!-- {{ store.player }} -->
+      <!-- {{ store.player.gameId }} -->
     </div>
     <div class="mainMenu">
+      <div class="bar">{{ store.player.name }}</div>
+      <div class="buttons" v-if="!store.player.gameId">
+        <button
+          class="buttons_default"
+          @click="handleCreateGame"
+          v-if="!isWindowActiveJoinGame"
+        >
+          CREATE GAME
+        </button>
+        <div class="joinGameWindow" v-if="isWindowActiveJoinGame">
+          ENTER GAME ID
+          <input v-model="gameId" />
+          <button @click="handleJoinGame">JOIN</button>
+          <button @click="toggleJoinGame">BACK</button>
+        </div>
+        <button class="buttons_default" @click="toggleJoinGame" v-else>
+          JOIN GAME
+        </button>
+      </div>
+      <Lobby v-if="store.player.gameId !== ''" />
       <div class="player">
-        <span v-if="!store.isMobile">{{ store.player.gameSession?.players }}</span>
+        <span v-if="!store.isMobile">{{
+          store.player.gameSession?.players
+        }}</span>
         <ul class="list">
-          Вы зашли как:
-          <li>{{ store.player.name }}</li>
-          <!-- <li>token: {{ store.user.token }}</li> -->
-          <!-- <li>socketId: {{ store.user.socketId }}</li> -->
           Список игроков:
           <li v-for="(player, i) of store.players" :key="i">
             {{ player.name }} :
@@ -47,41 +60,15 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
           </li>
         </ul>
       </div>
-      <div class="rightSideView">
-        <div class="buttons" v-if="!store.player.gameId">
-          <button class="buttons_default" @click="handleCreateGame" v-if="!isWindowActiveJoinGame">
-            CREATE GAME
-          </button>
-          <div class="joinGameWindow" v-if="isWindowActiveJoinGame">
-            ENTER GAME ID
-            <input v-model="gameId" />
-            <button @click="handleJoinGame">JOIN</button>
-            <button @click="toggleJoinGame">BACK</button>
-          </div>
-          <button class="buttons_default" @click="toggleJoinGame" v-else>
-            JOIN GAME
-          </button>
-        </div>
-        <Lobby v-if="store.player.gameId !== ''" />
-      </div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
+@import "../styles/_mixins.scss";
+
 .list {
   margin-top: 20px;
-}
-
-.rightSideView {
-  display: flex;
-  flex-direction: column;
-  background-color: lightgray;
-  align-items: center;
-  justify-content: center;
-  width: 50%;
-  // padding-top: 20px;
-  // gap: 20px;
 }
 
 .joinGameWindow {
@@ -108,14 +95,14 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
 }
 
 .buttons {
-
-  // display: flex;
-  // flex-direction: column;
+  display: flex;
+  flex-direction: column;
   // background-color: orange;
-  // align-items: center;
+  align-items: center;
   // width: 50%;
   // padding-top: 20px;
   // gap: 20px;
+  height: 100px;
   &_default {
     height: 100%;
     width: 100%;
@@ -125,11 +112,17 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
 
 .mainMenu {
   display: flex;
-  width: 80%;
-  height: 80%;
+  flex-direction: column;
+  width: 100vw;
+  height: 100%;
+
+  @include lg {
+    width: 600px;
+  }
 
   &__container {
     display: flex;
+    overflow: auto;
     flex-direction: column;
     justify-content: center;
     align-items: center;
