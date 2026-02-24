@@ -1,8 +1,11 @@
 <script setup>
 import { ref } from "vue";
 import { mainStore } from "../stores/mainStore";
+import Lobby from "../components/Lobby.vue";
 const isWindowActiveJoinGame = ref(false);
 const gameId = ref("");
+
+const store = mainStore();
 
 function toggleJoinGame() {
   isWindowActiveJoinGame.value = !isWindowActiveJoinGame.value;
@@ -65,7 +68,8 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
 </template>
 
 <style lang="scss" scoped>
-@import "../styles/_mixins.scss";
+@use "../styles/variables" as *;
+@use "../styles/mixins" as *;
 
 .list {
   margin-top: 20px;
