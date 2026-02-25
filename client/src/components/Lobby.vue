@@ -24,24 +24,21 @@ function handleStartGame() {
 function handleCancelGame() {
   store.socket.emit("cancel-game");
 }
+
+function handleClearSlot(id) {
+  // console.log(`trying to clear slot ${id}!`);
+  store.socket.emit("clear-slot", id);
+}
 </script>
 
 <template>
   <div class="lobby__container">
-    <div
-      class="lobby__slot"
-      v-for="player of store.player?.gameSession?.players"
-      :key="player?.name"
-    >
+    <div class="lobby__slot" v-for="(player, id) of store.player?.gameSession?.players" :key="player?.name">
       {{ player ? player.name : "open" }}
-      <button
-        @click="handleKickPlayer"
-        v-if="
-          store.isLeader &&
-          (player ? player.token !== store.player.token : true)
-        "
-        class="button__kick"
-      >
+      <button @click="handleClearSlot(id)" v-if="
+        store.isLeader &&
+        (player ? player.token !== store.player.token : true)
+      " class="button__kick">
         KICK
       </button>
     </div>
@@ -87,7 +84,7 @@ function handleCancelGame() {
 
 .button {
   &__kick {
-    width: 10%;
+    width: 20%;
   }
 
   &__start,

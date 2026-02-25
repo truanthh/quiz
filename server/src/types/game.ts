@@ -31,6 +31,7 @@ export interface Question {
 }
 
 export type Player = {
+  id: string;
   socketId: string;
   token: string;
   name: string;

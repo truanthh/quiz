@@ -30,36 +30,30 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
     </div>
     <div class="mainMenu">
       <div class="bar">{{ store.player.name }}</div>
-      <div class="buttons" v-if="!store.player.gameId">
-        <button
-          class="buttons_default"
-          @click="handleCreateGame"
-          v-if="!isWindowActiveJoinGame"
-        >
+      <div class="buttons" v-if="!store.player.gameId && !isWindowActiveJoinGame">
+        <button class="buttons_default" @click="handleCreateGame">
           CREATE GAME
         </button>
-        <div class="joinGameWindow" v-if="isWindowActiveJoinGame">
-          ENTER GAME ID
-          <input v-model="gameId" />
-          <button @click="handleJoinGame">JOIN</button>
-          <button @click="toggleJoinGame">BACK</button>
-        </div>
-        <button class="buttons_default" @click="toggleJoinGame" v-else>
+        <button class="buttons_default" @click="toggleJoinGame">
           JOIN GAME
         </button>
       </div>
-      <Lobby v-if="store.player.gameId !== ''" />
+      <div class="buttons" v-if="!store.player.gameId && isWindowActiveJoinGame">
+        <input class="buttons_default" v-model="gameId" />
+        <button class="buttons_default" @click="handleJoinGame">JOIN</button>
+        <button class="buttons_default" @click="toggleJoinGame">BACK</button>
+      </div>
+      <Lobby v-if="store.player.gameId" />
       <div class="player">
-        <span v-if="!store.isMobile">{{
-          store.player.gameSession?.players
-        }}</span>
+        <!-- <span v-if="!store.isMobile">{{ -->
+        <!--   store.player.gameSession?.players -->
+        <!-- }}</span> -->
         <ul class="list">
           Список игроков:
           <li v-for="(player, i) of store.players" :key="i">
             {{ player.name }} :
             <span style="color: green">{{ player.status }}</span>
-            :
-            <span style="color: red">{{ player.gameId }}</span>
+            <span style="color: red" v-if="player.gameId"> {{ player.gameId }}</span>
           </li>
         </ul>
       </div>
@@ -75,14 +69,14 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
   margin-top: 20px;
 }
 
-.joinGameWindow {
-  display: flex;
-  flex-direction: column;
-  // background-color: orange;
-  gap: 2px;
-  width: 80%;
-  height: 80%;
-}
+// .joinGameWindow {
+// display: flex;
+// flex-direction: column;
+// background-color: orange;
+// gap: 2px;
+// width: 80%;
+// height: 80%;
+// }
 
 .title {
   font-size: 48px;
@@ -107,6 +101,7 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
   // padding-top: 20px;
   // gap: 20px;
   height: 100px;
+
   &_default {
     height: 100%;
     width: 100%;

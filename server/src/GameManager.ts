@@ -34,7 +34,7 @@ export class GameManager {
 
     this.games.delete(gameSession.id);
 
-    const players = gameSession.getPlayers();
+    const players = gameSession.getPlayers().map();
 
     for (let player of players) {
       this.playerManager.setPlayerGameId(player, "");

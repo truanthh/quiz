@@ -3,7 +3,6 @@ import { PlayerManager } from "./PlayerManager.ts";
 import { GameManager } from "./GameManager.ts";
 import { GameSession } from "./GameSession.ts";
 import { AudioPlayerState, Track, Player } from "./types";
-import { v4 as uuidv4 } from "uuid";
 import { ServerEvent } from "../../shared/events.ts";
 
 export class SocketService {
@@ -11,7 +10,7 @@ export class SocketService {
     private io: Server,
     private playerManager: PlayerManager,
     private gameManager: GameManager,
-  ) {}
+  ) { }
 
   public initialize(): void {
     console.log("Initializing socket handlers...");
@@ -37,6 +36,10 @@ export class SocketService {
 
     socket.on("join-game", (gameId: string) => {
       this.handleJoinGame(socket, gameId);
+    });
+
+    socket.on("clear-slot", (id: number) => {
+      this.handleClearSlot(socket, id);
     });
 
     // Старт игры
@@ -124,6 +127,7 @@ export class SocketService {
       });
       // this.updateAllPlayersOnPlayerAction(socket);
       this.updatePlayer(reconnectedPlayer);
+      this.updateAllPlayersOnPlayerAction(socket);
     }
   }
 
@@ -163,6 +167,16 @@ export class SocketService {
     });
   }
 
+  private handleClearSlot(socket: Socket, id: number) {
+    const player = this.playerManager.getPlayerBySocketId(socket.id);
+    if (!player) return;
+
+    const gameSession = this.gameManager.getGameSessionById(player.gameId);
+    if (!gameSession) return;
+
+
+  }
+
   private handleJoinGame(socket: Socket, gameId: string) {
     const player = this.playerManager.getPlayerBySocketId(socket.id);
     if (!player) return;
@@ -190,6 +204,8 @@ export class SocketService {
     const player = this.playerManager.getPlayerBySocketId(socket.id);
     if (!player) return;
 
+    console.log(`player ${player.name} trying to cancel game`);
+
     const deletedGamesession = this.gameManager.deleteGame(player);
     if (!deletedGamesession) return;
 
@@ -214,36 +230,31 @@ export class SocketService {
     // });
   }
 
-  private handleSelectPrevPlayer() {}
-  private handleSelectNextPlayer() {}
-  private handleNextQuestion() {}
-  private handlePrevQuestion() {}
-  private handleAnswerCorrect(type: string) {}
-  private handleAnswerWrong(type: string) {}
-  private handleShowArtist() {}
-  private handleShowPoster() {}
-  private handleShowTrackName() {}
-  private handleShowScoreboard() {}
+  private handleSelectPrevPlayer() { }
+  private handleSelectNextPlayer() { }
+  private handleNextQuestion() { }
+  private handlePrevQuestion() { }
+  private handleAnswerCorrect(type: string) { }
+  private handleAnswerWrong(type: string) { }
+  private handleShowArtist() { }
+  private handleShowPoster() { }
+  private handleShowTrackName() { }
+  private handleShowScoreboard() { }
 
   private handleDisconnect(socket: Socket) {
     console.log(`Отключился: ${socket.id}`);
   }
 
   private handleLogin(socket: Socket, payload: any): void {
-    const newToken = uuidv4();
-    let user: any;
-
     if (!payload.userName) return;
-    user = this.playerManager.registerPlayer(
-      socket.id,
-      payload.userName,
-      newToken,
-    );
+
+    const user = this.playerManager.registerPlayer(socket.id, payload.userName);
 
     this.emitToSocket(socket.id, {
       type: "login-success",
-      data: { ...user, socketId: socket.id },
+      data: user,
     });
+
     this.updateAllPlayersOnPlayerAction(socket);
   }
 

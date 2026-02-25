@@ -1,15 +1,18 @@
-// modules/player/PlayerManager.ts
 import { Player } from "./types";
+import { v4 as uuidv4 } from "uuid";
+// modules/player/PlayerManager.ts
 // import { initAvatars } from "../utils/avatarManager.ts"
 import { GameSession } from "./GameSession.ts";
 
 export class PlayerManager {
   private players: Map<string, Player>;
-  private playerTokens: Map<string, string>;
+  private socketIdToPlayerId: Map<string, string>;
+  private tokenToPlayerId: Map<string, string>;
 
   constructor() {
     this.players = new Map();
-    this.playerTokens = new Map();
+    this.socketIdToPlayerId = new Map();
+    this.tokenToPlayerId = new Map();
   }
 
   public setPlayerStatus(player: Player, status: string) {
@@ -21,16 +24,30 @@ export class PlayerManager {
   }
 
   public getPlayerBySocketId(socketId: string): Player | undefined {
-    return this.players.get(socketId);
+    const playerId = this.socketIdToPlayerId.get(socketId);
+    return playerId ? this.players.get(playerId) : undefined;
   }
 
-  private getPlayerByToken(token: string): Player | undefined {
-    const socketId = this.playerTokens.get(token);
-    return socketId ? this.players.get(socketId) : undefined;
+  public getPlayerByToken(token: string): Player | undefined {
+    const playerId = this.tokenToPlayerId.get(token);
+    return playerId ? this.players.get(playerId) : undefined;
   }
 
-  registerPlayer(socketId: string, userName: string, token: string): Player {
+  // private getPlayerByToken(token: string): Player | undefined {
+  //   const socketId = this.playerTokens.get(token);
+  //   return socketId ? this.players.get(socketId) : undefined;
+  // }
+
+  // private getPlayerById(id: string): Player | undefined {
+  //
+  // }
+
+  public registerPlayer(socketId: string, userName: string): Player {
+    const id = `p_${Date.now()}_${Math.random().toString(36)}`;
+    const token = uuidv4();
+
     const player: Player = {
+      id,
       socketId,
       token,
       name: userName,
@@ -38,24 +55,29 @@ export class PlayerManager {
       gameId: "",
     };
 
-    this.players.set(socketId, player);
-    this.playerTokens.set(token, socketId);
+    this.players.set(id, player);
+    this.socketIdToPlayerId.set(socketId, id);
+    this.tokenToPlayerId.set(token, id);
 
     return player;
   }
 
-  reconnectPlayer(token: string, newSocketId: string): Player | null {
-    const oldSocketId = this.playerTokens.get(token);
-    if (!oldSocketId) return null;
+  public reconnectPlayer(token: string, newSocketId: string): Player | undefined {
+    const playerId = this.tokenToPlayerId.get(token);
+    if (!playerId) return undefined;
 
-    const player = this.players.get(oldSocketId);
-    if (!player) return null;
+    const player = this.players.get(playerId);
+    if (!player) return undefined;
 
-    // Обновляем socketId
-    this.players.delete(oldSocketId);
+    // const oldSocketId = player.socketId;
+    // if (!oldSocketId) return undefined;
+
+    if (player.socketId) {
+      this.socketIdToPlayerId.delete(player.socketId);
+    }
+
     player.socketId = newSocketId;
-    this.players.set(newSocketId, player);
-    this.playerTokens.set(token, newSocketId);
+    this.socketIdToPlayerId.set(newSocketId, playerId);
 
     return player;
   }
