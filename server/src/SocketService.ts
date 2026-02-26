@@ -5,6 +5,28 @@ import { GameSession } from "./GameSession.ts";
 import { AudioPlayerState, Track, Player } from "./types";
 import { ServerEvent } from "../../shared/events.ts";
 
+interface GameSessionClientData {
+  id: string;
+  status: string;
+  players: (Player | string | undefined)[];
+  createdBy: string;
+  leader: string;
+  screen: string;
+}
+
+function toClientData(gameSession: GameSession, playerManager: PlayerManager) {
+  const gameSessionClientData: GameSessionClientData = {
+    id: gameSession.id,
+    status: gameSession.status,
+    players: gameSession.getSlots().map(id => id ? playerManager.getPlayerById(id) : undefined),
+    leader: gameSession.getLeader(),
+    createdBy: gameSession.createdBy,
+    screen: gameSession.getScreen(),
+  }
+
+  return gameSessionClientData;
+}
+
 export class SocketService {
   constructor(
     private io: Server,
@@ -131,30 +153,38 @@ export class SocketService {
     }
   }
 
+
   private updatePlayer(player: Player): void {
+    const gameSession = this.gameManager.getGameSessionById(player.gameId);
+    if (!gameSession) return;
+
+    const gameSessionClientData = toClientData(gameSession, this.playerManager);
+
     this.emitToSocket(player.socketId, {
       type: "player-updated",
       data: {
         ...player,
-        gameSession: this.gameManager.getGameSessionById(player.gameId),
+        gameSession: gameSessionClientData,
       },
     });
   }
 
-  private updateGameSessionPlayers(gameSessionId: string): void {
-    const gameSession = this.gameManager.getGameSessionById(gameSessionId);
+  private updateGameSessionPlayers(gameSession: GameSession): void {
     if (!gameSession) return;
 
-    const players = gameSession.getPlayers().map(playerId => this.playerManager.getPlayerById(playerId));
+    const playerIds = gameSession.getPlayers();
 
-    for (let player of players) {
+    const gameSessionClientData = toClientData(gameSession, this.playerManager);
+
+    for (let id of playerIds) {
+      const player = this.playerManager.getPlayerById(id);
       if (!player) continue;
 
       this.emitToSocket(player.socketId, {
         type: "player-updated",
         data: {
           ...player,
-          gameSession: gameSession.status === "deleted" ? null : gameSession,
+          gameSession: gameSession.status === "deleted" ? null : gameSessionClientData,
         },
       });
     }
@@ -176,8 +206,6 @@ export class SocketService {
 
     const gameSession = this.gameManager.getGameSessionById(player.gameId);
     if (!gameSession) return;
-
-
   }
 
   private handleJoinGame(socket: Socket, gameId: string) {
@@ -187,7 +215,7 @@ export class SocketService {
     const gameSession = this.gameManager.joinGame(player.id, gameId);
     if (!gameSession) return;
 
-    this.updateGameSessionPlayers(gameSession.id);
+    this.updateGameSessionPlayers(gameSession);
     this.updateAllPlayersOnPlayerAction(socket);
   }
 
@@ -199,7 +227,7 @@ export class SocketService {
     if (!gameSession) return;
 
     // this.updateAllPlayersOnPlayerAction(socket);
-    this.updateGameSessionPlayers(gameSession.id);
+    this.updateGameSessionPlayers(gameSession);
     this.updateAllPlayersOnPlayerAction(socket);
   }
 
@@ -210,6 +238,7 @@ export class SocketService {
     console.log(`player ${player.name} trying to cancel game`);
 
     const deletedGamesession = this.gameManager.deleteGame(player.id);
+    console.log(deletedGamesession);
     if (!deletedGamesession) return;
 
     this.updateGameSessionPlayers(deletedGamesession);

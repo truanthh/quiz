@@ -17,12 +17,11 @@ export const mainStore = defineStore("mainStore", () => {
   const players = ref(false);
 
   // this player
-  // gamesession is here
   const player = ref({ isReady: false });
 
   // if player is this gamesession leader
   const isLeader = computed(() => {
-    return player.value.token === player.value.gameSession?.leader;
+    return player.value.id === player.value.gameSession?.leader;
   });
 
   // THIS DATA IS ONLY FOR DISPLAY

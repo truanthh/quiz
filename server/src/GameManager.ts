@@ -23,7 +23,7 @@ export class GameManager {
     return newGame;
   }
 
-  public deleteGame(playerId: string): string | undefined {
+  public deleteGame(playerId: string): GameSession | undefined {
     const player = this.playerManager.getPlayerById(playerId);
     if (!player || player.status === "online") return undefined;
 
@@ -31,7 +31,7 @@ export class GameManager {
     const gameSession = this.getGameSessionById(player.gameId);
 
     if (!gameSession) return undefined;
-    if (gameSession.getLeader() !== player.token) return undefined;
+    if (gameSession.getLeader() !== player.id) return undefined;
 
     this.games.delete(gameSession.id);
 
@@ -41,10 +41,9 @@ export class GameManager {
       if (!player) continue;
       this.playerManager.setPlayerGameId(player, "");
       this.playerManager.setPlayerStatus(player, "online");
-      console.log("lasjdkf");
     }
 
-    return gameSession.id;
+    return gameSession;
   }
 
   public joinGame(playerId: string, gameId: string): GameSession | null {

@@ -4,7 +4,7 @@ export class GameSession {
   public readonly id: string;
   public readonly createdBy: string;
   public readonly status: string;
-  private players: (string | null)[];
+  private players: (string | undefined)[];
   private leader: string;
   private screen: string;
   private questions: Question[];
@@ -14,7 +14,7 @@ export class GameSession {
   constructor(player: Player) {
     this.id = player.name;
     this.createdBy = player.id;
-    this.players = new Array(8).fill(null);
+    this.players = new Array(8).fill(undefined);
 
     this.leader = player.id;
     this.screen = player.id;
@@ -25,11 +25,19 @@ export class GameSession {
   }
 
   public getPlayers(): string[] {
-    return this.players.filter((p) => p !== null);
+    return this.players.filter((p) => p !== undefined);
+  }
+
+  public getSlots(): (string | undefined)[] {
+    return this.players;
   }
 
   public getLeader(): string {
     return this.leader;
+  }
+
+  public getScreen(): string {
+    return this.screen;
   }
 
   public addPlayer(playerId: string): boolean {
@@ -45,9 +53,23 @@ export class GameSession {
   public clearSlot(id: number): boolean {
     if (id >= this.players.length || id < 0) return false;
 
-    this.players[id] = null;
+    this.players[id] = undefined;
 
     return true
+  }
+
+  get clientData() {
+    return {
+      id: this.id,
+      createdBy: this.createdBy,
+      status: this.status,
+      players: this.players,
+      leader: this.leader,
+      screen: this.screen,
+      // questions: Question[],
+      // currentQuestionId: number,
+      // selectedPlayerId: number,
+    }
   }
 
   // public getCurrentQuestion(): Question | null {
