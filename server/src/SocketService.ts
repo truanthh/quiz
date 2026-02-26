@@ -141,12 +141,15 @@ export class SocketService {
     });
   }
 
-  private updateGameSessionPlayers(gameSession: GameSession): void {
+  private updateGameSessionPlayers(gameSessionId: string): void {
+    const gameSession = this.gameManager.getGameSessionById(gameSessionId);
     if (!gameSession) return;
 
-    const players = gameSession.getPlayers();
+    const players = gameSession.getPlayers().map(playerId => this.playerManager.getPlayerById(playerId));
 
     for (let player of players) {
+      if (!player) continue;
+
       this.emitToSocket(player.socketId, {
         type: "player-updated",
         data: {
@@ -163,7 +166,7 @@ export class SocketService {
 
     this.emitToAll({
       type: "players-updated",
-      data: this.playerManager.getAllPlayers(),
+      data: this.playerManager.getPlayers(),
     });
   }
 
@@ -181,10 +184,10 @@ export class SocketService {
     const player = this.playerManager.getPlayerBySocketId(socket.id);
     if (!player) return;
 
-    const gameSession = this.gameManager.joinGame(player, gameId);
+    const gameSession = this.gameManager.joinGame(player.id, gameId);
     if (!gameSession) return;
 
-    this.updateGameSessionPlayers(gameSession);
+    this.updateGameSessionPlayers(gameSession.id);
     this.updateAllPlayersOnPlayerAction(socket);
   }
 
@@ -192,11 +195,11 @@ export class SocketService {
     const player = this.playerManager.getPlayerBySocketId(socket.id);
     if (!player) return;
 
-    let gameSession = this.gameManager.createGame(player);
+    let gameSession = this.gameManager.createGame(player.id);
     if (!gameSession) return;
 
     // this.updateAllPlayersOnPlayerAction(socket);
-    this.updateGameSessionPlayers(gameSession);
+    this.updateGameSessionPlayers(gameSession.id);
     this.updateAllPlayersOnPlayerAction(socket);
   }
 
@@ -206,7 +209,7 @@ export class SocketService {
 
     console.log(`player ${player.name} trying to cancel game`);
 
-    const deletedGamesession = this.gameManager.deleteGame(player);
+    const deletedGamesession = this.gameManager.deleteGame(player.id);
     if (!deletedGamesession) return;
 
     this.updateGameSessionPlayers(deletedGamesession);

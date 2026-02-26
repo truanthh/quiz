@@ -6,12 +6,12 @@ import { GameSession } from "./GameSession.ts";
 
 export class PlayerManager {
   private players: Map<string, Player>;
-  private socketIdToPlayerId: Map<string, string>;
+  private socketToPlayerId: Map<string, string>;
   private tokenToPlayerId: Map<string, string>;
 
   constructor() {
     this.players = new Map();
-    this.socketIdToPlayerId = new Map();
+    this.socketToPlayerId = new Map();
     this.tokenToPlayerId = new Map();
   }
 
@@ -23,8 +23,12 @@ export class PlayerManager {
     player.gameId = gameId;
   }
 
+  public getPlayerById(playerId: string): Player | undefined {
+    return this.players.get(playerId);
+  }
+
   public getPlayerBySocketId(socketId: string): Player | undefined {
-    const playerId = this.socketIdToPlayerId.get(socketId);
+    const playerId = this.socketToPlayerId.get(socketId);
     return playerId ? this.players.get(playerId) : undefined;
   }
 
@@ -56,7 +60,7 @@ export class PlayerManager {
     };
 
     this.players.set(id, player);
-    this.socketIdToPlayerId.set(socketId, id);
+    this.socketToPlayerId.set(socketId, id);
     this.tokenToPlayerId.set(token, id);
 
     return player;
@@ -73,26 +77,27 @@ export class PlayerManager {
     // if (!oldSocketId) return undefined;
 
     if (player.socketId) {
-      this.socketIdToPlayerId.delete(player.socketId);
+      this.socketToPlayerId.delete(player.socketId);
     }
 
     player.socketId = newSocketId;
-    this.socketIdToPlayerId.set(newSocketId, playerId);
+    this.socketToPlayerId.set(newSocketId, playerId);
 
     return player;
   }
 
-  removePlayer(socketId: string): boolean {
-    const player = this.players.get(socketId);
+  public removePlayer(socketId: string): boolean {
+    const player = this.getPlayerBySocketId(socketId);
     if (!player) return false;
 
-    this.playerTokens.delete(player.token);
+    this.tokenToPlayerId.delete(player.token);
+    this.socketToPlayerId.delete(socketId);
     this.players.delete(socketId);
 
     return true;
   }
 
-  getAllPlayers(): Player[] {
+  public getPlayers(): Player[] {
     return Array.from(this.players.values());
   }
 

@@ -11,42 +11,46 @@ export class GameManager {
     this.playerManager = playerManager;
   }
 
-  public createGame(player: Player | undefined): GameSession | undefined {
+  public createGame(playerId: string): GameSession | undefined {
+    const player = this.playerManager.getPlayerById(playerId);
     if (!player || player.status === "in-game") return;
 
     const newGame = new GameSession(player);
     this.games.set(newGame.id, newGame);
-
-    this.joinGame(player, newGame.id);
+    this.joinGame(playerId, newGame.id);
 
     console.log(`player: ${player.name} hosted game!`);
     return newGame;
   }
 
-  public deleteGame(player: Player | undefined): GameSession | null {
-    if (!player || player.status === "online") return null;
+  public deleteGame(playerId: string): string | undefined {
+    const player = this.playerManager.getPlayerById(playerId);
+    if (!player || player.status === "online") return undefined;
 
     // making sure gameSession exists and player is the leader
     const gameSession = this.getGameSessionById(player.gameId);
 
-    if (!gameSession) return null;
-    if (gameSession.getLeader() !== player.token) return null;
+    if (!gameSession) return undefined;
+    if (gameSession.getLeader() !== player.token) return undefined;
 
     this.games.delete(gameSession.id);
 
-    const players = gameSession.getPlayers().map();
+    const players = gameSession.getPlayers().map(playerId => this.playerManager.getPlayerById(playerId));
 
     for (let player of players) {
+      if (!player) continue;
       this.playerManager.setPlayerGameId(player, "");
       this.playerManager.setPlayerStatus(player, "online");
       console.log("lasjdkf");
     }
 
-    return gameSession;
+    return gameSession.id;
   }
 
-  public joinGame(player: Player, gameId: string): GameSession | null {
+  public joinGame(playerId: string, gameId: string): GameSession | null {
     const gameSession = this.getGameSessionById(gameId);
+    const player = this.playerManager.getPlayerById(playerId);
+
     if (
       !gameSession ||
       gameSession.status !== "lobby" ||
@@ -57,7 +61,7 @@ export class GameManager {
 
     console.log(`player: ${player.name} is trying to join ${gameId}`);
 
-    if (gameSession.addPlayer(player)) {
+    if (gameSession.addPlayer(playerId)) {
       console.log(`player: ${player.name} joined ${gameId}`);
       this.playerManager.setPlayerGameId(player, gameId);
       this.playerManager.setPlayerStatus(player, "in-game");

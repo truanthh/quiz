@@ -13,18 +13,18 @@ export class GameSession {
 
   constructor(player: Player) {
     this.id = player.name;
-    this.createdBy = player.token;
+    this.createdBy = player.id;
     this.players = new Array(8).fill(null);
 
-    this.leader = player.token;
-    this.screen = player.token;
+    this.leader = player.id;
+    this.screen = player.id;
     this.questions = [];
     this.currentQuestionId = 0;
     this.selectedPlayerId = 0;
     this.status = "lobby";
   }
 
-  public getPlayersId(): string[] {
+  public getPlayers(): string[] {
     return this.players.filter((p) => p !== null);
   }
 
@@ -32,12 +32,12 @@ export class GameSession {
     return this.leader;
   }
 
-  public addPlayer(playerToken: string): boolean {
+  public addPlayer(playerId: string): boolean {
     const emptySlotIndex = this.players.findIndex((el) => !el);
 
     if (emptySlotIndex === -1) return false;
 
-    this.players[emptySlotIndex] = playerToken;
+    this.players[emptySlotIndex] = playerId;
 
     return true;
   }
