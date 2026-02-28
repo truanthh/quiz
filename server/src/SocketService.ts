@@ -65,8 +65,8 @@ export class SocketService {
     });
 
     // Старт игры
-    socket.on("start-game", (questions: Question[]) => {
-      this.handleStartGame(socket, questions);
+    socket.on("start-game", () => {
+      this.handleStartGame(socket);
     });
 
     // Изменение состояния аудиоплеера
@@ -169,6 +169,27 @@ export class SocketService {
     });
   }
 
+  private updateDeletedGameSessionPlayers(gameSession: GameSession): void {
+    if (!gameSession) return;
+
+    const playerIds = gameSession.getPlayers();
+
+    const gameSessionClientData = toClientData(gameSession, this.playerManager);
+
+    for (let id of playerIds) {
+      const player = this.playerManager.getPlayerById(id);
+      if (!player) continue;
+
+      this.emitToSocket(player.socketId, {
+        type: "player-updated",
+        data: {
+          ...player,
+          gameSession: gameSession.getStatus() === "canceled" ? null : gameSessionClientData,
+        },
+      });
+    }
+  }
+
   private updateGameSessionPlayers(gameSessionId: string): void {
     const gameSession = this.gameManager.getGameSessionById(gameSessionId);
     if (!gameSession) return;
@@ -242,7 +263,7 @@ export class SocketService {
     console.log(deletedGamesession);
     if (!deletedGamesession) return;
 
-    this.updateGameSessionPlayers(deletedGamesession.id);
+    this.updateDeletedGameSessionPlayers(deletedGamesession);
     this.updateAllPlayersOnPlayerAction(socket);
   }
 
@@ -291,11 +312,11 @@ export class SocketService {
     this.updateAllPlayersOnPlayerAction(socket);
   }
 
-  private handleStartGame(socket: Socket, questions: Question[]): void {
+  private handleStartGame(socket: Socket): void {
     const player = this.playerManager.getPlayerBySocketId(socket.id);
     if (!player) return;
 
-    const hasStarted = this.gameManager.startGame(player.gameId, questions);
+    const hasStarted = this.gameManager.startGame(player.gameId);
 
     if (hasStarted) {
       this.updateGameSessionPlayers(player.gameId);
@@ -305,6 +326,12 @@ export class SocketService {
 
     return
   }
+
+  // private handleMakeAdmin(: string, slotId: number): void {
+  //   this.playerManager.makeAdmin(gameId, slotId);
+  //
+  //   return
+  // }
 
   private handleAudioPlayerChange(state: AudioPlayerState): void {
     // this.gameManager.updateAudioPlayerState(state);

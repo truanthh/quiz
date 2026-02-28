@@ -4,8 +4,8 @@ import { useRouter } from "vue-router";
 import { mainStore } from "../stores/mainStore";
 
 const router = useRouter();
-const store = mainStore();
 
+const store = mainStore();
 const userName = ref("");
 const role = ref("player");
 

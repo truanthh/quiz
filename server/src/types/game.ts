@@ -1,5 +1,5 @@
 // types/game.ts
-export type UserRole = "admin" | "screen" | "player";
+export type PlayerRole = "admin" | "screen" | "player";
 
 export type QuestionState =
   | "init"
@@ -43,7 +43,7 @@ export type Player = {
   name: string;
   status: PlayerStatus;
   gameId: string;
-  role: UserRole;
+  role: PlayerRole;
 };
 
 export interface Admin {

@@ -1,4 +1,5 @@
 import { Question, Track, Player, GameStatus } from "./types/game.ts";
+import trackData from "./tracks.json";
 
 export class GameSession {
   public readonly id: string;
@@ -8,7 +9,7 @@ export class GameSession {
   private leader: string;
   private screen: string;
   private admin: string;
-  private questions: Question[];
+  private questions: any;
   private currentQuestionId: number;
   private selectedPlayerId: number;
 
@@ -16,11 +17,12 @@ export class GameSession {
     this.id = player.name;
     this.createdBy = player.id;
     this.players = new Array(8).fill(undefined);
+    // blak
 
     this.leader = player.id;
     this.screen = player.id;
     this.admin = player.id;
-    this.questions = [];
+    this.questions = trackData.tracks;
     this.currentQuestionId = 0;
     this.selectedPlayerId = 0;
     this.status = "lobby";
@@ -28,6 +30,8 @@ export class GameSession {
 
   public loadQuestions(data: Question[]): boolean {
     if (!data || data.length === 0) return false;
+
+    this.questions = [...data];
 
     return true;
   }
@@ -56,17 +60,15 @@ export class GameSession {
     return this.screen;
   }
 
-  public addPlayer(playerId: string): boolean {
+  public addPlayer(playerId: string): number {
     const emptySlotIndex = this.players.findIndex((el) => !el);
 
-    if (emptySlotIndex === -1) return false;
+    if (emptySlotIndex === -1) return -1;
 
     this.players[emptySlotIndex] = playerId;
 
-    return true;
+    return emptySlotIndex;
   }
-
-  public setSlotRole(slotId:,)
 
   public clearSlot(id: number): boolean {
     if (id >= this.players.length || id < 0) return false;

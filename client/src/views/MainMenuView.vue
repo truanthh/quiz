@@ -2,10 +2,13 @@
 import { ref, onMounted } from "vue";
 import { mainStore } from "../stores/mainStore";
 import Lobby from "../components/Lobby.vue";
+import { useRouter } from "vue-router";
+
 const isWindowActiveJoinGame = ref(false);
 const gameId = ref("");
 
 const store = mainStore();
+const router = useRouter();
 
 function toggleJoinGame() {
   isWindowActiveJoinGame.value = !isWindowActiveJoinGame.value;
@@ -59,7 +62,7 @@ onMounted(() => {
           <li v-for="(player, i) of store.players" :key="i">
             {{ player.name }} :
             <span style="color: green">{{ player.status }}</span>
-            <span style="color: red" v-if="player.gameId"> {{ player.gameId }}</span>
+            <span style="color: red" v-if="player.gameId"> {{ ` ${player.gameId}` }}</span>
           </li>
         </ul>
       </div>

@@ -1,4 +1,4 @@
-import { Player, PlayerStatus } from "./types";
+import { Player, PlayerStatus, PlayerRole } from "./types";
 import { v4 as uuidv4 } from "uuid";
 // modules/player/PlayerManager.ts
 // import { initAvatars } from "../utils/avatarManager.ts"
@@ -19,6 +19,10 @@ export class PlayerManager {
     player.status = status;
   }
 
+  public setPlayerRole(player: Player, role: PlayerRole) {
+    player.role = role;
+  }
+
   public setPlayerGameId(player: Player, gameId: string) {
     player.gameId = gameId;
   }
@@ -36,15 +40,6 @@ export class PlayerManager {
     const playerId = this.tokenToPlayerId.get(token);
     return playerId ? this.players.get(playerId) : undefined;
   }
-
-  // private getPlayerByToken(token: string): Player | undefined {
-  //   const socketId = this.playerTokens.get(token);
-  //   return socketId ? this.players.get(socketId) : undefined;
-  // }
-
-  // private getPlayerById(id: string): Player | undefined {
-  //
-  // }
 
   public registerPlayer(socketId: string, userName: string): Player {
     const id = `p_${Date.now()}_${Math.random().toString(36)}`;

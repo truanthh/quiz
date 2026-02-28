@@ -11,16 +11,16 @@ export class GameManager {
     this.playerManager = playerManager;
   }
 
-  public startGame(gameSessionId: string, questions: Question[]): boolean {
+  public startGame(gameSessionId: string): boolean {
     const gameSession = this.getGameSessionById(gameSessionId);
     if (!gameSession || gameSession.getStatus() !== "lobby") return false;
 
-    if (gameSession.loadQuestions(questions)) {
-      gameSession.setStatus("ongoing");
-      return true;
-    };
+    // if (gameSession.loadQuestions(questions)) {
+    gameSession.setStatus("ongoing");
+    return true;
+    // };
 
-    return false;
+    // return false;
   }
 
   public createGame(playerId: string): GameSession | undefined {
@@ -73,8 +73,16 @@ export class GameManager {
 
     console.log(`player: ${player.name} is trying to join ${gameId}`);
 
-    if (gameSession.addPlayer(playerId)) {
+    const slotNumber = gameSession.addPlayer(playerId);
+
+    if (slotNumber !== -1) {
       console.log(`player: ${player.name} joined ${gameId}`);
+      if (slotNumber === 0) {
+        this.playerManager.setPlayerRole(player, "screen");
+      }
+      if (slotNumber === 1) {
+        this.playerManager.setPlayerRole(player, "admin");
+      }
       this.playerManager.setPlayerGameId(player, gameId);
       this.playerManager.setPlayerStatus(player, "lobby");
       return gameSession;
