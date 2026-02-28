@@ -33,7 +33,7 @@ function handleClearSlot(id) {
 
 <template>
   <div class="lobby__container">
-    <span> {{ store.player }} </span>
+    <!-- <span> {{ store.player }} </span> -->
     <div class="lobby__slot" v-for="(player, id) of store.player?.gameSession?.players" :key="player?.name">
       {{ player ? player.name : "open" }}
       <button @click="handleClearSlot(id)" v-if="

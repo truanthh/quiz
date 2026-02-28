@@ -1,17 +1,23 @@
 // types/game.ts
 export type UserRole = "admin" | "screen" | "player";
+
 export type QuestionState =
   | "init"
   | "open"
   | "countdown"
   | "pending"
   | "closed";
+
 export type SoundName =
   | "countdown"
   | "timeout"
   | "success"
   | "failure"
   | "next";
+
+export type GameStatus = "lobby" | "ongoing" | "finished" | "canceled";
+
+export type PlayerStatus = "lobby" | "in-game" | "online" | "offline";
 
 export interface Track {
   artist: string;
@@ -35,8 +41,9 @@ export type Player = {
   socketId: string;
   token: string;
   name: string;
-  status: string;
+  status: PlayerStatus;
   gameId: string;
+  role: UserRole;
 };
 
 export interface Admin {

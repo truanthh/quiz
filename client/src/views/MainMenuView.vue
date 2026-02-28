@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { mainStore } from "../stores/mainStore";
 import Lobby from "../components/Lobby.vue";
 const isWindowActiveJoinGame = ref(false);
@@ -20,6 +20,12 @@ function handleJoinGame() {
 }
 
 let slots = [0, 1, 2, 3, 4, 5, 6, 7];
+
+onMounted(() => {
+  store.socket.on("game-started", () => {
+    router.push(`/${store.player.role}`)
+  });
+})
 </script>
 
 <template>
@@ -29,7 +35,7 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
       <!-- {{ store.player.gameId }} -->
     </div>
     <div class="mainMenu">
-      <div class="bar">{{ store.player.name }}</div>
+      <div class="bar" :style="{ 'font-size': '20px', 'font-weight': 'bold' }">{{ store.player.name }}</div>
       <div class="buttons" v-if="!store.player.gameId && !isWindowActiveJoinGame">
         <button class="buttons_default" @click="handleCreateGame">
           CREATE GAME

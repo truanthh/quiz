@@ -1,6 +1,6 @@
 import { PlayerManager } from "./PlayerManager.ts";
-import { Player } from "./types/index.ts";
 import { GameSession } from "./GameSession.ts";
+import { Player, Question } from "./types/index.ts";
 
 export class GameManager {
   private games: Map<string, GameSession>;
@@ -9,6 +9,18 @@ export class GameManager {
   constructor(playerManager: PlayerManager) {
     this.games = new Map();
     this.playerManager = playerManager;
+  }
+
+  public startGame(gameSessionId: string, questions: Question[]): boolean {
+    const gameSession = this.getGameSessionById(gameSessionId);
+    if (!gameSession || gameSession.getStatus() !== "lobby") return false;
+
+    if (gameSession.loadQuestions(questions)) {
+      gameSession.setStatus("ongoing");
+      return true;
+    };
+
+    return false;
   }
 
   public createGame(playerId: string): GameSession | undefined {
@@ -46,13 +58,14 @@ export class GameManager {
     return gameSession;
   }
 
+  // lobby only
   public joinGame(playerId: string, gameId: string): GameSession | null {
     const gameSession = this.getGameSessionById(gameId);
     const player = this.playerManager.getPlayerById(playerId);
 
     if (
       !gameSession ||
-      gameSession.status !== "lobby" ||
+      gameSession.getStatus() !== "lobby" ||
       !player ||
       player.status === "in-game"
     )
@@ -63,7 +76,7 @@ export class GameManager {
     if (gameSession.addPlayer(playerId)) {
       console.log(`player: ${player.name} joined ${gameId}`);
       this.playerManager.setPlayerGameId(player, gameId);
-      this.playerManager.setPlayerStatus(player, "in-game");
+      this.playerManager.setPlayerStatus(player, "lobby");
       return gameSession;
     }
 

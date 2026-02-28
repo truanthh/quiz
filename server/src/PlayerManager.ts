@@ -1,4 +1,4 @@
-import { Player } from "./types";
+import { Player, PlayerStatus } from "./types";
 import { v4 as uuidv4 } from "uuid";
 // modules/player/PlayerManager.ts
 // import { initAvatars } from "../utils/avatarManager.ts"
@@ -15,7 +15,7 @@ export class PlayerManager {
     this.tokenToPlayerId = new Map();
   }
 
-  public setPlayerStatus(player: Player, status: string) {
+  public setPlayerStatus(player: Player, status: PlayerStatus) {
     player.status = status;
   }
 
@@ -57,6 +57,7 @@ export class PlayerManager {
       name: userName,
       status: "online",
       gameId: "",
+      role: "player",
     };
 
     this.players.set(id, player);

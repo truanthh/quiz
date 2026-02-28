@@ -31,8 +31,8 @@ export type ServerEvent =
   | { type: "players-updated"; data: any }
   | { type: "player-updated"; data: any }
   | { type: "player-gamesession-updated"; data: GameSession | null }
-  | { type: "play-track" };
-
+  | { type: "play-track" }
+  | { type: "game-started" }
 // | { type: "server:connection-established"; data: any }
 // | { type: "login-successful"; data: User }
 // | { type: "update-client-user-state"; data: Partial<Player> }

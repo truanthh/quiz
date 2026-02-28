@@ -2,7 +2,7 @@ import { Server, Socket } from "socket.io";
 import { PlayerManager } from "./PlayerManager.ts";
 import { GameManager } from "./GameManager.ts";
 import { GameSession } from "./GameSession.ts";
-import { AudioPlayerState, Track, Player } from "./types";
+import { Question, AudioPlayerState, Track, Player } from "./types";
 import { ServerEvent } from "../../shared/events.ts";
 
 interface GameSessionClientData {
@@ -17,7 +17,7 @@ interface GameSessionClientData {
 function toClientData(gameSession: GameSession, playerManager: PlayerManager) {
   const gameSessionClientData: GameSessionClientData = {
     id: gameSession.id,
-    status: gameSession.status,
+    status: gameSession.getStatus(),
     players: gameSession.getSlots().map(id => id ? playerManager.getPlayerById(id) : undefined),
     leader: gameSession.getLeader(),
     createdBy: gameSession.createdBy,
@@ -65,8 +65,8 @@ export class SocketService {
     });
 
     // Старт игры
-    socket.on("start-game", (tracks: Track[]) => {
-      // this.handleStartGame(socket, tracks);
+    socket.on("start-game", (questions: Question[]) => {
+      this.handleStartGame(socket, questions);
     });
 
     // Изменение состояния аудиоплеера
@@ -169,7 +169,8 @@ export class SocketService {
     });
   }
 
-  private updateGameSessionPlayers(gameSession: GameSession): void {
+  private updateGameSessionPlayers(gameSessionId: string): void {
+    const gameSession = this.gameManager.getGameSessionById(gameSessionId);
     if (!gameSession) return;
 
     const playerIds = gameSession.getPlayers();
@@ -184,7 +185,7 @@ export class SocketService {
         type: "player-updated",
         data: {
           ...player,
-          gameSession: gameSession.status === "deleted" ? null : gameSessionClientData,
+          gameSession: gameSession.getStatus() === "canceled" ? null : gameSessionClientData,
         },
       });
     }
@@ -215,7 +216,7 @@ export class SocketService {
     const gameSession = this.gameManager.joinGame(player.id, gameId);
     if (!gameSession) return;
 
-    this.updateGameSessionPlayers(gameSession);
+    this.updateGameSessionPlayers(gameSession.id);
     this.updateAllPlayersOnPlayerAction(socket);
   }
 
@@ -227,7 +228,7 @@ export class SocketService {
     if (!gameSession) return;
 
     // this.updateAllPlayersOnPlayerAction(socket);
-    this.updateGameSessionPlayers(gameSession);
+    this.updateGameSessionPlayers(gameSession.id);
     this.updateAllPlayersOnPlayerAction(socket);
   }
 
@@ -241,7 +242,7 @@ export class SocketService {
     console.log(deletedGamesession);
     if (!deletedGamesession) return;
 
-    this.updateGameSessionPlayers(deletedGamesession);
+    this.updateGameSessionPlayers(deletedGamesession.id);
     this.updateAllPlayersOnPlayerAction(socket);
   }
 
@@ -290,21 +291,20 @@ export class SocketService {
     this.updateAllPlayersOnPlayerAction(socket);
   }
 
-  // private handleStartGame(socket: Socket, tracks: Track[]): void {
-  //   try {
-  //     const player = this.playerManager.getPlayerBySocketId(socket.id);
-  //     if (!player) {
-  //       return;
-  //     }
-  //
-  //     this.gameManager.createGame(player);
-  //     this.updateAllPlayersOnPlayerAction();
-  //   } catch (error) {
-  //     console.error("Error starting game:", error);
-  //     // this.emitToScreen({ type: "error", data: "Failed to start game!" });
-  //     // socket.emit("error", { message: "Failed to start game" });
-  //   }
-  // }
+  private handleStartGame(socket: Socket, questions: Question[]): void {
+    const player = this.playerManager.getPlayerBySocketId(socket.id);
+    if (!player) return;
+
+    const hasStarted = this.gameManager.startGame(player.gameId, questions);
+
+    if (hasStarted) {
+      this.updateGameSessionPlayers(player.gameId);
+      this.updateAllPlayersOnPlayerAction(socket);
+      this.emitToGameSession(player.gameId, { type: "game-started" });
+    }
+
+    return
+  }
 
   private handleAudioPlayerChange(state: AudioPlayerState): void {
     // this.gameManager.updateAudioPlayerState(state);
@@ -354,6 +354,20 @@ export class SocketService {
 
   private playSound(name: string) {
     // this.emitToScreen({ type: "play-sound", data: name });
+  }
+
+  private emitToGameSession(gameSessionId: string, event: ServerEvent): void {
+    const gameSession = this.gameManager.getGameSessionById(gameSessionId);
+    if (!gameSession) return;
+
+    const playerIds = gameSession.getPlayers();
+
+    for (let id of playerIds) {
+      const player = this.playerManager.getPlayerById(id);
+      if (!player) continue;
+
+      this.emitToSocket(player.socketId, event);
+    }
   }
 
   private emitToSocket(socketId: string, event: ServerEvent): void {

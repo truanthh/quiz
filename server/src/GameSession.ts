@@ -1,12 +1,13 @@
-import { Question, Track, Player } from "./types/game.ts";
+import { Question, Track, Player, GameStatus } from "./types/game.ts";
 
 export class GameSession {
   public readonly id: string;
   public readonly createdBy: string;
-  public readonly status: string;
+  private status: GameStatus;
   private players: (string | undefined)[];
   private leader: string;
   private screen: string;
+  private admin: string;
   private questions: Question[];
   private currentQuestionId: number;
   private selectedPlayerId: number;
@@ -18,10 +19,25 @@ export class GameSession {
 
     this.leader = player.id;
     this.screen = player.id;
+    this.admin = player.id;
     this.questions = [];
     this.currentQuestionId = 0;
     this.selectedPlayerId = 0;
     this.status = "lobby";
+  }
+
+  public loadQuestions(data: Question[]): boolean {
+    if (!data || data.length === 0) return false;
+
+    return true;
+  }
+
+  public getStatus(): GameStatus {
+    return this.status;
+  }
+
+  public setStatus(value: GameStatus): void {
+    this.status = value;
   }
 
   public getPlayers(): string[] {
@@ -50,6 +66,8 @@ export class GameSession {
     return true;
   }
 
+  public setSlotRole(slotId:,)
+
   public clearSlot(id: number): boolean {
     if (id >= this.players.length || id < 0) return false;
 
@@ -58,19 +76,20 @@ export class GameSession {
     return true
   }
 
-  get clientData() {
-    return {
-      id: this.id,
-      createdBy: this.createdBy,
-      status: this.status,
-      players: this.players,
-      leader: this.leader,
-      screen: this.screen,
-      // questions: Question[],
-      // currentQuestionId: number,
-      // selectedPlayerId: number,
-    }
-  }
+
+  // get clientData() {
+  //   return {
+  //     id: this.id,
+  //     createdBy: this.createdBy,
+  //     status: this.status,
+  //     players: this.players,
+  //     leader: this.leader,
+  //     screen: this.screen,
+  //     // questions: Question[],
+  //     // currentQuestionId: number,
+  //     // selectedPlayerId: number,
+  //   }
+  // }
 
   // public getCurrentQuestion(): Question | null {
   //   return this.questions[this.currentQuestionId];
