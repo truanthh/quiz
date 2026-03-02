@@ -13,7 +13,6 @@ import CountdownPopup from "@/components/CountdownPopup.vue";
 import { getSound } from "@/utils/sounds.js";
 
 const store = mainStore();
-const { gameState, players } = storeToRefs(store);
 
 // initializing audioPlayer
 const audioPlayer = useAudioPlayerStore();
@@ -36,77 +35,61 @@ function toggleDebugPanel() {
 const { currentTimeSeconds, isPlaying, currentTrackIndex } =
   storeToRefs(audioPlayer);
 
-watch(
-  () => gameState.value.currentQuestionId,
-  (newId) => {
-    audioPlayer.changeTrack(newId);
-  },
-  // { deep: true },
-);
-
-watch(
-  [currentTimeSeconds, isPlaying],
-  () => {
-    // sending current track time to server
-    // and isplaying state
-    store.socket.emit("audioplayer-state-change", {
-      currentTimeSeconds: currentTimeSeconds.value,
-      isPlaying: isPlaying.value,
-      // currentTrackIndex: currentTrackIndex.value,
-    });
-  },
-  // { deep: true },
-);
-
-// const questionId = computed(() => {
-//   return gameState.currentTrackIndex;
-// });
-
-function startGame() {
-  store.socket.emit("start-game", tracksData.tracks);
-}
+// watch(
+//   [currentTimeSeconds, isPlaying],
+//   () => {
+//     // sending current track time to server
+//     // and isplaying state
+//     store.socket.emit("audioplayer-state-change", {
+//       currentTimeSeconds: currentTimeSeconds.value,
+//       isPlaying: isPlaying.value,
+//       // currentTrackIndex: currentTrackIndex.value,
+//     });
+//   },
+//   // { deep: true },
+// );
 
 onMounted(() => {
-  store.socket.on("play-sound-countdown", () => {
-    playSound(getSound("countdown"));
-  });
-
-  store.socket.on("play-sound-timeout", () => {
-    console.log(getSound("timeout"));
-    playSound(getSound("timeout"));
-  });
-
-  store.socket.on("play-sound-success", () => {
-    console.log(getSound("success"));
-    playSound(getSound("success"));
-  });
-
-  store.socket.on("play-sound-failure", () => {
-    playSound(getSound("failure"));
-  });
-
-  store.socket.on("play-sound-next", () => {
-    playSound(getSound("next"));
-  });
-
-  store.socket.on("stop-sounds", () => {
-    stopSounds();
-  });
-
-  store.socket.on("play-track", (time) => {
-    audioPlayer.play(time);
-  });
-
-  store.socket.on("pause-track", audioPlayer.pause);
-
-  store.socket.on("countdown", (seconds) => {
-    countdown.value = seconds;
-  });
-
-  store.socket.on("show-scoreboard", () => {
-    isScoreboardShown.value = !isScoreboardShown.value;
-  });
-
+  // store.socket.on("play-sound-countdown", () => {
+  //   playSound(getSound("countdown"));
+  // });
+  //
+  // store.socket.on("play-sound-timeout", () => {
+  //   console.log(getSound("timeout"));
+  //   playSound(getSound("timeout"));
+  // });
+  //
+  // store.socket.on("play-sound-success", () => {
+  //   console.log(getSound("success"));
+  //   playSound(getSound("success"));
+  // });
+  //
+  // store.socket.on("play-sound-failure", () => {
+  //   playSound(getSound("failure"));
+  // });
+  //
+  // store.socket.on("play-sound-next", () => {
+  //   playSound(getSound("next"));
+  // });
+  //
+  // store.socket.on("stop-sounds", () => {
+  //   stopSounds();
+  // });
+  //
+  // store.socket.on("play-track", (time) => {
+  //   audioPlayer.play(time);
+  // });
+  //
+  // store.socket.on("pause-track", audioPlayer.pause);
+  //
+  // store.socket.on("countdown", (seconds) => {
+  //   countdown.value = seconds;
+  // });
+  //
+  // store.socket.on("show-scoreboard", () => {
+  //   isScoreboardShown.value = !isScoreboardShown.value;
+  // });
+  //
   // store.socket.on("show-trackname", () => {
   //   isTrackNameShown.value = true;
   // });
@@ -134,24 +117,24 @@ onUnmounted(() => {
   );
 });
 
-const audioSecondary = ref(null);
-audioSecondary.value = new Audio();
-const bla = ref(false);
-
-audioSecondary.value.onended = () => {
-  bla.value = false;
-};
-
-function playSound(src) {
-  audioSecondary.value.src = src;
-  audioSecondary.value.play();
-  bla.value = true;
-}
-
-function stopSounds() {
-  audioSecondary.value.pause();
-  bla.value = false;
-}
+// const audioSecondary = ref(null);
+// audioSecondary.value = new Audio();
+// const bla = ref(false);
+//
+// audioSecondary.value.onended = () => {
+//   bla.value = false;
+// };
+//
+// function playSound(src) {
+//   audioSecondary.value.src = src;
+//   audioSecondary.value.play();
+//   bla.value = true;
+// }
+//
+// function stopSounds() {
+//   audioSecondary.value.pause();
+//   bla.value = false;
+// }
 </script>
 
 <template>
@@ -162,18 +145,8 @@ function stopSounds() {
   <!-- </div> -->
   <div class="screenView__container">
     <!-- <button @click="playSound(countdownSound)">playsound</button> -->
-    <button
-      @click="startGame"
-      v-if="!gameState.hasStarted"
-      class="startGameButton"
-    >
-      START GAME
-    </button>
-    <h1 v-if="!gameState.hasStarted" :style="{ color: 'black' }">
-      "192.168.50.222:3000"
-    </h1>
     <!-- AUDIO AND SCOREBOARD -->
-    <Leaderboard :items="gameState.players" :isShown="isScoreboardShown" />
+    <!-- <Leaderboard :items="gameState.players" :isShown="isScoreboardShown" /> -->
     <audio
       :src="audioPlayer.currentTrack.src"
       ref="audioPlayerElement"
@@ -181,16 +154,16 @@ function stopSounds() {
     ></audio>
     <!-- ---------------------- -->
     <div class="screenView">
-      <MainPanel class="bla" :state="gameState" :countdown />
-      <ItemsBar
-        :items="
-          gameState.playersReadyToAnswer.slice(
-            gameState.selectedPlayerId,
-            gameState.selectedPlayerId + 3,
-          )
-        "
-      />
-      <PlayerBoardBars :items="gameState.players" v-if="gameState.hasStarted" />
+      <!-- <MainPanel class="bla" :state="gameState" :countdown /> -->
+      <!-- <ItemsBar -->
+      <!--   :items=" -->
+      <!--     gameState.playersReadyToAnswer.slice( -->
+      <!--       gameState.selectedPlayerId, -->
+      <!--       gameState.selectedPlayerId + 3, -->
+      <!--     ) -->
+      <!--   " -->
+      <!-- /> -->
+      <!-- <PlayerBoardBars :items="gameState.players" v-if="gameState.hasStarted" /> -->
       <!-- <PlayerBoardChess :items="players" v-else class="pregame__players" /> -->
     </div>
   </div>

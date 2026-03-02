@@ -23,6 +23,7 @@ export class GameManager {
     // return false;
   }
 
+  // sdf
   public createGame(playerId: string): GameSession | undefined {
     const player = this.playerManager.getPlayerById(playerId);
     if (!player || player.status === "in-game") return;
@@ -47,7 +48,9 @@ export class GameManager {
 
     this.games.delete(gameSession.id);
 
-    const players = gameSession.getPlayers().map(playerId => this.playerManager.getPlayerById(playerId));
+    const players = gameSession
+      .getPlayers()
+      .map((playerId) => this.playerManager.getPlayerById(playerId));
 
     for (let player of players) {
       if (!player) continue;

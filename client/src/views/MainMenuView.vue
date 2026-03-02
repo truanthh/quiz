@@ -26,9 +26,9 @@ let slots = [0, 1, 2, 3, 4, 5, 6, 7];
 
 onMounted(() => {
   store.socket.on("game-started", () => {
-    router.push(`/${store.player.role}`)
+    router.push(`/${store.player.role}`);
   });
-})
+});
 </script>
 
 <template>
@@ -38,8 +38,13 @@ onMounted(() => {
       <!-- {{ store.player.gameId }} -->
     </div>
     <div class="mainMenu">
-      <div class="bar" :style="{ 'font-size': '20px', 'font-weight': 'bold' }">{{ store.player.name }}</div>
-      <div class="buttons" v-if="!store.player.gameId && !isWindowActiveJoinGame">
+      <div class="bar" :style="{ 'font-size': '20px', 'font-weight': 'bold' }">
+        {{ store.player.name }}
+      </div>
+      <div
+        class="buttons"
+        v-if="!store.player.gameId && !isWindowActiveJoinGame"
+      >
         <button class="buttons_default" @click="handleCreateGame">
           CREATE GAME
         </button>
@@ -47,7 +52,10 @@ onMounted(() => {
           JOIN GAME
         </button>
       </div>
-      <div class="buttons" v-if="!store.player.gameId && isWindowActiveJoinGame">
+      <div
+        class="buttons"
+        v-if="!store.player.gameId && isWindowActiveJoinGame"
+      >
         <input class="buttons_default" v-model="gameId" />
         <button class="buttons_default" @click="handleJoinGame">JOIN</button>
         <button class="buttons_default" @click="toggleJoinGame">BACK</button>
@@ -62,7 +70,9 @@ onMounted(() => {
           <li v-for="(player, i) of store.players" :key="i">
             {{ player.name }} :
             <span style="color: green">{{ player.status }}</span>
-            <span style="color: red" v-if="player.gameId"> {{ ` ${player.gameId}` }}</span>
+            <span style="color: red" v-if="player.gameId">
+              {{ ` ${player.gameId}` }}</span
+            >
           </li>
         </ul>
       </div>
