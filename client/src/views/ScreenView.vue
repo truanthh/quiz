@@ -14,6 +14,9 @@ import { getSound } from "@/utils/sounds.js";
 
 const store = mainStore();
 
+const { player } = storeToRefs(store);
+const gameSession = computed(() => player.value?.gameSession);
+
 // initializing audioPlayer
 const audioPlayer = useAudioPlayerStore();
 const audioPlayerElement = ref(null);
@@ -163,7 +166,7 @@ onUnmounted(() => {
       <!--     ) -->
       <!--   " -->
       <!-- /> -->
-      <!-- <PlayerBoardBars :items="gameState.players" v-if="gameState.hasStarted" /> -->
+      <PlayerBoardBars :items="gameSession.players" v-if="gameSession.status === 'ongoing'" />
       <!-- <PlayerBoardChess :items="players" v-else class="pregame__players" /> -->
     </div>
   </div>

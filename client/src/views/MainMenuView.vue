@@ -34,7 +34,7 @@ onMounted(() => {
 <template>
   <div class="mainMenu__container">
     <div class="title" :style="{ 'font-size': '14px' }">
-      <!-- {{ store.player }} -->
+      {{ store.player }}
       <!-- {{ store.player.gameId }} -->
     </div>
     <div class="mainMenu">

@@ -12,12 +12,12 @@ export class GameSession {
   private questions: any;
   private currentQuestionId: number;
   private selectedPlayerId: number;
+  //sdlskdfj
 
   constructor(player: Player) {
     this.id = player.name;
     this.createdBy = player.id;
     this.players = new Array(8).fill(undefined);
-    // blak
 
     this.leader = player.id;
     this.screen = player.id;

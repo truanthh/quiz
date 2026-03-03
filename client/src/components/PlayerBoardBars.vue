@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from "vue";
+import { computed, toRaw } from "vue";
 import { getAvatar, getGif } from "@/utils/avatars";
 
 const props = defineProps({
@@ -10,12 +10,16 @@ const props = defineProps({
 });
 
 const bla = computed(() => {
-  return [...props.items];
+  return props.items.map(o => ({
+    ...toRaw(o),
+    hasPressedReady: false
+  }));
 });
 </script>
 
 <template>
   <div class="playerBoardBars__container">
+    {{ bla }}
     <div class="bar">
       <div class="cell" v-for="(player, i) of bla.slice(0, 4)" :key="i">
         <div class="player">
