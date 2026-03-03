@@ -485,7 +485,7 @@ io.on("connection", (socket) => {
     const pointsGained =
       game.currentQuestion.track.artistNamePoints *
       game.currentQuestion.track.artistNameDifficulty;
-    getSelectedPlayer().points -= pointsGained;
+    getSelectedPlayer().points -= 100;
     updateClientGameState();
     playSound("failure");
     showPointsGained(-pointsGained);
@@ -523,7 +523,7 @@ io.on("connection", (socket) => {
     const pointsGained =
       game.currentQuestion.track.trackNamePoints *
       game.currentQuestion.track.trackNameDifficulty;
-    getSelectedPlayer().points -= pointsGained;
+    getSelectedPlayer().points -= 50;
     updateClientGameState();
     playSound("failure");
     showPointsGained(-pointsGained);
@@ -550,15 +550,14 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log(
-      `Отключился: ${
-        players.get(socket.id)?.name || admin.socketId === socket.id
-          ? "admin"
-          : "screen"
+      `Отключился: ${players.get(socket.id)?.name || admin.socketId === socket.id
+        ? "admin"
+        : "screen"
       }`,
     );
   });
 });
 
-server.listen(3000, "0.0.0.0", () => {
+server.listen(3000, "192.168.50.222", () => {
   // console.log("Сервер запущен на порту 3000");
 });

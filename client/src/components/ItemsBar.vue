@@ -74,40 +74,26 @@ onMounted(() => {
 <template>
   <div class="bar__container">
     <TransitionGroup name="slide" tag="div" class="bar__items">
-      <div
-        v-for="(item, i) of items"
-        :key="item.avatar"
-        :class="{
-          item: i !== 0,
-          item_selected: i === 0,
-        }"
-      >
+      <div v-for="(item, i) of items" :key="item.avatar" :class="{
+        item: i !== 0,
+        item_selected: i === 0,
+      }">
         <img class="item__picture" :src="getAvatar(item.avatar)" />
+        <div class="blabla"> {{ items[i]?.name }}</div>
       </div>
     </TransitionGroup>
     <div class="misc">
       <!-- <button @click="showPoints(points)">blabla</button> -->
-      <div class="misc__playerName">
-        {{ items[0]?.name }}
-      </div>
+      <!-- <div class="misc__playerName"> -->
+      <!--   {{ items[i]?.name }} -->
+      <!-- </div> -->
       <div class="misc__pointsDisplay">
-        <div
-          class="plusMinus"
-          :style="{ color: pointsColor }"
-          v-if="isPointsVisible"
-        >
+        <div class="plusMinus" :style="{ color: pointsColor }" v-if="isPointsVisible">
           {{ plusMinus }}
         </div>
-        <Roller
-          class="plusMinus"
-          :value="points"
-          default-value="0000"
-          :duration="2000"
-          :style="{
-            color: pointsColor,
-          }"
-          v-if="isPointsVisible"
-        >
+        <Roller class="plusMinus" :value="points" default-value="0000" :duration="2000" :style="{
+          color: pointsColor,
+        }" v-if="isPointsVisible">
         </Roller>
       </div>
     </div>
@@ -115,6 +101,14 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
+.blabla {
+  position: absolute;
+  font-size: 28px;
+  top: 0;
+  right: 0;
+  transform: translateX(100px);
+}
+
 .plusMinus {
   font-size: 100px;
   font-family: Montserrat;
@@ -122,6 +116,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
 }
+
 .bar {
   &__container {
     display: flex;
@@ -131,6 +126,7 @@ onMounted(() => {
     overflow: hidden;
     // background-color: gray;
   }
+
   &__items {
     display: flex;
     flex-direction: column;
@@ -146,6 +142,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   width: 40%;
+
   &__playerName {
     padding-left: 8%;
     font-size: 34px;
@@ -154,6 +151,7 @@ onMounted(() => {
     color: white;
     // background-color: orange;
   }
+
   &__pointsDisplay {
     // font-size: 48px;
     height: 23%;
@@ -164,6 +162,7 @@ onMounted(() => {
 }
 
 .item {
+  position: relative;
   display: flex;
   width: 50%;
   aspect-ratio: 1 / 1;
@@ -172,11 +171,13 @@ onMounted(() => {
   transition: all 0.3s ease;
 
   &_selected {
+    position: relative;
     width: 100%;
     transition: all 0.3s ease;
   }
 
   &__picture {
+    position: relative;
     width: 100%;
     height: 100%;
     object-fit: cover;

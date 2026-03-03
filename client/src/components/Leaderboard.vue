@@ -33,12 +33,8 @@ const itemsSorted = computed(() => {
         <div class="grid__cell">Очки</div>
       </div>
 
-      <div
-        v-for="(player, index) of itemsSorted"
-        :key="index"
-        class="grid__row"
-        :class="{ 'grid__row--top': index < 3 }"
-      >
+      <div v-for="(player, index) of itemsSorted" :key="index" class="grid__row"
+        :class="{ 'grid__row--top': index < 3 }">
         <div class="grid__cell grid__cell--position">
           <div class="position-badge">{{ index + 1 }}</div>
         </div>
@@ -64,7 +60,7 @@ const itemsSorted = computed(() => {
   border-radius: 24px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   padding: 32px;
-  overflow: hidden;
+  overflow: auto;
 
   // &::before {
   //   content: "";
