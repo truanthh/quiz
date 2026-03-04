@@ -309,6 +309,8 @@ export class SocketService {
       data: user,
     });
 
+    console.log(`login: ${user.name}`)
+
     this.updateAllPlayersOnPlayerAction(socket);
   }
 

@@ -2,11 +2,20 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import LoginView from "@/views/LoginView.vue";
 import { mainStore } from "@/stores/mainStore";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 const store = mainStore();
 
-onMounted(() => {
+onMounted(async () => {
   store.initSocket();
+
+  // const playerData = await playerDataPromise;
+  //
+  // if(!playerData){
+  //
+  // }
 });
 
 onUnmounted(() => {

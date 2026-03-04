@@ -15,7 +15,8 @@ export class PlayerManager {
     this.tokenToPlayerId = new Map();
   }
 
-  public setPlayerStatus(player: Player, status: PlayerStatus) {
+  public setPlayerStatus(player: Player | undefined, status: PlayerStatus) {
+    if (!player) return;
     player.status = status;
   }
 
@@ -81,6 +82,7 @@ export class PlayerManager {
 
     return player;
   }
+  //blalb
 
   public removePlayer(socketId: string): boolean {
     const player = this.getPlayerBySocketId(socketId);

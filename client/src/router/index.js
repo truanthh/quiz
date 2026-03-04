@@ -5,12 +5,13 @@ import AdminView from "@/views/AdminView.vue";
 import PlayerView from "@/views/PlayerView.vue";
 import ScreenView from "@/views/ScreenView.vue";
 import MainMenuView from "@/views/MainMenuView.vue";
+import NotFoundView from "@/views/NotFoundView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: "/",
+      path: "/login",
       name: "Login",
       component: LoginView,
     },
@@ -38,18 +39,25 @@ const router = createRouter({
       component: MainMenuView,
       meta: { requiresAuth: true },
     },
+    {
+      path: '/:pathMatch(.*)*', // Matches all paths
+      name: 'NotFound',
+      component: NotFoundView,
+    }
   ],
 });
 
-// Глобальный guard для проверки аутентификации
-router.beforeEach((to, from, next) => {
-  const store = mainStore();
-
-  if (to.meta.requiresAuth && !store.isAuth) {
-    next("/");
-  } else {
-    next();
-  }
-});
+// router.beforeEach(async (to, from) => {
+//   const store = mainStore();
+//
+//   const playerData = await store.resolvePlayerData;
+//
+//   if (!playerData) {
+//     return "/login";
+//   } else {
+//     console.log("got player data!");
+//     return "/" + playerData.name;
+//   }
+// });
 
 export default router;

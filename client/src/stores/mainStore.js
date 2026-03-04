@@ -27,6 +27,12 @@ export const mainStore = defineStore("mainStore", () => {
   // THIS DATA IS ONLY FOR DISPLAY
   const gameState = reactive({});
 
+  let resolvePlayerData;
+
+  const playerDataPromise = new Promise((res, rej) => {
+    resolvePlayerData = res;
+  })
+
   const initSocket = () => {
     socket.value = io(import.meta.env.VITE_SERVER_ADDRESS, {
       auth: { token: localStorage.getItem("token"), role: player.value.role },
@@ -38,6 +44,11 @@ export const mainStore = defineStore("mainStore", () => {
 
     socket.value.on("player-updated", (playerData) => {
       player.value = { ...playerData };
+
+      // if (resolvePlayerData) {
+      //   resolvePlayerData(playerData);
+      //   resolvePlayerData = null;
+      // }
     });
 
     // socket.value.on("update-client-game-state", (state) => {
@@ -49,7 +60,7 @@ export const mainStore = defineStore("mainStore", () => {
     return new Promise((res, rej) => {
       const timer = setTimeout(() => {
         rej(new Error("login timeout"));
-      }, 5000);
+      }, 3000);
 
       const handleLogin = (payload) => {
         // console.log(payload.audioPlayer);
@@ -57,6 +68,11 @@ export const mainStore = defineStore("mainStore", () => {
         localStorage.setItem("token", payload.token);
         player.value = { ...payload };
         isAuth.value = true;
+
+        // if (resolvePlayerData) {
+        //   resolvePlayerData(payload);
+        //   resolvePlayerData = null;
+        // }
         res();
       };
 
@@ -87,5 +103,6 @@ export const mainStore = defineStore("mainStore", () => {
 
     // misc
     isMobile,
+    playerDataPromise,
   };
 });

@@ -47,6 +47,8 @@ function isLoginDataValid(userName) {
 </script>
 <template>
   <div class="login__container">
+    <span class="error">{{ store.isAuth }} </span>
+    
     <div class="login__form">
       <h1>Аудиоквиз</h1>
       <!-- <button @click="">debug</button> -->

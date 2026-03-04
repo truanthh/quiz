@@ -157,6 +157,7 @@ onUnmounted(() => {
     ></audio>
     <!-- ---------------------- -->
     <div class="screenView">
+      {{ store.player.gameSession }}
       <!-- <MainPanel class="bla" :state="gameState" :countdown /> -->
       <!-- <ItemsBar -->
       <!--   :items=" -->
@@ -166,7 +167,7 @@ onUnmounted(() => {
       <!--     ) -->
       <!--   " -->
       <!-- /> -->
-      <PlayerBoardBars :items="gameSession.players" v-if="gameSession.status === 'ongoing'" />
+      <!-- <PlayerBoardBars :items="gameSession.players" v-if="gameSession.status === 'ongoing'" /> -->
       <!-- <PlayerBoardChess :items="players" v-else class="pregame__players" /> -->
     </div>
   </div>

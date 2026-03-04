@@ -1,6 +1,6 @@
 import { PlayerManager } from "./PlayerManager.ts";
 import { GameSession } from "./GameSession.ts";
-import { Player, Question } from "./types/index.ts";
+import { Player, Question, PlayerStatus } from "./types/index.ts";
 
 export class GameManager {
   private games: Map<string, GameSession>;
@@ -16,6 +16,10 @@ export class GameManager {
     if (!gameSession || gameSession.getStatus() !== "lobby") return false;
 
     // if (gameSession.loadQuestions(questions)) {
+    const players = gameSession.getPlayers().map(id => this.playerManager.getPlayerById(id));
+    for (let player of players) {
+      this.playerManager.setPlayerStatus(player, "in-game");
+    }
     gameSession.setStatus("ongoing");
     return true;
     // };

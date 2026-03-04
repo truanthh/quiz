@@ -12,7 +12,7 @@ export class GameSession {
   private questions: any;
   private currentQuestionId: number;
   private selectedPlayerId: number;
-  //sdlskdfj
+  //sdlskdf
 
   constructor(player: Player) {
     this.id = player.name;
