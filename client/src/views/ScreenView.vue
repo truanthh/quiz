@@ -14,8 +14,7 @@ import { getSound } from "@/utils/sounds.js";
 
 const store = mainStore();
 
-const { player } = storeToRefs(store);
-const gameSession = computed(() => player.value?.gameSession);
+const { gameSession } = storeToRefs(store);
 
 // initializing audioPlayer
 const audioPlayer = useAudioPlayerStore();
@@ -144,7 +143,6 @@ onUnmounted(() => {
   <CountdownPopup :value="countdown" v-if="countdown !== 0" />
   <!-- <div :class="isDebugPanelShown ? 'debugPanel' : 'debugPanel_hidden'"> -->
   <!--   <button class="debugPanel__button" @click="toggleDebugPanel"></button> -->
-  <!--   {{ gameState.currentQuestion }} -->
   <!-- </div> -->
   <div class="screenView__container">
     <!-- <button @click="playSound(countdownSound)">playsound</button> -->
@@ -157,7 +155,7 @@ onUnmounted(() => {
     ></audio>
     <!-- ---------------------- -->
     <div class="screenView">
-      {{ store.player.gameSession }}
+      <!-- {{ store.gameSession.players }} -->
       <!-- <MainPanel class="bla" :state="gameState" :countdown /> -->
       <!-- <ItemsBar -->
       <!--   :items=" -->
@@ -167,7 +165,7 @@ onUnmounted(() => {
       <!--     ) -->
       <!--   " -->
       <!-- /> -->
-      <!-- <PlayerBoardBars :items="gameSession.players" v-if="gameSession.status === 'ongoing'" /> -->
+      <PlayerBoardBars :items="gameSession.players" />
       <!-- <PlayerBoardChess :items="players" v-else class="pregame__players" /> -->
     </div>
   </div>

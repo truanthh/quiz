@@ -1,5 +1,5 @@
 // types/game.ts
-export type PlayerRole = "admin" | "screen" | "player";
+export type PlayerRole = "admin" | "screen" | "player" | "init";
 
 export type QuestionState =
   | "init"
@@ -35,6 +35,13 @@ export interface Question {
   isTrackNameRevealed: boolean;
   isPosterRevealed: boolean;
 }
+
+// export interface Question {
+//   audio: any;
+//   state: QuestionState;
+//   currentTimeString: string;
+//   currentTimeSeconds: number;
+// }
 
 export type Player = {
   id: string;

@@ -19,41 +19,32 @@ export const mainStore = defineStore("mainStore", () => {
   // this player
   const player = ref({ isReady: false });
 
+  // this player's gamesession
+  // let gameSession = reactive({});
+  const gameSession = ref({});
+
   // if player is this gamesession leader
   const isLeader = computed(() => {
-    return player.value.id === player.value.gameSession?.leader;
+    return player.value.id === gameSession.value?.leader;
   });
-
-  // THIS DATA IS ONLY FOR DISPLAY
-  const gameState = reactive({});
-
-  let resolvePlayerData;
-
-  const playerDataPromise = new Promise((res, rej) => {
-    resolvePlayerData = res;
-  })
 
   const initSocket = () => {
     socket.value = io(import.meta.env.VITE_SERVER_ADDRESS, {
       auth: { token: localStorage.getItem("token"), role: player.value.role },
     });
 
-    socket.value.on("players-updated", (data) => {
-      players.value = [...data];
-    });
-
     socket.value.on("player-updated", (playerData) => {
       player.value = { ...playerData };
-
-      // if (resolvePlayerData) {
-      //   resolvePlayerData(playerData);
-      //   resolvePlayerData = null;
-      // }
     });
 
-    // socket.value.on("update-client-game-state", (state) => {
-    //   gameState = { ...state };
-    // });
+    socket.value.on("gamesession-updated", (gameSessionState) => {
+      // console.log(gameSessionState);
+      gameSession.value = { ...gameSessionState };
+    });
+
+    socket.value.on("players-updated", (playersData) => {
+      players.value = [...playersData];
+    });
   };
 
   function waitForLogin() {
@@ -87,7 +78,7 @@ export const mainStore = defineStore("mainStore", () => {
   // const isQuestionActive = ref(false);
   return {
     // data
-    gameState,
+    gameSession,
     player,
     players,
     isLeader,
@@ -103,6 +94,5 @@ export const mainStore = defineStore("mainStore", () => {
 
     // misc
     isMobile,
-    playerDataPromise,
   };
 });

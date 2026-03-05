@@ -40,24 +40,21 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
-      path: '/:pathMatch(.*)*', // Matches all paths
-      name: 'NotFound',
+      path: "/:pathMatch(.*)*", // Matches all paths
+      name: "NotFound",
       component: NotFoundView,
-    }
+    },
   ],
 });
 
-// router.beforeEach(async (to, from) => {
-//   const store = mainStore();
-//
-//   const playerData = await store.resolvePlayerData;
-//
-//   if (!playerData) {
-//     return "/login";
-//   } else {
-//     console.log("got player data!");
-//     return "/" + playerData.name;
-//   }
-// });
+router.beforeEach(async (to, from) => {
+  const store = mainStore();
+
+  if (!store.isAuth && to.path !== "/login") {
+    return "/login";
+  }
+
+  return;
+});
 
 export default router;

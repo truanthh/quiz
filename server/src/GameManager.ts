@@ -11,12 +11,15 @@ export class GameManager {
     this.playerManager = playerManager;
   }
 
+  // asdlkfj
   public startGame(gameSessionId: string): boolean {
     const gameSession = this.getGameSessionById(gameSessionId);
     if (!gameSession || gameSession.getStatus() !== "lobby") return false;
 
     // if (gameSession.loadQuestions(questions)) {
-    const players = gameSession.getPlayers().map(id => this.playerManager.getPlayerById(id));
+    const players = gameSession
+      .getPlayers()
+      .map((id) => this.playerManager.getPlayerById(id));
     for (let player of players) {
       this.playerManager.setPlayerStatus(player, "in-game");
     }
@@ -60,6 +63,7 @@ export class GameManager {
       if (!player) continue;
       this.playerManager.setPlayerGameId(player, "");
       this.playerManager.setPlayerStatus(player, "online");
+      this.playerManager.setPlayerRole(player, "init");
     }
 
     return gameSession;
@@ -86,9 +90,10 @@ export class GameManager {
       console.log(`player: ${player.name} joined ${gameId}`);
       if (slotNumber === 0) {
         this.playerManager.setPlayerRole(player, "screen");
-      }
-      if (slotNumber === 1) {
+      } else if (slotNumber === 1) {
         this.playerManager.setPlayerRole(player, "admin");
+      } else {
+        this.playerManager.setPlayerRole(player, "player");
       }
       this.playerManager.setPlayerGameId(player, gameId);
       this.playerManager.setPlayerStatus(player, "lobby");

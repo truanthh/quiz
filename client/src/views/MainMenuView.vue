@@ -33,10 +33,7 @@ onMounted(() => {
 
 <template>
   <div class="mainMenu__container">
-    <div class="title" :style="{ 'font-size': '14px' }">
-      {{ store.player.role }}
-      <!-- {{ store.player.gameId }} -->
-    </div>
+    <div class="title" :style="{ 'font-size': '14px' }"></div>
     <div class="mainMenu">
       <div class="bar" :style="{ 'font-size': '20px', 'font-weight': 'bold' }">
         {{ store.player.name }}

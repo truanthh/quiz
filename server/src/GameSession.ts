@@ -26,6 +26,7 @@ export class GameSession {
     this.currentQuestionId = 0;
     this.selectedPlayerId = 0;
     this.status = "lobby";
+    //asjla
   }
 
   public loadQuestions(data: Question[]): boolean {
@@ -34,6 +35,10 @@ export class GameSession {
     this.questions = [...data];
 
     return true;
+  }
+
+  public getQuestions(): Question[] {
+    return this.questions;
   }
 
   public getStatus(): GameStatus {
@@ -75,9 +80,8 @@ export class GameSession {
 
     this.players[id] = undefined;
 
-    return true
+    return true;
   }
-
 
   // get clientData() {
   //   return {

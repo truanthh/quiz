@@ -16,7 +16,11 @@ const isAdmin = computed(() => {
 onMounted(async () => {
   await store.waitForLogin();
   if (store.isAuth) {
-    router.push(`/main`);
+    if (store.player.status === "in-game") {
+      router.push(`/${store.player.role}`);
+    } else {
+      router.push(`/main`);
+    }
   }
 });
 
@@ -48,7 +52,7 @@ function isLoginDataValid(userName) {
 <template>
   <div class="login__container">
     <span class="error">{{ store.isAuth }} </span>
-    
+
     <div class="login__form">
       <h1>Аудиоквиз</h1>
       <!-- <button @click="">debug</button> -->

@@ -8,6 +8,7 @@ export class PlayerManager {
   private players: Map<string, Player>;
   private socketToPlayerId: Map<string, string>;
   private tokenToPlayerId: Map<string, string>;
+  // asdkflj
 
   constructor() {
     this.players = new Map();
@@ -53,7 +54,7 @@ export class PlayerManager {
       name: userName,
       status: "online",
       gameId: "",
-      role: "player",
+      role: "init",
     };
 
     this.players.set(id, player);
@@ -63,7 +64,10 @@ export class PlayerManager {
     return player;
   }
 
-  public reconnectPlayer(token: string, newSocketId: string): Player | undefined {
+  public reconnectPlayer(
+    token: string,
+    newSocketId: string,
+  ): Player | undefined {
     const playerId = this.tokenToPlayerId.get(token);
     if (!playerId) return undefined;
 
@@ -99,15 +103,15 @@ export class PlayerManager {
     return Array.from(this.players.values());
   }
 
-  // private initAvatars(): void {
-  //   this.availableAvatars = new Set(
-  //     Array.from({ length: this.avatarsAmount }, (_, i) => i + 1),
-  //   );
-  //   this.availableAltAvatars = new Set(
-  //     Array.from({ length: this.gifsAmount }, (_, i) => i + 1),
-  //   );
-  // }
-  //
+  private initAvatars(): void {
+    this.availableAvatars = new Set(
+      Array.from({ length: this.avatarsAmount }, (_, i) => i + 1),
+    );
+    this.availableAltAvatars = new Set(
+      Array.from({ length: this.gifsAmount }, (_, i) => i + 1),
+    );
+  }
+
   // private generateAvatarNumber(availableSet: Set<number>): number {
   //   if (availableSet.size === 0) {
   //     this.initAvatars(); // Reset if all avatars are used

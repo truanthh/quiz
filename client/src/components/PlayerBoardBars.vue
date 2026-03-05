@@ -10,16 +10,18 @@ const props = defineProps({
 });
 
 const bla = computed(() => {
-  return props.items.map(o => ({
-    ...toRaw(o),
-    hasPressedReady: false
-  }));
+  return props.items
+    .filter((player) => player)
+    .map((o) => ({
+      ...toRaw(o),
+      hasPressedReady: false,
+    }));
 });
 </script>
 
 <template>
   <div class="playerBoardBars__container">
-    {{ bla }}
+    <!-- {{ bla }} -->
     <div class="bar">
       <div class="cell" v-for="(player, i) of bla.slice(0, 4)" :key="i">
         <div class="player">
