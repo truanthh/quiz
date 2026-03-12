@@ -12,13 +12,13 @@ export class GameSession {
   private questions: any;
   private currentQuestionId: number;
   private selectedPlayerId: number;
-  //sdlskdf
+
+  private static LOBBY_SIZE = 10;
 
   constructor(player: Player) {
     this.id = player.name;
     this.createdBy = player.id;
-    this.players = new Array(8).fill(undefined);
-
+    this.players = new Array(GameSession.LOBBY_SIZE).fill(undefined);
     this.leader = player.id;
     this.screen = player.id;
     this.admin = player.id;
@@ -49,20 +49,28 @@ export class GameSession {
     this.status = value;
   }
 
-  public getPlayers(): string[] {
-    return this.players.filter((p) => p !== undefined);
+  public getPlayers() {
+    return this.players.filter((id) => id !== undefined);
+  }
+
+  public getPlayersActive(): string[] {
+    return this.players.filter((id): id is string => id === undefined && id !== this.admin && id !== this.screen);
   }
 
   public getSlots(): (string | undefined)[] {
     return this.players;
   }
 
-  public getLeader(): string {
-    return this.leader;
-  }
-
   public getScreen(): string {
     return this.screen;
+  }
+
+  public getAdmin(): string {
+    return this.admin;
+  }
+
+  public getLeader(): string {
+    return this.leader;
   }
 
   public addPlayer(playerId: string): number {
@@ -81,6 +89,10 @@ export class GameSession {
     this.players[id] = undefined;
 
     return true;
+  }
+
+  public startGame(): void {
+    this.setStatus("ongoing");
   }
 
   // get clientData() {

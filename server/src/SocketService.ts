@@ -16,12 +16,19 @@ interface GameSessionClientData {
 }
 
 function toClientData(gameSession: GameSession, playerManager: PlayerManager) {
+  // const screenId = gameSession.getScreen();
+  // const screen = playerManager.getPlayerById(screenId);
+  //
+  // const adminId = gameSession.getAdmin();
+  // const admin = playerManager.getPlayerById(adminId);
+
   const gameSessionClientData: GameSessionClientData = {
     id: gameSession.id,
     status: gameSession.getStatus(),
     players: gameSession
-      .getSlots()
-      .map((id) => (id ? playerManager.getPlayerById(id) : undefined)),
+      .getPlayers().map((id) => playerManager.getPlayerById(id)),
+    // .getSlots()
+    // .map((id) => (id ? playerManager.getPlayerById(id) : undefined)),
     leader: gameSession.getLeader(),
     createdBy: gameSession.createdBy,
     screen: gameSession.getScreen(),
@@ -36,7 +43,7 @@ export class SocketService {
     private io: Server,
     private playerManager: PlayerManager,
     private gameManager: GameManager,
-  ) {}
+  ) { }
 
   public initialize(): void {
     console.log("Initializing socket handlers...");
@@ -301,16 +308,16 @@ export class SocketService {
     // });
   }
 
-  private handleSelectPrevPlayer() {}
-  private handleSelectNextPlayer() {}
-  private handleNextQuestion() {}
-  private handlePrevQuestion() {}
-  private handleAnswerCorrect(type: string) {}
-  private handleAnswerWrong(type: string) {}
-  private handleShowArtist() {}
-  private handleShowPoster() {}
-  private handleShowTrackName() {}
-  private handleShowScoreboard() {}
+  private handleSelectPrevPlayer() { }
+  private handleSelectNextPlayer() { }
+  private handleNextQuestion() { }
+  private handlePrevQuestion() { }
+  private handleAnswerCorrect(type: string) { }
+  private handleAnswerWrong(type: string) { }
+  private handleShowArtist() { }
+  private handleShowPoster() { }
+  private handleShowTrackName() { }
+  private handleShowScoreboard() { }
 
   private handleDisconnect(socket: Socket) {
     console.log(`Отключился: ${socket.id}`);
@@ -409,6 +416,7 @@ export class SocketService {
     const playerIds = gameSession.getPlayers();
 
     for (let id of playerIds) {
+      console.log(`emitting game-started to ${id}`);
       const player = this.playerManager.getPlayerById(id);
       if (!player) continue;
 

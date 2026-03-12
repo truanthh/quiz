@@ -1,19 +1,20 @@
 import { Player, PlayerStatus, PlayerRole } from "./types";
 import { v4 as uuidv4 } from "uuid";
 // modules/player/PlayerManager.ts
-// import { initAvatars } from "../utils/avatarManager.ts"
 import { GameSession } from "./GameSession.ts";
 
 export class PlayerManager {
   private players: Map<string, Player>;
   private socketToPlayerId: Map<string, string>;
   private tokenToPlayerId: Map<string, string>;
-  // asdkflj
+  private availableAvatars: Set<number>;
+  private static AVATARS_AMOUNT = 19;
 
   constructor() {
     this.players = new Map();
     this.socketToPlayerId = new Map();
     this.tokenToPlayerId = new Map();
+    this.availableAvatars = this.initAvatars(PlayerManager.AVATARS_AMOUNT);
   }
 
   public setPlayerStatus(player: Player | undefined, status: PlayerStatus) {
@@ -55,6 +56,7 @@ export class PlayerManager {
       status: "online",
       gameId: "",
       role: "init",
+      avatarNumber: this.generateAvatarNumber(),
     };
 
     this.players.set(id, player);
@@ -103,14 +105,28 @@ export class PlayerManager {
     return Array.from(this.players.values());
   }
 
-  private initAvatars(): void {
-    this.availableAvatars = new Set(
-      Array.from({ length: this.avatarsAmount }, (_, i) => i + 1),
-    );
-    this.availableAltAvatars = new Set(
-      Array.from({ length: this.gifsAmount }, (_, i) => i + 1),
+  private initAvatars(avatarsAmount: number): Set<number> {
+    return new Set(
+      Array.from({ length: avatarsAmount }, (_, i) => i + 1),
     );
   }
+
+  private generateAvatarNumber(): number {
+    if (this.availableAvatars.size === 0) {
+      console.log("no avatars available!");
+      return -1;
+    }
+
+    const avatarNumber =
+      Array.from(this.availableAvatars)[
+      Math.floor(Math.random() * this.availableAvatars.size)
+      ];
+
+    this.availableAvatars.delete(avatarNumber);
+
+    return avatarNumber;
+  }
+
 
   // private generateAvatarNumber(availableSet: Set<number>): number {
   //   if (availableSet.size === 0) {
@@ -124,6 +140,7 @@ export class PlayerManager {
   //   availableSet.delete(avatarNumber);
   //   return avatarNumber;
   // }
+
   // resetAltAvatars(): void {
   //   this.availableAltAvatars = new Set(
   //     Array.from({ length: this.gifsAmount }, (_, i) => i + 1),

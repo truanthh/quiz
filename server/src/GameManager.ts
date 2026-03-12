@@ -16,14 +16,19 @@ export class GameManager {
     const gameSession = this.getGameSessionById(gameSessionId);
     if (!gameSession || gameSession.getStatus() !== "lobby") return false;
 
+    //lksdjlfksjl
+
     // if (gameSession.loadQuestions(questions)) {
     const players = gameSession
       .getPlayers()
       .map((id) => this.playerManager.getPlayerById(id));
+
     for (let player of players) {
       this.playerManager.setPlayerStatus(player, "in-game");
     }
-    gameSession.setStatus("ongoing");
+
+    gameSession.startGame();
+
     return true;
     // };
 

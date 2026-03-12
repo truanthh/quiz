@@ -38,38 +38,7 @@ const hasPoster = computed(() => {
   <div class="mainPanel__container">
     <div class="poster__container">
       <div class="poster">
-        <Transition name="fade">
-          <img
-            v-if="state.currentQuestion.isPosterRevealed || !hasPoster"
-            class="poster__img"
-            :src="
-              !hasPoster
-                ? `${getAvatar(-1)}`
-                : `${state.currentQuestion?.track.posterImg}`
-            "
-          />
-          <div class="spoilerPoster" v-else>
-            <!-- prettier-ignore -->
-            <spoiler-span class="spanana">
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-              11111111111111111111111111111111
-            </spoiler-span>
-          </div>
-        </Transition>
+          <img class="poster__img" :src="getAvatar(-1)" />
       </div>
     </div>
     <div class="trackInfo">

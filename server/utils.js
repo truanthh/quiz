@@ -11,26 +11,26 @@ export function convertTime(seconds) {
 }
 
 // availableAvatars is a Set
-export function generateAvatarNumber(availableAvatars) {
-  if (availableAvatars.size === 0) {
-    // console.log("no avatars available!");
-    return;
-  }
+// export function generateAvatarNumber(availableAvatars) {
+//   if (availableAvatars.size === 0) {
+//     // console.log("no avatars available!");
+//     return;
+//   }
+//
+//   const avatarNumber =
+//     Array.from(availableAvatars)[
+//     Math.floor(Math.random() * availableAvatars.size)
+//     ];
+//
+//   availableAvatars.delete(avatarNumber);
+//
+//   return avatarNumber;
+// }
 
-  const avatarNumber =
-    Array.from(availableAvatars)[
-      Math.floor(Math.random() * availableAvatars.size)
-    ];
-
-  availableAvatars.delete(avatarNumber);
-
-  return avatarNumber;
-}
-
-export function initAvatars(avatarContainer, n) {
-  avatarContainer.clear();
-
-  for (let i = 1; i <= n; i++) {
-    avatarContainer.add(i);
-  }
-}
+// export function initAvatars(avatarContainer, n) {
+//   avatarContainer.clear();
+//
+//   for (let i = 1; i <= n; i++) {
+//     avatarContainer.add(i);
+//   }
+// }

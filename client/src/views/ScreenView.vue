@@ -40,8 +40,7 @@ const { currentTimeSeconds, isPlaying, currentTrackIndex } =
 // watch(
 //   [currentTimeSeconds, isPlaying],
 //   () => {
-//     // sending current track time to server
-//     // and isplaying state
+//     // sending current track time to server // and isplaying state
 //     store.socket.emit("audioplayer-state-change", {
 //       currentTimeSeconds: currentTimeSeconds.value,
 //       isPlaying: isPlaying.value,
@@ -155,8 +154,9 @@ onUnmounted(() => {
     ></audio>
     <!-- ---------------------- -->
     <div class="screenView">
+      {{ store.player}}
       <!-- {{ store.gameSession.players }} -->
-      <!-- <MainPanel class="bla" :state="gameState" :countdown /> -->
+      <MainPanel class="bla" :state="gameState" :countdown />
       <!-- <ItemsBar -->
       <!--   :items=" -->
       <!--     gameState.playersReadyToAnswer.slice( -->

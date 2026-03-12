@@ -10,12 +10,13 @@ const props = defineProps({
 });
 
 const bla = computed(() => {
-  return props.items
-    .filter((player) => player)
-    .map((o) => ({
-      ...toRaw(o),
-      hasPressedReady: false,
-    }));
+  return props.items.filter((player) => player);
+  // return props.items
+  //   .filter((player) => player)
+  //   .map((o) => ({
+  //     ...toRaw(o),
+  //     hasPressedReady: false,
+  //   }));
 });
 </script>
 
@@ -27,15 +28,9 @@ const bla = computed(() => {
         <div class="player">
           <img
             class="player__avatar"
-            :src="getAvatar(player.avatar)"
-            v-if="!player.hasPressedReady"
+            :src="getAvatar(player.avatarNumber)"
           />
-          <img
-            class="player__altAvatar"
-            :src="getGif(player.altAvatar)"
-            v-else
-          />
-          <div class="player__name" v-if="!player.hasPressedReady">
+          <div class="player__name">
             {{ player ? player.name.toUpperCase() : 0 }}
           </div>
         </div>
@@ -46,15 +41,9 @@ const bla = computed(() => {
         <div class="player">
           <img
             class="player__avatar"
-            :src="getAvatar(player.avatar)"
-            v-if="!player.hasPressedReady"
+            :src="getAvatar(player.avatarNumber)"
           />
-          <img
-            class="player__altAvatar"
-            :src="getGif(player.altAvatar)"
-            v-else
-          />
-          <div class="player__name" v-if="!player.hasPressedReady">
+          <div class="player__name">
             {{ player ? player.name.toUpperCase() : 0 }}
           </div>
         </div>
@@ -111,16 +100,6 @@ const bla = computed(() => {
     object-fit: cover;
     border-radius: 1%;
     border: 4px solid yellow;
-  }
-  &__altAvatar {
-    height: 80%;
-    width: 100%;
-    max-width: 100%;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-    border-radius: 80%;
-    padding-top: 25px;
-    // border: 4px solid yellow;
   }
   &__name {
     display: flex;

@@ -51,6 +51,7 @@ export type Player = {
   status: PlayerStatus;
   gameId: string;
   role: PlayerRole;
+  avatarNumber: number;
 };
 
 export interface Admin {

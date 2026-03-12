@@ -33,7 +33,9 @@ onMounted(() => {
 
 <template>
   <div class="mainMenu__container">
-    <div class="title" :style="{ 'font-size': '14px' }"></div>
+    <div class="title" :style="{ 'font-size': '14px' }">
+        {{ store.gameSession.players }}
+    </div>
     <div class="mainMenu">
       <div class="bar" :style="{ 'font-size': '20px', 'font-weight': 'bold' }">
         {{ store.player.name }}
@@ -57,7 +59,7 @@ onMounted(() => {
         <button class="buttons_default" @click="handleJoinGame">JOIN</button>
         <button class="buttons_default" @click="toggleJoinGame">BACK</button>
       </div>
-      <Lobby v-if="store.player.gameId" />
+      <Lobby v-if="store.player.gameId" :slots="10" :players="store.gameSession.players" />
       <div class="player">
         <!-- <span v-if="!store.isMobile">{{ -->
         <!--   store.player.gameSession?.players -->
