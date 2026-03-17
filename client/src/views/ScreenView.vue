@@ -154,7 +154,7 @@ onUnmounted(() => {
     ></audio>
     <!-- ---------------------- -->
     <div class="screenView">
-      {{ store.player}}
+      {{ gameSession.players }}
       <!-- {{ store.gameSession.players }} -->
       <MainPanel class="bla" :state="gameState" :countdown />
       <!-- <ItemsBar -->

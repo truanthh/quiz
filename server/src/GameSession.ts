@@ -1,6 +1,17 @@
 import { Question, Track, Player, GameStatus } from "./types/game.ts";
 import trackData from "./tracks.json";
 
+interface GameSessionClientData {
+  id: string;
+  status: string;
+  players: (Player | string | undefined)[];
+  createdBy: string;
+  admin: string;
+  leader: string;
+  screen: string;
+  questions: Question[];
+}
+
 export class GameSession {
   public readonly id: string;
   public readonly createdBy: string;
@@ -14,6 +25,8 @@ export class GameSession {
   private selectedPlayerId: number;
 
   private static LOBBY_SIZE = 10;
+  private isAdminSet: boolean = false;
+  private isScreenSet: boolean = false;
 
   constructor(player: Player) {
     this.id = player.name;
@@ -37,6 +50,15 @@ export class GameSession {
     return true;
   }
 
+  // public getPlayerIdBySlot(slotId: number): string | undefined {
+  //   if (slotId >= this.players.length || slotId < 0) {
+  //     console.log("wrong slotId!")
+  //     return undefined;
+  //   }
+  //
+  //   return this.players[slotId];
+  // }
+
   public getQuestions(): Question[] {
     return this.questions;
   }
@@ -49,12 +71,23 @@ export class GameSession {
     this.status = value;
   }
 
+  public setScreen(slotId: number): void {
+    if (slotId >= this.players.length || slotId < 0) {
+      console.log("wrong slotId!")
+      return;
+    }
+
+    if (!this.players[slotId]) return;
+
+
+  }
+
   public getPlayers() {
     return this.players.filter((id) => id !== undefined);
   }
 
   public getPlayersActive(): string[] {
-    return this.players.filter((id): id is string => id === undefined && id !== this.admin && id !== this.screen);
+    return this.players.filter((id): id is string => id !== undefined && id !== this.admin && id !== this.screen);
   }
 
   public getSlots(): (string | undefined)[] {
@@ -65,9 +98,9 @@ export class GameSession {
     return this.screen;
   }
 
-  public getAdmin(): string {
-    return this.admin;
-  }
+  // public getAdmin(): string {
+  //   return this.admin;
+  // }
 
   public getLeader(): string {
     return this.leader;
@@ -77,6 +110,16 @@ export class GameSession {
     const emptySlotIndex = this.players.findIndex((el) => !el);
 
     if (emptySlotIndex === -1) return -1;
+
+    if (emptySlotIndex === 0 && !this.isScreenSet) {
+      this.screen = playerId;
+      this.isScreenSet = true;
+    }
+
+    if (emptySlotIndex === 1 && !this.isAdminSet) {
+      this.admin = playerId;
+      this.isAdminSet = true;
+    }
 
     this.players[emptySlotIndex] = playerId;
 
@@ -92,22 +135,32 @@ export class GameSession {
   }
 
   public startGame(): void {
+    console.log(`starting game with players ${this.players}`)
     this.setStatus("ongoing");
   }
 
-  // get clientData() {
-  //   return {
-  //     id: this.id,
-  //     createdBy: this.createdBy,
-  //     status: this.status,
-  //     players: this.players,
-  //     leader: this.leader,
-  //     screen: this.screen,
-  //     // questions: Question[],
-  //     // currentQuestionId: number,
-  //     // selectedPlayerId: number,
-  //   }
-  // }
+  public getClientData(): GameSessionClientData {
+    let players;
+
+    if (this.status === "lobby") {
+      players = this.players;
+    } else {
+      players = this.players.filter((id): id is string => id !== undefined && id !== this.admin && id !== this.screen);
+    }
+
+    return {
+      id: this.id,
+      createdBy: this.createdBy,
+      status: this.status,
+      players: players,
+      leader: this.leader,
+      screen: this.screen,
+      admin: this.admin,
+      questions: this.questions,
+      // currentQuestionId: number,
+      // selectedPlayerId: number,
+    }
+  }
 
   // public getCurrentQuestion(): Question | null {
   //   return this.questions[this.currentQuestionId];

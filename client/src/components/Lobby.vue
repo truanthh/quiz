@@ -25,6 +25,13 @@ function handleCancelGame() {
   store.socket.emit("cancel-game");
 }
 
+function handleSetScreen(id){
+  store.socket.emit("set-screen", {
+    slotId: id,
+    gameId: store.gameSession.id,
+  });
+}
+
 function handleClearSlot(id) {
   // console.log(`trying to clear slot ${id}!`);
   store.socket.emit("clear-slot", id);
@@ -33,20 +40,30 @@ function handleClearSlot(id) {
 
 <template>
   <div class="lobby__container">
-    <!-- <span> {{ store.player }} </span> -->
+    <span> {{ store.gameSession.screen }} </span>
+    <span> {{ store.gameSession.players.map(p => p ? [p.name, p.role, p.id] : null) }} </span>
     <div
       class="lobby__slot"
       v-for="(player, id) of store.gameSession?.players"
       :key="player?.name"
     >
       {{ player ? `${player.name} ${player.role}` : "open" }}
-      <button
-        @click="handleClearSlot(id)"
-        v-if="store.isLeader && (player ? player.id !== store.player.id : true)"
-        class="button__kick"
-      >
-        KICK
-      </button>
+      <div class="lobby__slot__buttons">
+        <button
+          @click="handleSetScreen(id)"
+          v-if="store.isLeader && (player ? player.id !== store.gameSession.screen : true)"
+          class="button__setscreen"
+        >
+          SCREEN
+        </button>
+        <button
+          @click="handleClearSlot(id)"
+          v-if="store.isLeader && (player ? player.id !== store.player.id : true)"
+          class="button__kick"
+        >
+          KICK
+        </button>
+      </div>
     </div>
     <div class="controlButtons">
       <button
@@ -97,12 +114,16 @@ function handleClearSlot(id) {
     font-size: 30px;
     color: black;
     padding-left: 10px;
+    &__buttons {
+      display: flex;
+      width: 40%;
+    }
   }
 }
 
 .button {
-  &__kick {
-    width: 20%;
+  &__kick, &__setscreen {
+    width: 100%;
   }
 
   &__start,

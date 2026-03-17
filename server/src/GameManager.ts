@@ -108,9 +108,23 @@ export class GameManager {
     return null;
   }
 
-  // public transferLeader(gameId: string, currentLeader: Player, newLeader: Player) {
+  // public setScreen(gameId: string, oldScreenId: Player, slot: number) {
+  //   const gameSession = this.getGameSessionById(gameId);
+  //   if (!gameSession) return;
   //
+  //   console.log(`pinging slot ${slot}`);
   // }
+
+  public setScreen(payload: any) {
+    const gameSession = this.getGameSessionById(payload.gameId);
+    if (!gameSession) return;
+
+    const oldScreen = this.playerManager.getPlayerById(gameSession.getScreen());
+
+    // const newScreen = this.playerManager.getPlayerById(newScreenId);
+
+    // gameSession.setScreen(newScreen);
+  }
 
   // public addGame(game: GameSession) {
   //   this.games.set(game.id, game);

@@ -34,7 +34,8 @@ onMounted(() => {
 <template>
   <div class="mainMenu__container">
     <div class="title" :style="{ 'font-size': '14px' }">
-        {{ store.gameSession.players }}
+        <!-- {{ store.gameSession.status }} -->
+        <!-- {{ store.gameSession.players }} -->
     </div>
     <div class="mainMenu">
       <div class="bar" :style="{ 'font-size': '20px', 'font-weight': 'bold' }">
