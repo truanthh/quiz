@@ -81,6 +81,7 @@ async function generateMusicLibrary() {
     }
 
     const tracks = [];
+    let fileIndex = 0;
 
     // Обрабатываем каждый файл асинхронно
     for (const filename of mp3Files) {
@@ -89,39 +90,18 @@ async function generateMusicLibrary() {
 
       const metadata = await extractMetadataFromFile(filePath, filename);
 
-      let artistNamePoints;
-      let trackNamePoints;
-      let artistNameDifficulty;
-      let trackNameDifficulty;
-
-      if (filename.startsWith("h")) {
-        artistNamePoints = 1000;
-        trackNamePoints = 1000;
-        artistNameDifficulty = 5;
-        trackNameDifficulty = 5;
-      } else if (filename.startsWith("m")) {
-        artistNamePoints = 500;
-        trackNamePoints = 500;
-        artistNameDifficulty = 5;
-        trackNameDifficulty = 5;
-      } else {
-        artistNamePoints = 100;
-        trackNamePoints = 100;
-        artistNameDifficulty = 5;
-        trackNameDifficulty = 5;
-      }
-
       tracks.push({
+        id: fileIndex,
         artist: metadata.artist,
         name: metadata.title,
         src: `/music/${filename}`,
         posterImg: metadata.posterPath,
         filename: filename,
-        artistNamePoints: artistNamePoints,
-        trackNamePoints: trackNamePoints,
-        artistNameDifficulty: artistNameDifficulty,
-        trackNameDifficulty: trackNameDifficulty,
+        artistNamePoints: 100,
+        trackNamePoints: 100,
       });
+
+      fileIndex += 1;
     }
 
     const musicLibrary = {
@@ -141,13 +121,13 @@ async function generateMusicLibrary() {
     ).length;
     console.log(`🎶 Треков с обложками: ${withPosters}/${tracks.length}`);
 
-    console.log("\n📋 Список треков:");
+    // console.log("\n📋 Список треков:");
     tracks.forEach((track, index) => {
       const posterStatus =
         track.posterImg !== "/posters/default.jpg" ? "🎨" : "⚪";
-      console.log(
-        `${index + 1}. ${posterStatus} ${track.artist} - ${track.name}`,
-      );
+      // console.log(
+      //   `${index + 1}. ${posterStatus} ${track.artist} - ${track.name}`,
+      // );
     });
   } catch (error) {
     console.error("❌ Ошибка:", error.message);

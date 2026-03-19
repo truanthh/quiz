@@ -150,9 +150,9 @@ export class SocketService {
     });
   }
 
-  private expandPlayerData(data: any): Object {
-    return { ...data, players: data.players.map((id: string) => this.playerManager.getPlayerById(id)) }
-  }
+  // private expandPlayerData(data: any): Object {
+  //   return { ...data, players: data.players.map((id: string) => this.playerManager.getPlayerById(id)) }
+  // }
 
   private updatePlayerGamesession(player: Player): void {
     if (!player) return;
@@ -162,17 +162,16 @@ export class SocketService {
 
     this.emitToSocket(player.socketId, {
       type: "gamesession-updated",
-      data: this.expandPlayerData(gameSession.getClientData()),
+      data: gameSession.getClientData(),
     });
   }
 
   private updateDeletedGameSessionPlayers(gameSession: GameSession): void {
     if (!gameSession) return;
 
-    const playerIds = gameSession.getPlayers();
+    const players = gameSession.getPlayers();
 
-    for (let id of playerIds) {
-      const player = this.playerManager.getPlayerById(id);
+    for (let player of players) {
       if (!player) continue;
 
       this.emitToSocket(player.socketId, {
@@ -181,8 +180,8 @@ export class SocketService {
           ...player,
           gameSession:
             gameSession.getStatus() === "canceled"
-              ? null
-              : this.expandPlayerData(gameSession.getClientData()),
+              ? undefined
+              : gameSession.getClientData(),
         },
       });
     }
@@ -192,15 +191,14 @@ export class SocketService {
     const gameSession = this.gameManager.getGameSessionById(gameSessionId);
     if (!gameSession) return;
 
-    const playerIds = gameSession.getPlayers();
+    const players = gameSession.getPlayers();
 
-    for (let id of playerIds) {
-      const player = this.playerManager.getPlayerById(id);
+    for (let player of players) {
       if (!player) continue;
 
       this.emitToSocket(player.socketId, {
         type: "gamesession-updated",
-        data: this.expandPlayerData(gameSession.getClientData()),
+        data: gameSession.getClientData(),
       });
 
       this.emitToSocket(player.socketId, {
@@ -232,10 +230,9 @@ export class SocketService {
     const player = this.playerManager.getPlayerBySocketId(socket.id);
     if (!player) return;
 
-    const gameSession = this.gameManager.joinGame(player.id, gameId);
-    if (!gameSession) return;
+    this.gameManager.joinGame(player.id, gameId);
 
-    this.updateGameSessionPlayers(gameSession.id);
+    this.updateGameSessionPlayers(gameId);
     this.updateAllPlayersOnPlayerAction(socket);
   }
 
@@ -386,11 +383,9 @@ export class SocketService {
     const gameSession = this.gameManager.getGameSessionById(gameSessionId);
     if (!gameSession) return;
 
-    const playerIds = gameSession.getPlayers();
+    const players = gameSession.getPlayers();
 
-    for (let id of playerIds) {
-      console.log(`emitting game-started to ${id}`);
-      const player = this.playerManager.getPlayerById(id);
+    for (let player of players) {
       if (!player) continue;
 
       this.emitToSocket(player.socketId, event);

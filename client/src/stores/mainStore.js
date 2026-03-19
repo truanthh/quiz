@@ -23,11 +23,6 @@ export const mainStore = defineStore("mainStore", () => {
   // let gameSession = reactive({});
   const gameSession = ref({});
 
-  // if player is this gamesession leader
-  const isLeader = computed(() => {
-    return player.value.id === gameSession.value?.leader;
-  });
-
   const initSocket = () => {
     socket.value = io(import.meta.env.VITE_SERVER_ADDRESS, {
       auth: { token: localStorage.getItem("token"), role: player.value.role },
@@ -80,8 +75,6 @@ export const mainStore = defineStore("mainStore", () => {
     // data
     gameSession,
     player,
-    players,
-    isLeader,
 
     // socket
     socket,

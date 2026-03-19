@@ -11,28 +11,13 @@ export class GameManager {
     this.playerManager = playerManager;
   }
 
-  // asdlkfj
   public startGame(gameSessionId: string): boolean {
     const gameSession = this.getGameSessionById(gameSessionId);
     if (!gameSession || gameSession.getStatus() !== "lobby") return false;
 
-    //lksdjlfksjl
-
-    // if (gameSession.loadQuestions(questions)) {
-    const players = gameSession
-      .getPlayers()
-      .map((id) => this.playerManager.getPlayerById(id));
-
-    for (let player of players) {
-      this.playerManager.setPlayerStatus(player, "in-game");
-    }
-
     gameSession.startGame();
 
     return true;
-    // };
-
-    // return false;
   }
 
   // sdf
@@ -40,7 +25,7 @@ export class GameManager {
     const player = this.playerManager.getPlayerById(playerId);
     if (!player || player.status === "in-game") return;
 
-    const newGame = new GameSession(player);
+    const newGame = new GameSession(player, this.playerManager);
     this.games.set(newGame.id, newGame);
     this.joinGame(playerId, newGame.id);
 
@@ -56,26 +41,24 @@ export class GameManager {
     const gameSession = this.getGameSessionById(player.gameId);
 
     if (!gameSession) return undefined;
-    if (gameSession.getLeader() !== player.id) return undefined;
+    if (!player.isLeader) return undefined;
 
     this.games.delete(gameSession.id);
 
-    const players = gameSession
-      .getPlayers()
-      .map((playerId) => this.playerManager.getPlayerById(playerId));
+    const players = gameSession.getPlayers()
 
     for (let player of players) {
       if (!player) continue;
-      this.playerManager.setPlayerGameId(player, "");
-      this.playerManager.setPlayerStatus(player, "online");
-      this.playerManager.setPlayerRole(player, "init");
+      this.playerManager.setPlayerGameId(player.id, "");
+      this.playerManager.setPlayerStatus(player.id, "online");
+      this.playerManager.setPlayerRole(player.id, "init");
     }
 
     return gameSession;
   }
 
   // lobby only
-  public joinGame(playerId: string, gameId: string): GameSession | null {
+  public joinGame(playerId: string, gameId: string): GameSession | undefined {
     const gameSession = this.getGameSessionById(gameId);
     const player = this.playerManager.getPlayerById(playerId);
 
@@ -85,27 +68,11 @@ export class GameManager {
       !player ||
       player.status === "in-game"
     )
-      return null;
+      return undefined;
 
-    console.log(`player: ${player.name} is trying to join ${gameId}`);
+    gameSession.addPlayer(playerId);
 
-    const slotNumber = gameSession.addPlayer(playerId);
-
-    if (slotNumber !== -1) {
-      console.log(`player: ${player.name} joined ${gameId}`);
-      if (slotNumber === 0) {
-        this.playerManager.setPlayerRole(player, "screen");
-      } else if (slotNumber === 1) {
-        this.playerManager.setPlayerRole(player, "admin");
-      } else {
-        this.playerManager.setPlayerRole(player, "player");
-      }
-      this.playerManager.setPlayerGameId(player, gameId);
-      this.playerManager.setPlayerStatus(player, "lobby");
-      return gameSession;
-    }
-
-    return null;
+    return gameSession;
   }
 
   // public setScreen(gameId: string, oldScreenId: Player, slot: number) {
@@ -119,7 +86,7 @@ export class GameManager {
     const gameSession = this.getGameSessionById(payload.gameId);
     if (!gameSession) return;
 
-    const oldScreen = this.playerManager.getPlayerById(gameSession.getScreen());
+    // const oldScreen = this.playerManager.getPlayerById(gameSession.getScreen().id);
 
     // const newScreen = this.playerManager.getPlayerById(newScreenId);
 

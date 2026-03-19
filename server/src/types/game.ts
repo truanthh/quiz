@@ -52,6 +52,7 @@ export type Player = {
   gameId: string;
   role: PlayerRole;
   avatarNumber: number;
+  isLeader: boolean;
 };
 
 export interface Admin {

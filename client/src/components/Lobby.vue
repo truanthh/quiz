@@ -40,8 +40,9 @@ function handleClearSlot(id) {
 
 <template>
   <div class="lobby__container">
-    <span> {{ store.gameSession.screen }} </span>
-    <span> {{ store.gameSession.players.map(p => p ? [p.name, p.role, p.id] : null) }} </span>
+    <!-- <span> {{ store.gameSession.players.map(p => p ? [p.name, p.role, p.id] : null) }} </span> -->
+    <!-- <span> {{ store.gameSession }} </span> -->
+    <span> {{ store.player }} </span>
     <div
       class="lobby__slot"
       v-for="(player, id) of store.gameSession?.players"
@@ -51,14 +52,14 @@ function handleClearSlot(id) {
       <div class="lobby__slot__buttons">
         <button
           @click="handleSetScreen(id)"
-          v-if="store.isLeader && (player ? player.id !== store.gameSession.screen : true)"
+          v-if="store.player.isLeader && (player ? player.id !== store.gameSession.screen : true)"
           class="button__setscreen"
         >
           SCREEN
         </button>
         <button
           @click="handleClearSlot(id)"
-          v-if="store.isLeader && (player ? player.id !== store.player.id : true)"
+          v-if="store.player.isLeader && (player ? player.id !== store.player.id : true)"
           class="button__kick"
         >
           KICK
@@ -69,14 +70,14 @@ function handleClearSlot(id) {
       <button
         @click="handleCancelGame"
         class="button__cancel"
-        v-if="store.isLeader"
+        v-if="store.player.isLeader"
       >
         Cancel
       </button>
       <button
         @click="handleStartGame"
         class="button__start"
-        v-if="store.isLeader"
+        v-if="store.player.isLeader"
       >
         Start
       </button>

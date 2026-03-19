@@ -1,14 +1,15 @@
 import { Question, Track, Player, GameStatus } from "./types/game.ts";
+import { PlayerManager } from "./PlayerManager.ts";
 import trackData from "./tracks.json";
 
 interface GameSessionClientData {
   id: string;
   status: string;
-  players: (Player | string | undefined)[];
+  players: (Player | undefined)[];
   createdBy: string;
-  admin: string;
-  leader: string;
-  screen: string;
+  // admin: string;
+  // screen: string;
+  // leader: string;
   questions: Question[];
 }
 
@@ -16,26 +17,22 @@ export class GameSession {
   public readonly id: string;
   public readonly createdBy: string;
   private status: GameStatus;
-  private players: (string | undefined)[];
-  private leader: string;
-  private screen: string;
-  private admin: string;
+  private slots: (string | undefined)[];
   private questions: any;
   private currentQuestionId: number;
   private selectedPlayerId: number;
+  private playerManager: PlayerManager;
 
   private static LOBBY_SIZE = 10;
   private isAdminSet: boolean = false;
   private isScreenSet: boolean = false;
 
-  constructor(player: Player) {
+  constructor(player: Player, playerManager: PlayerManager) {
+    this.playerManager = playerManager;
     this.id = player.name;
     this.createdBy = player.id;
-    this.players = new Array(GameSession.LOBBY_SIZE).fill(undefined);
-    this.leader = player.id;
-    this.screen = player.id;
-    this.admin = player.id;
-    this.questions = trackData.tracks;
+    this.slots = new Array(GameSession.LOBBY_SIZE).fill(undefined);
+    this.questions = [];
     this.currentQuestionId = 0;
     this.selectedPlayerId = 0;
     this.status = "lobby";
@@ -50,14 +47,23 @@ export class GameSession {
     return true;
   }
 
-  // public getPlayerIdBySlot(slotId: number): string | undefined {
-  //   if (slotId >= this.players.length || slotId < 0) {
-  //     console.log("wrong slotId!")
-  //     return undefined;
-  //   }
-  //
-  //   return this.players[slotId];
-  // }
+  public getSlots(): (string | undefined)[] {
+    return this.slots;
+  }
+
+  // get players means clients cuz every client can be a player
+  // this is not client data
+  public getPlayers(): (Player | undefined)[] {
+    return this.slots.filter(playerId => playerId !== undefined).map(playerId => this.playerManager.getPlayerById(playerId))
+  }
+
+  public getAdmin(): Player | undefined {
+    return this.getPlayers().find(player => player?.role === "admin");
+  }
+
+  public getScreen(): Player | undefined {
+    return this.getPlayers().find(player => player?.role === "screen");
+  }
 
   public getQuestions(): Question[] {
     return this.questions;
@@ -72,90 +78,74 @@ export class GameSession {
   }
 
   public setScreen(slotId: number): void {
-    if (slotId >= this.players.length || slotId < 0) {
+    if (slotId >= this.slots.length || slotId < 0) {
       console.log("wrong slotId!")
       return;
     }
 
-    if (!this.players[slotId]) return;
+    if (!this.slots[slotId]) return;
 
-
+    this.playerManager.setPlayerRole(this.slots[slotId], "screen");
   }
 
-  public getPlayers() {
-    return this.players.filter((id) => id !== undefined);
-  }
-
-  public getPlayersActive(): string[] {
-    return this.players.filter((id): id is string => id !== undefined && id !== this.admin && id !== this.screen);
-  }
-
-  public getSlots(): (string | undefined)[] {
-    return this.players;
-  }
-
-  public getScreen(): string {
-    return this.screen;
-  }
-
-  // public getAdmin(): string {
-  //   return this.admin;
-  // }
-
-  public getLeader(): string {
-    return this.leader;
-  }
-
-  public addPlayer(playerId: string): number {
-    const emptySlotIndex = this.players.findIndex((el) => !el);
-
-    if (emptySlotIndex === -1) return -1;
+  public addPlayer(playerId: string): number | undefined {
+    const emptySlotIndex = this.slots.findIndex((el) => !el);
+    if (emptySlotIndex === -1) return undefined;
 
     if (emptySlotIndex === 0 && !this.isScreenSet) {
-      this.screen = playerId;
+      this.playerManager.setPlayerRole(playerId, "screen");
+      this.playerManager.setPlayerLeader(playerId);
       this.isScreenSet = true;
-    }
-
-    if (emptySlotIndex === 1 && !this.isAdminSet) {
-      this.admin = playerId;
+    } else if (emptySlotIndex === 1 && !this.isAdminSet) {
+      this.playerManager.setPlayerRole(playerId, "admin");
       this.isAdminSet = true;
+    } else {
+      this.playerManager.setPlayerRole(playerId, "player");
     }
 
-    this.players[emptySlotIndex] = playerId;
+    this.playerManager.setPlayerGameId(playerId, this.id);
+    this.playerManager.setPlayerStatus(playerId, "lobby");
 
+    this.slots[emptySlotIndex] = playerId;
     return emptySlotIndex;
   }
 
   public clearSlot(id: number): boolean {
-    if (id >= this.players.length || id < 0) return false;
+    if (id >= this.slots.length || id < 0) return false;
 
-    this.players[id] = undefined;
+    this.slots[id] = undefined;
 
     return true;
   }
 
   public startGame(): void {
-    console.log(`starting game with players ${this.players}`)
+    console.log(`starting game with slots ${this.slots}`)
+
+    const playerIds = this.getSlots().filter(id => id !== undefined);
+
+    for (const playerId of playerIds) {
+      this.playerManager.setPlayerStatus(playerId, "in-game");
+    }
+
     this.setStatus("ongoing");
   }
 
   public getClientData(): GameSessionClientData {
-    let players;
+    let players = this.getSlots().map(playerId => playerId ? this.playerManager.getPlayerById(playerId) : undefined);
 
-    if (this.status === "lobby") {
-      players = this.players;
-    } else {
-      players = this.players.filter((id): id is string => id !== undefined && id !== this.admin && id !== this.screen);
+    if (this.status !== "lobby") {
+      players = players.filter(player => player === undefined || player.role === "player");
     }
 
     return {
       id: this.id,
+      // size: GameSession.LOBBY_SIZE,
       createdBy: this.createdBy,
       status: this.status,
-      players: players,
-      leader: this.leader,
-      screen: this.screen,
-      admin: this.admin,
+      players,
+      // leader: this.leader,
+      // screen: this.screen,
+      // admin: this.admin,
       questions: this.questions,
       // currentQuestionId: number,
       // selectedPlayerId: number,
@@ -193,13 +183,13 @@ export class GameSession {
   // }
 
   // public getPlayersReady(): Player[] | null {
-  //   if (!this.players.length) return null;
-  //   return this.players.filter((player) => player.hasPressedReady);
+  //   if (!this.slots.length) return null;
+  //   return this.slots.filter((player) => player.hasPressedReady);
   //   return null;
   // }
 
   // public setPlayerReady(playerToken: string): true | false {
-  //   const player = this.players.find((p) => p.token === playerToken);
+  //   const player = this.slots.find((p) => p.token === playerToken);
   //   if (!player || player.hasPressedReady) return false;
   //
   //   player.hasPressedReady = true;
@@ -207,7 +197,7 @@ export class GameSession {
   // }
 
   // public resetPlayersReady(): void {
-  //   this.players.forEach((player) => {
+  //   this.slots.forEach((player) => {
   //     player.hasPressedReady = false;
   //   });
   // }

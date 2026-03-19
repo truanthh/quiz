@@ -17,16 +17,37 @@ export class PlayerManager {
     this.availableAvatars = this.initAvatars(PlayerManager.AVATARS_AMOUNT);
   }
 
-  public setPlayerStatus(player: Player | undefined, status: PlayerStatus) {
+  public setPlayerLeader(playerIdNewLeader: string, playerIdOldLeader: string = "") {
+    const player = this.getPlayerById(playerIdNewLeader);
     if (!player) return;
+
+    if (playerIdOldLeader) {
+      const playerOldLeader = this.getPlayerById(playerIdOldLeader);
+      if (!playerOldLeader) return;
+
+      playerOldLeader.isLeader = false;
+    }
+    player.isLeader = true;
+  }
+
+  public setPlayerStatus(playerId: string, status: PlayerStatus) {
+    const player = this.getPlayerById(playerId);
+    if (!player) return;
+
     player.status = status;
   }
 
-  public setPlayerRole(player: Player, role: PlayerRole) {
+  public setPlayerRole(playerId: string, role: PlayerRole) {
+    const player = this.getPlayerById(playerId);
+    if (!player) return;
+
     player.role = role;
   }
 
-  public setPlayerGameId(player: Player, gameId: string) {
+  public setPlayerGameId(playerId: string, gameId: string) {
+    const player = this.getPlayerById(playerId);
+    if (!player) return;
+
     player.gameId = gameId;
   }
 
@@ -56,6 +77,7 @@ export class PlayerManager {
       status: "online",
       gameId: "",
       role: "init",
+      isLeader: false,
       avatarNumber: this.generateAvatarNumber(),
     };
 
