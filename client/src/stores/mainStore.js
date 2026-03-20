@@ -75,6 +75,7 @@ export const mainStore = defineStore("mainStore", () => {
     // data
     gameSession,
     player,
+    players,
 
     // socket
     socket,

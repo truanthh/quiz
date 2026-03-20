@@ -3,12 +3,15 @@ import { ref, onMounted } from "vue";
 import { mainStore } from "../stores/mainStore";
 import Lobby from "../components/Lobby.vue";
 import { useRouter } from "vue-router";
+import { storeToRefs } from "pinia";
 
 const isWindowActiveJoinGame = ref(false);
 const gameId = ref("");
 
 const store = mainStore();
 const router = useRouter();
+
+const { players } = storeToRefs(mainStore);
 
 function toggleJoinGame() {
   isWindowActiveJoinGame.value = !isWindowActiveJoinGame.value;

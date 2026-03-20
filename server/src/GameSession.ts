@@ -77,16 +77,25 @@ export class GameSession {
     this.status = value;
   }
 
-  public setScreen(slotId: number): void {
-    if (slotId >= this.slots.length || slotId < 0) {
-      console.log("wrong slotId!")
-      return;
-    }
-
-    if (!this.slots[slotId]) return;
-
-    this.playerManager.setPlayerRole(this.slots[slotId], "screen");
-  }
+  // public setScreen(slotId: number): void {
+  //   if (slotId >= this.slots.length || slotId < 0) {
+  //     console.log("wrong slotId!")
+  //     return;
+  //   }
+  //
+  //   const currentScreenId = this.slots.find(playerId => playerId ? this.playerManager.getPlayerById(playerId)?.role === "screen" : false);
+  //   const newSreenId = this.slots[slotId];
+  //
+  //   if (!newSreenId) {
+  //     console.log("no player on this slot!")
+  //     return;
+  //   }
+  //
+  //   if (currentScreenId) {
+  //     this.playerManager.setPlayerRole(currentScreenId, "player")
+  //   }
+  //   this.playerManager.setPlayerRole(newSreenId, "screen");
+  // }
 
   public addPlayer(playerId: string): number | undefined {
     const emptySlotIndex = this.slots.findIndex((el) => !el);

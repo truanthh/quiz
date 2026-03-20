@@ -43,6 +43,7 @@ function handleClearSlot(id) {
     <!-- <span> {{ store.gameSession.players.map(p => p ? [p.name, p.role, p.id] : null) }} </span> -->
     <!-- <span> {{ store.gameSession }} </span> -->
     <span> {{ store.player }} </span>
+    <span> {{ store.players }}</span>
     <div
       class="lobby__slot"
       v-for="(player, id) of store.gameSession?.players"
@@ -52,7 +53,7 @@ function handleClearSlot(id) {
       <div class="lobby__slot__buttons">
         <button
           @click="handleSetScreen(id)"
-          v-if="store.player.isLeader && (player ? player.id !== store.gameSession.screen : true)"
+          v-if="store.player.isLeader && (player ? player.role !== 'screen' : true)"
           class="button__setscreen"
         >
           SCREEN

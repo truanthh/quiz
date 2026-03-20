@@ -30,9 +30,9 @@ export class SocketService {
       this.handleCancelGame(socket);
     });
 
-    socket.on("set-screen", (payload) => {
-      this.handleSetScreen(socket, payload);
-    })
+    // socket.on("set-screen", (payload) => {
+    //   this.handleSetScreen(socket, payload);
+    // })
 
     socket.on("create-game", () => {
       this.handleCreateGame(socket);
@@ -95,9 +95,9 @@ export class SocketService {
     });
   }
 
-  public handleSetScreen(socket: Socket, payload: any): void {
-    this.gameManager.setScreen(payload);
-  }
+  // public handleSetScreen(socket: Socket, payload: any): void {
+  //   this.gameManager.setScreen(payload);
+  // }
 
   public handleConnection(socket: Socket): void {
     console.log(`Подключился: ${socket.id}`);
@@ -212,6 +212,8 @@ export class SocketService {
     const player = this.playerManager.getPlayerBySocketId(socket.id);
     if (!player) return;
 
+    console.log(this.playerManager.getPlayers());
+
     this.emitToAll({
       type: "players-updated",
       data: this.playerManager.getPlayers(),
@@ -254,7 +256,6 @@ export class SocketService {
     console.log(`player ${player.name} trying to cancel game`);
 
     const deletedGamesession = this.gameManager.deleteGame(player.id);
-    console.log(deletedGamesession);
     if (!deletedGamesession) return;
 
     this.updateDeletedGameSessionPlayers(deletedGamesession);
