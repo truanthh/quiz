@@ -128,8 +128,6 @@ export class GameSession {
   }
 
   public startGame(): void {
-    console.log(`starting game with slots ${this.slots}`)
-
     const playerIds = this.getSlots().filter(id => id !== undefined);
 
     for (const playerId of playerIds) {

@@ -20,7 +20,6 @@ export class GameManager {
     return true;
   }
 
-  // sdf
   public createGame(playerId: string): GameSession | undefined {
     const player = this.playerManager.getPlayerById(playerId);
     if (!player || player.status === "in-game") return;

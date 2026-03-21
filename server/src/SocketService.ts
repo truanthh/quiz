@@ -212,8 +212,6 @@ export class SocketService {
     const player = this.playerManager.getPlayerBySocketId(socket.id);
     if (!player) return;
 
-    console.log(this.playerManager.getPlayers());
-
     this.emitToAll({
       type: "players-updated",
       data: this.playerManager.getPlayers(),
