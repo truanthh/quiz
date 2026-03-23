@@ -18,7 +18,10 @@ const { gameState, players } = storeToRefs(store);
 // initializing audioPlayer
 const audioPlayer = useAudioPlayerStore();
 const audioPlayerElement = ref(null);
-audioPlayer.setTracks(tracksData.tracks);
+
+const tracksFinal = [...tracksData.tracks.sort((a,b) => a.id - b.id)];
+
+audioPlayer.setTracks(tracksFinal);
 
 const isScoreboardShown = ref(false);
 const isDebugPanelShown = ref(true);
@@ -63,7 +66,7 @@ watch(
 // });
 
 function startGame() {
-  store.socket.emit("start-game", tracksData.tracks);
+  store.socket.emit("start-game", tracksFinal);
 }
 
 onMounted(() => {

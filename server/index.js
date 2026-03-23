@@ -464,8 +464,7 @@ io.on("connection", (socket) => {
     // reveal artist
     game.currentQuestion.isArtistNameRevealed = true;
     const pointsGained =
-      game.currentQuestion.track.artistNamePoints *
-      game.currentQuestion.track.artistNameDifficulty;
+      game.currentQuestion.track.artistNamePoints;
     getSelectedPlayer().points += pointsGained;
     // try to close question if whole track is guessed
     // state also updates here
@@ -483,8 +482,7 @@ io.on("connection", (socket) => {
       return;
     }
     const pointsGained =
-      game.currentQuestion.track.artistNamePoints *
-      game.currentQuestion.track.artistNameDifficulty;
+      game.currentQuestion.track.artistNamePoints;
     getSelectedPlayer().points -= 100;
     updateClientGameState();
     playSound("failure");
@@ -502,8 +500,7 @@ io.on("connection", (socket) => {
     // reveal track name
     game.currentQuestion.isTrackNameRevealed = true;
     const pointsGained =
-      game.currentQuestion.track.trackNamePoints *
-      game.currentQuestion.track.trackNameDifficulty;
+      game.currentQuestion.track.trackNamePoints;
     getSelectedPlayer().points += pointsGained;
     closeQuestion();
     // try to close question if whole track is guessed
@@ -521,9 +518,8 @@ io.on("connection", (socket) => {
       return;
     }
     const pointsGained =
-      game.currentQuestion.track.trackNamePoints *
-      game.currentQuestion.track.trackNameDifficulty;
-    getSelectedPlayer().points -= 50;
+      game.currentQuestion.track.trackNamePoints;
+    getSelectedPlayer().points -= 100;
     updateClientGameState();
     playSound("failure");
     showPointsGained(-pointsGained);
