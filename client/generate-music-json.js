@@ -91,25 +91,9 @@ async function generateMusicLibrary() {
 
       let artistNamePoints;
       let trackNamePoints;
-      let artistNameDifficulty;
-      let trackNameDifficulty;
 
-      if (filename.startsWith("h")) {
-        artistNamePoints = 1000;
-        trackNamePoints = 1000;
-        artistNameDifficulty = 5;
-        trackNameDifficulty = 5;
-      } else if (filename.startsWith("m")) {
-        artistNamePoints = 500;
-        trackNamePoints = 500;
-        artistNameDifficulty = 5;
-        trackNameDifficulty = 5;
-      } else {
-        artistNamePoints = 100;
-        trackNamePoints = 100;
-        artistNameDifficulty = 5;
-        trackNameDifficulty = 5;
-      }
+      artistNamePoints = 100;
+      trackNamePoints = 100;
 
       tracks.push({
         artist: metadata.artist,
@@ -119,8 +103,6 @@ async function generateMusicLibrary() {
         filename: filename,
         artistNamePoints: artistNamePoints,
         trackNamePoints: trackNamePoints,
-        artistNameDifficulty: artistNameDifficulty,
-        trackNameDifficulty: trackNameDifficulty,
       });
     }
 
@@ -145,9 +127,9 @@ async function generateMusicLibrary() {
     tracks.forEach((track, index) => {
       const posterStatus =
         track.posterImg !== "/posters/default.jpg" ? "🎨" : "⚪";
-      console.log(
-        `${index + 1}. ${posterStatus} ${track.artist} - ${track.name}`,
-      );
+      // console.log(
+      //   `${index + 1}. ${posterStatus} ${track.artist} - ${track.name}`,
+      // );
     });
   } catch (error) {
     console.error("❌ Ошибка:", error.message);
