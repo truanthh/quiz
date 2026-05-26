@@ -15,7 +15,7 @@ export class GameManager {
     const gameSession = this.getGameSessionById(gameSessionId);
     if (!gameSession || gameSession.getStatus() !== "lobby") return false;
 
-    gameSession.startGame();
+    gameSession.setStatus("ongoing");
 
     return true;
   }
@@ -36,6 +36,7 @@ export class GameManager {
     sessionId: string;
     affectedPlayerIds: string[]
   }> {
+
     const player = this.playerManager.getPlayerById(playerId);
     if (!player) {
       return { success: false, error: "Player not found!" };
@@ -44,14 +45,15 @@ export class GameManager {
     // making sure gameSession exists and player is the leader
     const gameSession = this.getGameSessionById(player.gameId);
     if (!gameSession) return { success: false, error: "GameSession not found!" };
+
     if (!player.isLeader) return { success: false, error: "Player is not the leader!" };
 
-    const affectedPlayerIds = gameSession.getPlayers().filter(Boolean).map(p => p!.id);
+    const affectedPlayerIds = gameSession.getPlayerIds();
 
     for (const playerId of affectedPlayerIds) {
-      this.playerManager.setPlayerGameId(playerId, "");
-      this.playerManager.setPlayerStatus(playerId, "online");
-      this.playerManager.setPlayerRole(playerId, "init");
+      this.playerManager.setPlayerGameId(playerId!, "");
+      this.playerManager.setPlayerStatus(playerId!, "online");
+      this.playerManager.setPlayerRole(playerId!, "init");
     }
 
     this.games.delete(gameSession.id);
