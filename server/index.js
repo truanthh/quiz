@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 import { createServer } from "http";
 import { Server as socketIo } from "socket.io";
 import cors from "cors";
@@ -554,6 +554,6 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(3000, "192.168.50.222", () => {
+server.listen(3000, "192.168.50.223", () => {
   // console.log("Сервер запущен на порту 3000");
 });
