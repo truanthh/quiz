@@ -118,7 +118,7 @@ export class PlayerManager {
 
     this.tokenToPlayerId.delete(player.token);
     this.socketToPlayerId.delete(socketId);
-    this.players.delete(socketId);
+    this.players.delete(player.id);
 
     return true;
   }

@@ -1,6 +1,6 @@
 import { PlayerManager } from "./PlayerManager.ts";
 import { GameSession } from "./GameSession.ts";
-import { Player, Question, PlayerStatus } from "./types/index.ts";
+import { Player, Question, PlayerStatus, OperationResult } from "./types/index.ts";
 
 export class GameManager {
   private games: Map<string, GameSession>;
@@ -32,46 +32,64 @@ export class GameManager {
     return newGame;
   }
 
-  public deleteGame(playerId: string): GameSession | undefined {
+  public deleteGame(playerId: string): OperationResult<{
+    sessionId: string;
+    affectedPlayerIds: string[]
+  }> {
     const player = this.playerManager.getPlayerById(playerId);
-    if (!player || player.status === "online") return undefined;
+    if (!player) {
+      return { success: false, error: "Player not found!" };
+    }
 
     // making sure gameSession exists and player is the leader
     const gameSession = this.getGameSessionById(player.gameId);
+    if (!gameSession) return { success: false, error: "GameSession not found!" };
+    if (!player.isLeader) return { success: false, error: "Player is not the leader!" };
 
-    if (!gameSession) return undefined;
-    if (!player.isLeader) return undefined;
+    const affectedPlayerIds = gameSession.getPlayers().filter(Boolean).map(p => p!.id);
+
+    for (const playerId of affectedPlayerIds) {
+      this.playerManager.setPlayerGameId(playerId, "");
+      this.playerManager.setPlayerStatus(playerId, "online");
+      this.playerManager.setPlayerRole(playerId, "init");
+    }
 
     this.games.delete(gameSession.id);
 
-    const players = gameSession.getPlayers()
-
-    for (let player of players) {
-      if (!player) continue;
-      this.playerManager.setPlayerGameId(player.id, "");
-      this.playerManager.setPlayerStatus(player.id, "online");
-      this.playerManager.setPlayerRole(player.id, "init");
+    return {
+      success: true,
+      data: { sessionId: gameSession.id, affectedPlayerIds }
     }
-
-    return gameSession;
   }
 
   // lobby only
-  public joinGame(playerId: string, gameId: string): GameSession | undefined {
+  public joinGame(playerId: string, gameId: string): OperationResult<string> {
     const gameSession = this.getGameSessionById(gameId);
     const player = this.playerManager.getPlayerById(playerId);
 
-    if (
-      !gameSession ||
-      gameSession.getStatus() !== "lobby" ||
-      !player ||
-      player.status === "in-game"
-    )
-      return undefined;
+    if (!gameSession) return { success: false, error: "gamesession is undefined" };
+    if (gameSession.getStatus() !== "lobby") return { success: false, error: "gamesession status is wrong!" };
 
-    gameSession.addPlayer(playerId);
+    if (!player) return { success: false, error: "player is undefined!" };
+    if (player.status === "in-game") return { success: false, error: "player is already in game!" }
 
-    return gameSession;
+    const emptySlotIndex = gameSession.getSlots().findIndex((el) => !el);
+    if (emptySlotIndex === -1) return { success: false, error: "lobby is full!" };
+
+    if (emptySlotIndex === 0) {
+      this.playerManager.setPlayerRole(playerId, "screen");
+      this.playerManager.setPlayerLeader(playerId);
+    } else if (emptySlotIndex === 1) {
+      this.playerManager.setPlayerRole(playerId, "admin");
+    } else {
+      this.playerManager.setPlayerRole(playerId, "player");
+    }
+
+    this.playerManager.setPlayerGameId(playerId, gameSession.id);
+    this.playerManager.setPlayerStatus(playerId, "lobby");
+    gameSession.getSlots()[emptySlotIndex] = playerId;
+
+    return { success: true, data: gameSession.id }
   }
 
   // public setScreen(gameId: string, oldScreenId: Player, slot: number) {
@@ -81,16 +99,8 @@ export class GameManager {
   //   console.log(`pinging slot ${slot}`);
   // }
 
-  public setScreen(payload: any) {
-    const gameSession = this.getGameSessionById(payload.gameId);
-    if (!gameSession) return;
-
-    // const oldScreen = this.playerManager.getPlayerById(gameSession.getScreen().id);
-
-    // const newScreen = this.playerManager.getPlayerById(newScreenId);
-
-    // gameSession.setScreen(newScreen);
-  }
+  // public setScreen(payload: any) {
+  // }
 
   // public addGame(game: GameSession) {
   //   this.games.set(game.id, game);

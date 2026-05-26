@@ -1,6 +1,10 @@
 // types/game.ts
 export type PlayerRole = "admin" | "screen" | "player" | "init";
 
+export type OperationResult<T = void> =
+  | { success: true; data: T }
+  | { success: false; error: string };
+
 export type QuestionState =
   | "init"
   | "open"

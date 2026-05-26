@@ -21,14 +21,12 @@ export class GameSession {
   private questions: any;
   private currentQuestionId: number;
   private selectedPlayerId: number;
-  private playerManager: PlayerManager;
 
   private static LOBBY_SIZE = 10;
   private isAdminSet: boolean = false;
   private isScreenSet: boolean = false;
 
   constructor(player: Player, playerManager: PlayerManager) {
-    this.playerManager = playerManager;
     this.id = player.name;
     this.createdBy = player.id;
     this.slots = new Array(GameSession.LOBBY_SIZE).fill(undefined);
@@ -53,17 +51,17 @@ export class GameSession {
 
   // get players means clients cuz every client can be a player
   // this is not client data
-  public getPlayers(): (Player | undefined)[] {
-    return this.slots.filter(playerId => playerId !== undefined).map(playerId => this.playerManager.getPlayerById(playerId))
-  }
+  // public getPlayers(): (Player | undefined)[] {
+  //   return this.slots.filter(playerId => playerId !== undefined).map(playerId => this.playerManager.getPlayerById(playerId))
+  // }
 
-  public getAdmin(): Player | undefined {
-    return this.getPlayers().find(player => player?.role === "admin");
-  }
-
-  public getScreen(): Player | undefined {
-    return this.getPlayers().find(player => player?.role === "screen");
-  }
+  // public getAdmin(): Player | undefined {
+  //   return this.getPlayers().find(player => player?.role === "admin");
+  // }
+  //
+  // public getScreen(): Player | undefined {
+  //   return this.getPlayers().find(player => player?.role === "screen");
+  // }
 
   public getQuestions(): Question[] {
     return this.questions;
@@ -77,47 +75,28 @@ export class GameSession {
     this.status = value;
   }
 
-  // public setScreen(slotId: number): void {
-  //   if (slotId >= this.slots.length || slotId < 0) {
-  //     console.log("wrong slotId!")
-  //     return;
+
+  // public getEmptySlotIndex(playerId: string): number | undefined {
+  //   const emptySlotIndex = this.slots.findIndex((el) => !el);
+  //   if (emptySlotIndex === -1) return undefined;
+  //
+  //   if (emptySlotIndex === 0 && !this.isScreenSet) {
+  //     this.playerManager.setPlayerRole(playerId, "screen");
+  //     this.playerManager.setPlayerLeader(playerId);
+  //     this.isScreenSet = true;
+  //   } else if (emptySlotIndex === 1 && !this.isAdminSet) {
+  //     this.playerManager.setPlayerRole(playerId, "admin");
+  //     this.isAdminSet = true;
+  //   } else {
+  //     this.playerManager.setPlayerRole(playerId, "player");
   //   }
   //
-  //   const currentScreenId = this.slots.find(playerId => playerId ? this.playerManager.getPlayerById(playerId)?.role === "screen" : false);
-  //   const newSreenId = this.slots[slotId];
+  //   this.playerManager.setPlayerGameId(playerId, this.id);
+  //   this.playerManager.setPlayerStatus(playerId, "lobby");
   //
-  //   if (!newSreenId) {
-  //     console.log("no player on this slot!")
-  //     return;
-  //   }
-  //
-  //   if (currentScreenId) {
-  //     this.playerManager.setPlayerRole(currentScreenId, "player")
-  //   }
-  //   this.playerManager.setPlayerRole(newSreenId, "screen");
+  //   this.slots[emptySlotIndex] = playerId;
+  //   return emptySlotIndex;
   // }
-
-  public addPlayer(playerId: string): number | undefined {
-    const emptySlotIndex = this.slots.findIndex((el) => !el);
-    if (emptySlotIndex === -1) return undefined;
-
-    if (emptySlotIndex === 0 && !this.isScreenSet) {
-      this.playerManager.setPlayerRole(playerId, "screen");
-      this.playerManager.setPlayerLeader(playerId);
-      this.isScreenSet = true;
-    } else if (emptySlotIndex === 1 && !this.isAdminSet) {
-      this.playerManager.setPlayerRole(playerId, "admin");
-      this.isAdminSet = true;
-    } else {
-      this.playerManager.setPlayerRole(playerId, "player");
-    }
-
-    this.playerManager.setPlayerGameId(playerId, this.id);
-    this.playerManager.setPlayerStatus(playerId, "lobby");
-
-    this.slots[emptySlotIndex] = playerId;
-    return emptySlotIndex;
-  }
 
   public clearSlot(id: number): boolean {
     if (id >= this.slots.length || id < 0) return false;
