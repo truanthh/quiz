@@ -25,7 +25,7 @@ function handleJoinGame() {
   store.socket.emit("join-game", gameId.value);
 }
 
-let slots = [0, 1, 2, 3, 4, 5, 6, 7];
+// let slots = [0, 1, 2, 3, 4, 5, 6, 7];
 
 onMounted(() => {
   store.socket.on("game-started", () => {
@@ -63,7 +63,8 @@ onMounted(() => {
         <button class="buttons_default" @click="handleJoinGame">JOIN</button>
         <button class="buttons_default" @click="toggleJoinGame">BACK</button>
       </div>
-      <Lobby v-if="store.player.gameId" :slots="10" :players="store.gameSession.players" />
+      <!-- <Lobby v-if="store.player.gameId" :slots="10" :players="store.gameSession.players" /> -->
+      <Lobby v-if="store.player.gameId"/>
       <div class="player">
         <!-- <span v-if="!store.isMobile">{{ -->
         <!--   store.player.gameSession?.players -->

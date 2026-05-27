@@ -160,45 +160,26 @@ export class SocketService {
     const gameSession = this.gameManager.getGameSessionById(player.gameId);
     if (!gameSession) return;
 
+    const slots = gameSession.getSlots().map(id => id ? this.playerManager.getPlayerById(id) : undefined);
+
     this.emitToSocket(player.socketId, {
       type: "gamesession-updated",
-      data: gameSession.getClientData(),
+      data: { ...gameSession, slots }
     });
-  }
-
-  private updateDeletedGameSessionPlayers(gameSession: GameSession): void {
-    if (!gameSession) return;
-
-    const players = gameSession.getPlayers();
-
-    for (let player of players) {
-      if (!player) continue;
-
-      this.emitToSocket(player.socketId, {
-        type: "player-updated",
-        data: {
-          ...player,
-          gameSession:
-            gameSession.getStatus() === "canceled"
-              ? undefined
-              : gameSession.getClientData(),
-        },
-      });
-    }
   }
 
   private updateGameSessionPlayers(gameSessionId: string): void {
     const gameSession = this.gameManager.getGameSessionById(gameSessionId);
     if (!gameSession) return;
 
-    const players = gameSession.getPlayers();
+    const slots = gameSession.getSlots().map(id => id ? this.playerManager.getPlayerById(id) : undefined);
 
-    for (let player of players) {
+    for (let player of slots) {
       if (!player) continue;
 
       this.emitToSocket(player.socketId, {
         type: "gamesession-updated",
-        data: gameSession.getClientData(),
+        data: { ...gameSession, slots }
       });
 
       this.emitToSocket(player.socketId, {
@@ -256,7 +237,7 @@ export class SocketService {
     const deletedGamesession = this.gameManager.deleteGame(player.id);
     if (!deletedGamesession) return;
 
-    this.updateDeletedGameSessionPlayers(deletedGamesession);
+    // this.updateDeletedGameSessionPlayers(deletedGamesession);
     this.updateAllPlayersOnPlayerAction(socket);
   }
 
@@ -382,7 +363,7 @@ export class SocketService {
     const gameSession = this.gameManager.getGameSessionById(gameSessionId);
     if (!gameSession) return;
 
-    const players = gameSession.getPlayers();
+    const players = gameSession.getPlayerIds().map(id => this.playerManager.getPlayerById(id));
 
     for (let player of players) {
       if (!player) continue;

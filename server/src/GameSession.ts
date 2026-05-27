@@ -2,17 +2,6 @@ import { Question, Track, Player, GameStatus } from "./types/game.ts";
 import { PlayerManager } from "./PlayerManager.ts";
 import trackData from "./tracks.json";
 
-// interface GameSessionClientData {
-//   id: string;
-//   status: string;
-//   players: (Player | undefined)[];
-//   createdBy: string;
-//   // admin: string;
-//   // screen: string;
-//   // leader: string;
-//   questions: Question[];
-// }
-
 export class GameSession {
   public readonly id: string;
   public readonly createdBy: string;
@@ -53,20 +42,6 @@ export class GameSession {
     return this.slots.filter((id): id is string => id !== undefined);
   }
 
-  // get players means clients cuz every client can be a player
-  // this is not client data
-  // public getPlayers(): (Player | undefined)[] {
-  //   return this.slots.filter(playerId => playerId !== undefined).map(playerId => this.playerManager.getPlayerById(playerId))
-  // }
-
-  // public getAdmin(): Player | undefined {
-  //   return this.getPlayers().find(player => player?.role === "admin");
-  // }
-  //
-  // public getScreen(): Player | undefined {
-  //   return this.getPlayers().find(player => player?.role === "screen");
-  // }
-
   public getQuestions(): Question[] {
     return this.questions;
   }
@@ -79,29 +54,6 @@ export class GameSession {
     this.status = value;
   }
 
-
-  // public getEmptySlotIndex(playerId: string): number | undefined {
-  //   const emptySlotIndex = this.slots.findIndex((el) => !el);
-  //   if (emptySlotIndex === -1) return undefined;
-  //
-  //   if (emptySlotIndex === 0 && !this.isScreenSet) {
-  //     this.playerManager.setPlayerRole(playerId, "screen");
-  //     this.playerManager.setPlayerLeader(playerId);
-  //     this.isScreenSet = true;
-  //   } else if (emptySlotIndex === 1 && !this.isAdminSet) {
-  //     this.playerManager.setPlayerRole(playerId, "admin");
-  //     this.isAdminSet = true;
-  //   } else {
-  //     this.playerManager.setPlayerRole(playerId, "player");
-  //   }
-  //
-  //   this.playerManager.setPlayerGameId(playerId, this.id);
-  //   this.playerManager.setPlayerStatus(playerId, "lobby");
-  //
-  //   this.slots[emptySlotIndex] = playerId;
-  //   return emptySlotIndex;
-  // }
-
   public clearSlot(id: number): boolean {
     if (id >= this.slots.length || id < 0) return false;
 
@@ -109,28 +61,6 @@ export class GameSession {
 
     return true;
   }
-
-  // public getClientData(): GameSessionClientData {
-  //   let players = this.getSlots().map(playerId => playerId ? this.playerManager.getPlayerById(playerId) : undefined);
-  //
-  //   if (this.status !== "lobby") {
-  //     players = players.filter(player => player === undefined || player.role === "player");
-  //   }
-  //
-  //   return {
-  //     id: this.id,
-  //     // size: GameSession.LOBBY_SIZE,
-  //     createdBy: this.createdBy,
-  //     status: this.status,
-  //     players,
-  //     // leader: this.leader,
-  //     // screen: this.screen,
-  //     // admin: this.admin,
-  //     questions: this.questions,
-  //     // currentQuestionId: number,
-  //     // selectedPlayerId: number,
-  //   }
-  // }
 
   // public getCurrentQuestion(): Question | null {
   //   return this.questions[this.currentQuestionId];

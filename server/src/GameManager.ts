@@ -53,7 +53,7 @@ export class GameManager {
     for (const playerId of affectedPlayerIds) {
       this.playerManager.setPlayerGameId(playerId!, "");
       this.playerManager.setPlayerStatus(playerId!, "online");
-      this.playerManager.setPlayerRole(playerId!, "init");
+      this.playerManager.setPlayerRole(playerId!, "");
     }
 
     this.games.delete(gameSession.id);
@@ -77,15 +77,6 @@ export class GameManager {
 
     const emptySlotIndex = gameSession.getSlots().findIndex((el) => !el);
     if (emptySlotIndex === -1) return { success: false, error: "lobby is full!" };
-
-    if (emptySlotIndex === 0) {
-      this.playerManager.setPlayerRole(playerId, "screen");
-      this.playerManager.setPlayerLeader(playerId);
-    } else if (emptySlotIndex === 1) {
-      this.playerManager.setPlayerRole(playerId, "admin");
-    } else {
-      this.playerManager.setPlayerRole(playerId, "player");
-    }
 
     this.playerManager.setPlayerGameId(playerId, gameSession.id);
     this.playerManager.setPlayerStatus(playerId, "lobby");

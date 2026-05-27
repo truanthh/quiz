@@ -76,7 +76,7 @@ export class PlayerManager {
       name: userName,
       status: "online",
       gameId: "",
-      role: "init",
+      role: "",
       isLeader: false,
       avatarNumber: this.generateAvatarNumber(),
     };

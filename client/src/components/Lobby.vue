@@ -40,32 +40,29 @@ function handleClearSlot(id) {
 
 <template>
   <div class="lobby__container">
-    <!-- <span> {{ store.gameSession.players.map(p => p ? [p.name, p.role, p.id] : null) }} </span> -->
-    <!-- <span> {{ store.gameSession }} </span> -->
-    <!-- <span> {{ store.player }} </span> -->
-    <!-- <span> {{ store.players }}</span> -->
     <div
       class="lobby__slot"
-      v-for="(player, id) of store.gameSession?.players"
-      :key="player?.name"
+      v-for="(slot, id) of new Array(10).fill(undefined)"
+      :key="id"
     >
-      {{ player ? `${player.name} ${player.role}` : "open" }}
-      <div class="lobby__slot__buttons">
-        <button
-          @click="handleSetScreen(id)"
-          v-if="store.player.isLeader && (player ? player.role !== 'screen' : true)"
-          class="button__setscreen"
-        >
-          SCREEN
-        </button>
-        <button
-          @click="handleClearSlot(id)"
-          v-if="store.player.isLeader && (player ? player.id !== store.player.id : true)"
-          class="button__kick"
-        >
-          KICK
-        </button>
-      </div>
+      {{ id + 1 }}.
+      {{store.gameSession?.slots[id] ? store.gameSession?.slots[id].name : "open"}}
+      <!-- <div class="lobby__slot__buttons"> -->
+      <!--   <button -->
+      <!--     @click="handleSetScreen(id)" -->
+      <!--     v-if="store.player.isLeader && (player ? player.role !== 'screen' : true)" -->
+      <!--     class="button__setscreen" -->
+      <!--   > -->
+      <!--     SCREEN -->
+      <!--   </button> -->
+      <!--   <button -->
+      <!--     @click="handleClearSlot(id)" -->
+      <!--     v-if="store.player.isLeader && (player ? player.id !== store.player.id : true)" -->
+      <!--     class="button__kick" -->
+      <!--   > -->
+      <!--     KICK -->
+      <!--   </button> -->
+      <!-- </div> -->
     </div>
     <div class="controlButtons">
       <button

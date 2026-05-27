@@ -35,6 +35,7 @@ export const mainStore = defineStore("mainStore", () => {
     socket.value.on("gamesession-updated", (gameSessionState) => {
       // console.log(gameSessionState);
       gameSession.value = { ...gameSessionState };
+      console.log(gameSession.value);
     });
 
     socket.value.on("players-updated", (playersData) => {
