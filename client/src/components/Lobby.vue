@@ -89,6 +89,7 @@ function handleClearSlot(id) {
   margin-top: 10px;
   width: 100%;
   justify-content: space-evenly;
+  cursor: pointer;
 }
 
 .lobby {

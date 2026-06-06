@@ -82,6 +82,10 @@ export class GameManager {
     this.playerManager.setPlayerStatus(playerId, "lobby");
     gameSession.getSlots()[emptySlotIndex] = playerId;
 
+    if (emptySlotIndex === 0) {
+      this.playerManager.setPlayerLeader(playerId);
+    }
+
     return { success: true, data: gameSession.id }
   }
 

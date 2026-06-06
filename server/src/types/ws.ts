@@ -1,4 +1,4 @@
-import { UserRole, User, Player, AudioPlayerState } from "./game";
+import { PlayerRole, User, Player, AudioPlayerState } from "./game";
 
 export interface ConnectionData {
   message: string;
@@ -11,7 +11,7 @@ export interface SocketAuth {
 }
 
 export interface LoginPayload {
-  role: UserRole;
+  role: PlayerRole;
   userName?: string;
 }
 
