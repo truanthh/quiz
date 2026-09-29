@@ -3,3 +3,10 @@ client/node_modules
 server/.env
 client/.env
 .env
+
+node_modules
+apps/*/node_modules
+packages/*/node_modules
+apps/*/.env
+apps/*/dist
+packages/*/dist

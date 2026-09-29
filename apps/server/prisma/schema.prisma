@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String
+  createdAt    DateTime   @default(now())
+  tracks       Track[]
+  playlists    Playlist[]
+}
+
+model Track {
+  id            String         @id @default(cuid())
+  ownerId       String
+  owner         User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title         String
+  artist        String
+  storageKey    String         @unique
+  durationMs    Int
+  posterUrl     String?
+  createdAt     DateTime       @default(now())
+  playlistItems PlaylistItem[]
+
+  @@index([ownerId])
+}
+
+model Playlist {
+  id        String         @id @default(cuid())
+  ownerId   String
+  owner     User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name      String
+  createdAt DateTime       @default(now())
+  items     PlaylistItem[]
+
+  @@index([ownerId])
+}
+
+model PlaylistItem {
+  id          String   @id @default(cuid())
+  playlistId  String
+  playlist    Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  trackId     String
+  track       Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  order       Int
+  clipStartMs Int
+  clipEndMs   Int
+  basePoints  Int      @default(100)
+
+  @@index([playlistId])
+}
