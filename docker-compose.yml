@@ -11,5 +11,16 @@ services:
     volumes:
       - quiz_postgres_data:/var/lib/postgresql/data
 
+  # S3-compatible storage for local dev. minio/minio now needs a Docker Hub /
+  # quay.io login (license dispute fallout) and localstack:latest now needs a
+  # paid license key just to boot - adobe/s3mock is a plain open-source S3 API
+  # mock with neither problem. Bucket CORS/public-read policy is set once via
+  # apps/server/scripts/bootstrapS3.ts (see Dev Setup in CLAUDE.md), not here.
+  s3mock:
+    image: adobe/s3mock:latest
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+
 volumes:
   quiz_postgres_data:

@@ -38,6 +38,10 @@ export interface ClientToServerEvents {
     payload: JoinRoomPayload,
     ack: (result: OperationResult<{ playerId: string }>) => void,
   ) => void;
+  hostJoin: (
+    payload: { roomCode: string },
+    ack: (result: OperationResult<PublicGameSession>) => void,
+  ) => void;
   startGame: () => void;
   beginQuestion: () => void;
   buzz: () => void;
@@ -51,7 +55,7 @@ export interface InterServerEvents {}
 
 export interface SocketData {
   roomCode: string;
-  playerId: string;
+  playerId?: string;
 }
 
 export type { AnswerVerdict };

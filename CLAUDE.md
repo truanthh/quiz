@@ -1,141 +1,224 @@
-# Guess-the-melody — rewrite notes
+# Угадай мелодию — заметки по переписыванию
 
-Party game: up to 8 players + 1 host, everyone in the same room, players on
-phones, a big screen shows shared state and plays audio. Players buzz in on
-their phone to stop the track when they think they know it.
+Пати-игра: до 8 игроков + 1 ведущий, все в одной комнате, игроки заходят с
+телефонов, на большом экране — общий стейт и звук. Игроки жмут «buzz» на
+телефоне, когда думают, что узнали трек.
 
-## Repo layout — old vs new, read this first
+Подробное описание модулей — в [`docs/`](docs/README.md). Этот файл — быстрый
+онбординг и статус проекта.
 
-There are **three** things in this repo right now:
+## Структура репозитория — старое vs новое, прочитать первым
 
-- `server/`, `client/` — the **original** local-LAN version (plain JS,
-  Express + Socket.IO + Vue3). One global in-memory game object, no rooms,
-  hardcoded LAN IP. Kept only as a reference for salvageable UI pieces
-  (Leaderboard, avatars, the `<audio>`/Web Audio wiring) — **do not build on
-  top of this or try to merge it with the rewrite.**
-- `apps/server` — the **new** backend being built now. TypeScript, real
-  rooms, Postgres, S3 storage. This is the live rewrite.
-- `apps/web` — the new Vue3+TS client. **Not started yet.**
-- `packages/shared` — TS types/utilities shared between `apps/server` and
-  the future `apps/web`.
+В репозитории сейчас **три** вещи:
 
-There was also an abandoned `origin/forscience` branch (an earlier, unmerged
-TS rewrite attempt that only got the lobby working). It's not used as a base
-for anything here — treat it as dead.
+- `server/`, `client/` — **оригинальная** локальная LAN-версия (чистый JS,
+  Express + Socket.IO + Vue3). Один глобальный in-memory объект игры, без
+  комнат, захардкоженный LAN IP. Оставлена только как референс для отдельных
+  переиспользуемых кусков UI (Leaderboard, аватарки, `<audio>`/Web Audio) —
+  **не строить поверх неё и не мержить с переписанной версией.**
+- `apps/server` — **новый** бэкенд. TypeScript, настоящие комнаты, Postgres,
+  S3. Это активная переписанная версия.
+- `apps/web` — новый клиент на Vue3+TS. Больше не пустой: минимальный, но
+  реально работающий фронтенд уже собран и проверен end-to-end (см. ниже).
+- `packages/shared` — общие TS-типы/утилиты между `apps/server` и `apps/web`.
 
-## Why rewrite instead of patch
+Была также заброшенная ветка `origin/forscience` (более ранняя, недомерженная
+попытка TS-переписывания, где доделали только лобби). Она не используется как
+база для чего-либо здесь — считать мёртвой.
 
-Decided after reviewing both `master` (working but can't do rooms/accounts)
-and `origin/forscience` (diverged 5 months, only the lobby layer finished).
-The new requirements are a big enough jump — internet-facing, host accounts
-with a persistent track library, a visual waveform clip picker, many
-concurrent games, team mode, auto fuzzy-matched answers, speed scoring, a
-final wager round — that patching either old base wasn't worth it.
+## Почему переписываем, а не патчим
 
-## Stack decisions
+Решение принято после сравнения `master` (рабочий, но не умеет комнаты/аккаунты)
+и `origin/forscience` (расходится 5 месяцев, доделан только слой лобби). Новые
+требования — интернет-доступность, аккаунты ведущих с постоянной библиотекой
+треков, визуальный редактор клипов по waveform, много параллельных игр,
+командный режим, автоматический fuzzy-match ответов, скоростные очки,
+финальный раунд со ставкой — достаточно большой скачок, чтобы патчить любую
+из старых баз было не оправдано.
 
-- **TypeScript end-to-end** (server + client), npm workspaces (not pnpm —
-  it isn't installed on the original dev machine; plain npm works fine).
-- **Socket.IO** for realtime, **Express** for HTTP.
-- **Postgres via Prisma** for persistent data (accounts, track library,
-  playlists). Game session state itself is **in-memory per room**, not
-  persisted — only the library/accounts need to survive a restart.
-- **S3-compatible object storage** (Cloudflare R2 or AWS S3) for uploaded
-  mp3s and extracted cover art, via presigned URLs (client uploads directly
-  to the bucket, server never proxies the audio bytes).
-- Many independent `GameSession`s per Node process, keyed by a short room
-  code — not one global game object, but also not sharded across multiple
-  processes (no Redis adapter yet; add `@socket.io/redis-adapter` only if
-  the server ever needs to scale beyond one instance).
-- Client stays **Vue 3**, clip selection UI will use `wavesurfer.js`
-  (waveform editor), not plain numeric start/end inputs.
+## Стек
 
-## Game domain model (`packages/shared/src/domain.ts`)
+- **TypeScript везде** (сервер + клиент), npm workspaces (не pnpm — его не
+  было на исходной машине разработки; обычный npm работает нормально).
+- **Socket.IO** для realtime, **Express** для HTTP.
+- **Postgres через Prisma** для персистентных данных (аккаунты, библиотека
+  треков, плейлисты). Сам игровой сеанс — **in-memory на процесс**, не
+  персистентный — переживать перезапуск должны только библиотека/аккаунты.
+- **S3-совместимое хранилище** (Cloudflare R2 или AWS S3 в проде) для
+  загруженных mp3 и обложек, через presigned URL (клиент грузит файл прямо в
+  бакет, сервер никогда не проксирует аудио-байты).
+  - Для локальной разработки — **`adobe/s3mock`** (см. `docker-compose.yml`
+    и «Dev setup» ниже). `minio/minio` на Docker Hub/quay.io теперь требует
+    логин (последствия их лицензионного спора), `localstack:latest` требует
+    платную лицензию даже для старта — оба отвалились при реальной попытке
+    поднять. `adobe/s3mock` — обычный open-source мок S3 API, без этих проблем.
+  - **Важная совместимость:** AWS SDK v3 по умолчанию считает flexible
+    checksums на S3-запросах, что ломает совместимость с любой не-AWS
+    реализацией (R2, MinIO, моки) — см. `apps/server/src/storage/s3Client.ts`,
+    там выставлено `requestChecksumCalculation`/`responseChecksumValidation:
+    "WHEN_REQUIRED"`. Без этого даже настоящий R2 в проде может давать
+    непонятные ошибки.
+- Много независимых `GameSession` на процесс Node, по короткому коду комнаты —
+  не один глобальный объект игры, но и не шардировано между процессами (нет
+  `@socket.io/redis-adapter`; добавить только если сервер понадобится
+  масштабировать за пределы одного инстанса).
+- Клиент на **Vue 3**; редактор выбора клипа по плану должен использовать
+  `wavesurfer.js` (waveform-редактор) — **сейчас в `apps/web` вместо этого
+  обычные числовые инпуты старта/конца клипа в мс**, это известный временный
+  компромисс (см. «Известные пробелы»).
 
-Round state machine (`apps/server/src/game/transition.ts`, pure function,
-unit-tested — read this file for the actual logic):
+## Доменная модель (`packages/shared/src/domain.ts`)
+
+Машина состояний раунда (`apps/server/src/game/transition.ts`, чистая
+функция, протестирована — читать именно этот файл для реальной логики):
 
 ```
 lobby → countdown_to_start → question_playing → (buzz) → answer_window
-  → reveal → leaderboard → (loop to next question | wager_input) → finished
+  → reveal → leaderboard → (цикл на следующий вопрос | wager_input) → finished
 ```
 
-- Buzzing in locks that question for the buzzer only; a wrong answer lets
-  someone else steal it (penalty applies only to whoever missed).
-- Correct answers award more points the faster the buzz (speed bonus).
-- An ambiguous player-typed answer routes to the host for a manual
-  accept/reject instead of auto-scoring (`pendingReview` + `HOST_JUDGE`).
-- A final round (`wager_input` → `isFinalRound`) lets each contestant wager
-  points before the last question; correct = +wager, wrong = -wager.
-- `contestantId` is deliberately generic (player id solo, team id in team
-  mode) so `transition()` doesn't need to know team membership rules.
+- Buzz блокирует вопрос только для того, кто нажал; неверный ответ отдаёт ход
+  следующему (штраф применяется только к тому, кто ошибся).
+- Верный ответ даёт больше очков при более быстром buzz (скоростной бонус).
+- Неоднозначный текстовый ответ игрока уходит ведущему на ручной
+  accept/reject вместо авто-скоринга (`pendingReview` + `HOST_JUDGE`).
+- Финальный раунд (`wager_input` → `isFinalRound`) даёт каждому участнику
+  сделать ставку перед последним вопросом; верно = +ставка, неверно = -ставка.
+- `contestantId` намеренно обобщённый (id игрока в solo, id команды в team
+  mode), поэтому `transition()` не обязан знать правила членства в командах.
 
-Answer checking: `apps/server/src/tracks/matchTrackAnswer.ts` fuzzy-matches
-the player's typed text against the track's title *or* artist (best of the
-two), using `packages/shared/src/fuzzyMatch.ts` (hand-rolled Levenshtein, no
-external dependency).
+Проверка ответа: `apps/server/src/tracks/matchTrackAnswer.ts` fuzzy-матчит
+введённый текст против названия *или* исполнителя трека (берётся лучший из
+двух), используя `packages/shared/src/fuzzyMatch.ts` (свой Левенштейн, без
+внешней зависимости).
 
-## What's built so far
+Контракт сокетов (`packages/shared/src/events.ts`) недавно получил событие
+**`hostJoin`**: раньше у ведущего не было способа управлять игрой иначе как
+притворившись игроком — `startGame`/`beginQuestion`/`advance`/`hostJudge`
+никак не проверяли вызывающего. Теперь хост подключается через `hostJoin`
+(аутентификация по его сессионной cookie, проверка `session.hostId`), и эти
+четыре события в `apps/server/src/index.ts` отказывают любому сокету с
+установленным `playerId` (то есть обычному игроку).
 
-- `packages/shared`: domain types, socket event contract
-  (`ClientToServerEvents`/`ServerToClientEvents`), `OperationResult<T>`,
-  fuzzy match. Tested.
-- `apps/server/src/game/transition.ts` + `GameManager.ts`: the full round
-  FSM and an in-memory multi-room registry. Tested.
-- `apps/server/src/auth/*`: email+password, bcrypt, JWT in an httpOnly
-  cookie. Pure helpers tested; HTTP routes (`/auth/register|login|logout|me`)
-  written but **not integration-tested** — needs a live Postgres.
-- `apps/server/src/storage/*`: S3 presigned upload / get / put / public URL
-  helpers. Not tested against a real bucket (no credentials available yet).
-- `apps/server/src/tracks/*`: ID3 tag extraction on upload
-  (`extractMetadata.ts`, tested via `NodeID3.create` round-trip, no real mp3
-  fixture needed), `matchTrackAnswer.ts` (tested), HTTP routes for
-  upload-url/finalize/list/delete.
-- `apps/server/src/playlists/*`: CRUD for playlists + playlist items
-  (clip start/end ms, points).
-- `apps/server/src/index.ts`: wires all of the above together, including
-  `submitAnswer` → real track lookup → fuzzy match → state machine.
-  `POST /rooms` creates a game session from a saved playlist (replaced an
-  earlier unauthenticated `/dev/rooms` stub).
-- `apps/server/prisma/schema.prisma`: `User`/`Track`/`Playlist`/
-  `PlaylistItem`. Schema is valid and `prisma generate` succeeds, but **no
-  migration has ever been run against a real database** — the original dev
-  machine didn't have Docker Desktop running. `docker-compose.yml` at the
-  repo root defines a local Postgres service for this.
-- 22 unit tests passing, `tsc --noEmit` clean, server boots and responds.
+## Что уже сделано
 
-## Known gaps / not started
+- `packages/shared`: доменные типы, контракт socket-событий
+  (`ClientToServerEvents`/`ServerToClientEvents`, включая `hostJoin`),
+  `OperationResult<T>`, fuzzy match. Протестировано.
+- `apps/server/src/game/transition.ts` + `GameManager.ts`: полный FSM раунда
+  и in-memory реестр комнат. Протестировано.
+- `apps/server/src/auth/*`: email+password, bcrypt, JWT в httpOnly cookie.
+  Чистые хелперы протестированы юнит-тестами; HTTP-роуты
+  (`/auth/register|login|logout|me`) **теперь реально проверены** против
+  живого Postgres (регистрация/логин/me curl'ом — работает).
+- `apps/server/src/storage/*`: presigned upload/get/put/public URL. **Теперь
+  реально проверено** против локального S3-мока: полный цикл upload-url →
+  PUT файла → finalize → извлечение ID3-тегов из настоящего загруженного
+  файла. `/tracks` и `/tracks/finalize` теперь также отдают поле `url` —
+  рабочую ссылку на воспроизведение трека (раньше такого поля не было вовсе).
+- `apps/server/src/tracks/*`: извлечение ID3-тегов, fuzzy-matching ответов,
+  HTTP-роуты upload-url/finalize/list/delete.
+- `apps/server/src/playlists/*`: CRUD плейлистов и их items (старт/конец
+  клипа в мс, очки).
+- `apps/server/src/index.ts`: связывает всё вместе, включая `submitAnswer` →
+  поиск трека → fuzzy match → FSM. `POST /rooms` создаёт игровую сессию из
+  сохранённого плейлиста.
+  - **Централизованный error-handling**: добавлен `express-async-errors` +
+    финальный error-middleware. До этого любая ошибка внутри `async`
+    route-хендлера (например, вызов S3 без настроенных кредов) роняла **весь
+    процесс Node целиком** — то есть все одновременно идущие игры во всех
+    комнатах, не только неудачный запрос. Воспроизведено и подтверждено
+    исправленным. Асинхронный socket-хендлер `submitAnswer` обёрнут в
+    try/catch по той же причине (Express-мидлвары на Socket.IO не действуют).
+  - Добавлено событие `hostJoin` и гварды на host-only события (см. выше).
+- `apps/server/scripts/bootstrapS3.ts`: новый одноразовый скрипт — создаёт
+  локальный S3-бакет (`adobe/s3mock` разрешает анонимные GET/PUT и CORS из
+  коробки, без дополнительной настройки политик/CORS).
+- `apps/server/prisma/schema.prisma`: схема валидна, **первая в истории
+  проекта миграция реально накатана** на живой Postgres
+  (`20261005102754_init`).
+- `apps/web`: **больше не пустой каталог.** Vite + Vue3 + TS, 4 экрана:
+  - `/login` — вход/регистрация.
+  - `/` — host-дэшборд: список треков (с загрузкой файла и аудио-плеером),
+    CRUD плейлистов, добавление треков в плейлист, кнопка «Создать комнату».
+  - `/host/:roomCode` — живой экран ведущего: подключается через `hostJoin`,
+    показывает фазу/игроков/лидерборд, кнопки Start/Begin/Advance/
+    Accept-Reject.
+  - `/play` — форма входа игрока (код комнаты + ник + аватар) и живой игровой
+    экран (buzz, ответ, ставка, лидерборд) в одном Vue-компоненте без смены
+    роута — так не плодятся «призрачные» игроки при перезагрузке страницы
+    (см. «Известные пробелы» про reconnect).
+  - Проверено end-to-end скриптом на `socket.io-client`, гоняющим полный цикл
+    игры (lobby → ... → finished, включая финальный раунд со ставкой) через
+    реальный сервер — все переходы фаз прошли как в `transition.ts`.
+- Один фиктивный `Track` (`seed-track-1`) всё ещё лежит в БД как тестовая
+  фикстура с первой сессии отладки — не мешает, но и не нужен теперь, когда
+  реальная загрузка работает.
+- 22 юнит-теста проходят, `tsc --noEmit` чист (сервер и web), сервер
+  поднимается и отвечает.
 
-- **Team mode isn't wired end-to-end.** `transition.ts` supports
-  `settings.teamMode` generically, but there's no `GameManager`/socket API
-  to create a team or assign a player to one yet — `index.ts` always passes
-  the raw `playerId` as `contestantId`.
-- **Nothing in `apps/web` exists yet** — host dashboard (library, playlist
-  builder, waveform clip editor), updated Screen/Player views, team-join UI,
-  room-code/QR join flow.
-- **Reconnect-by-token isn't implemented on the new socket layer** — a
-  dropped socket just marks the player disconnected; no grace period or
-  rejoin flow yet (the old `server/index.js` had a working version of this
-  worth referencing).
-- **Never run against a live Postgres or S3 bucket** — only schema
-  validation / unit tests / mocked-boundary code have been verified.
+## Известные пробелы / не начато
+
+- **Командный режим не прошит до конца.** `transition.ts` поддерживает
+  `settings.teamMode` обобщённо, но нет `GameManager`/socket API для создания
+  команды или назначения игрока в неё — `index.ts` всегда передаёт чистый
+  `playerId` как `contestantId`.
+- **Reconnect по токену не реализован.** Разрыв сокета просто помечает
+  игрока отключённым; нет грейс-периода или flow повторного входа. Наша
+  демка в `apps/web` это явно показывает: игрок, который перезагрузил
+  страницу, при повторном `joinRoom` получает новый `playerId` (старая запись
+  игрока остаётся висеть как «disconnected»). В старом `server/index.js` была
+  рабочая версия этого — стоит на неё посмотреть при реализации.
+- **В `apps/web` нет waveform-редактора клипа** — вместо `wavesurfer.js`
+  сейчас обычные числовые поля старта/конца клипа в мс. Нет QR-кода/короткой
+  ссылки для входа игрока (только ручной ввод кода комнаты). Нет тестов на
+  фронтенде. Минимальная вёрстка, не финальный дизайн.
+- **Реальный прод-бакет (Cloudflare R2) так и не проверен.** Presigned-логика
+  идентична для любого S3-совместимого хранилища, но реально гонялась только
+  против локального `adobe/s3mock`.
+- **`GameSession` — только in-memory на процесс**, без Redis-шардинга (см.
+  «Стек» выше) — не проблема сейчас, но стоит помнить при деплое на несколько
+  инстансов.
 
 ## Dev setup
 
 ```
-npm install                                   # from repo root (npm workspaces)
-cd apps/server && npx prisma generate         # regenerate Prisma client after schema changes
-docker compose up -d postgres                 # from repo root, needs Docker Desktop running
-cd apps/server && npx prisma migrate dev --name init   # first real migration — untested so far
-npm test --workspace=@quiz/server             # or --workspace=@quiz/shared
-npm run dev --workspace=@quiz/server          # tsx watch, reads apps/server/.env
+npm install                                     # из корня репо (npm workspaces)
+cd apps/server && npx prisma generate           # регенерация Prisma-клиента после правок схемы
+
+docker compose up -d postgres s3mock            # из корня репо, нужен запущенный Docker Desktop
+cd apps/server && npx prisma migrate dev --name init   # безопасно повторять — идемпотентно
+cd apps/server && npx tsx scripts/bootstrapS3.ts       # создаёт локальный S3-бакет (один раз)
+
+npm test --workspace=@quiz/server               # или --workspace=@quiz/shared
+npm run dev --workspace=@quiz/server             # tsx watch, читает apps/server/.env
+npm run dev --workspace=@quiz/web                # Vite, порт 5173
 ```
 
-Copy `apps/server/.env.example` to `apps/server/.env` and fill in
-`DATABASE_URL`/`JWT_SECRET`/`S3_*` before running the server for real.
+Скопировать `apps/server/.env.example` в `apps/server/.env` и заполнить
+`DATABASE_URL`/`JWT_SECRET`/`S3_*` перед реальным запуском сервера. Для
+локального `s3mock` рабочие значения:
 
-## Suggested next step
+```
+S3_ENDPOINT=http://127.0.0.1:9090
+S3_REGION=us-east-1
+S3_BUCKET=quiz-tracks
+S3_ACCESS_KEY_ID=test
+S3_SECRET_ACCESS_KEY=test
+S3_PUBLIC_URL=http://127.0.0.1:9090/quiz-tracks
+```
 
-Either (a) get a live Postgres running and actually integration-test the
-auth/tracks/playlists routes for the first time, or (b) start on `apps/web`
-since the server API surface a host dashboard needs already exists.
+**Особенность конкретной машины разработки (Windows + Docker Desktop):**
+`localhost` на портах типа 3000/5173 иногда перехватывается внутренними
+процессами Docker Desktop/WSL-relay и не доходит до нужного процесса. Если
+сайт не открывается или CORS не совпадает — везде использовать `127.0.0.1`
+(`CORS_ORIGIN`, `VITE_API_URL`, и в адресной строке браузера), а при
+конфликте порта — сменить `PORT` в `.env`.
+
+## Предложенный следующий шаг
+
+Самое ценное дальше — **reconnect по токену** на socket-слое: для реальной
+пати-игры с телефонами по Wi-Fi это будет всплывать постоянно, и демка уже
+показала проблему (перезагрузка = новый игрок). После этого — waveform-
+редактор клипа (`wavesurfer.js`) вместо числовых мс-полей, он прямо назван в
+стековых решениях как план, но не реализован.

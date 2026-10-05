@@ -61,7 +61,7 @@ tracksRouter.post("/finalize", async (req, res) => {
       posterUrl,
     },
   });
-  res.status(201).json(track);
+  res.status(201).json({ ...track, url: publicUrlFor(track.storageKey) });
 });
 
 tracksRouter.get("/", async (req, res) => {
@@ -69,7 +69,7 @@ tracksRouter.get("/", async (req, res) => {
     where: { ownerId: req.userId },
     orderBy: { createdAt: "desc" },
   });
-  res.json(tracks);
+  res.json(tracks.map((t) => ({ ...t, url: publicUrlFor(t.storageKey) })));
 });
 
 tracksRouter.delete("/:id", async (req, res) => {

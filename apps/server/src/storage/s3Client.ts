@@ -11,6 +11,11 @@ export function createS3Client(): S3Client {
     region,
     credentials: { accessKeyId, secretAccessKey },
     forcePathStyle: true,
+    // AWS SDK v3 defaults to computing/validating flexible checksums on S3
+    // requests, which non-AWS S3 implementations (R2, MinIO, s3mock, ...)
+    // often mishandle, causing confusing unrelated-looking request failures.
+    requestChecksumCalculation: "WHEN_REQUIRED",
+    responseChecksumValidation: "WHEN_REQUIRED",
   });
 }
 

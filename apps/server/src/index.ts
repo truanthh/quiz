@@ -1,3 +1,5 @@
+import "dotenv/config";
+import "express-async-errors";
 import { randomUUID } from "node:crypto";
 import { createServer } from "node:http";
 import type {
@@ -9,10 +11,11 @@ import type {
 } from "@quiz/shared";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import express from "express";
+import express, { type NextFunction, type Request, type Response } from "express";
 import { Server } from "socket.io";
 import { authRouter } from "./auth/routes.js";
-import { requireAuth } from "./auth/middleware.js";
+import { requireAuth, SESSION_COOKIE } from "./auth/middleware.js";
+import { verifySessionToken } from "./auth/session.js";
 import { config } from "./config.js";
 import { prisma } from "./db/prisma.js";
 import { GameManager } from "./game/GameManager.js";
@@ -74,6 +77,15 @@ app.post("/rooms", requireAuth, async (req, res) => {
   res.status(201).json(session);
 });
 
+app.use((err: unknown, _req: Request, res: Response, next: NextFunction) => {
+  if (res.headersSent) {
+    next(err);
+    return;
+  }
+  console.error(err);
+  res.status(500).json({ error: "internal server error" });
+});
+
 const httpServer = createServer(app);
 const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(
   httpServer,
@@ -85,6 +97,15 @@ const gameManager = new GameManager();
 function broadcastState(roomCode: string) {
   const session = gameManager.get(roomCode);
   if (session) io.to(roomCode).emit("state", session);
+}
+
+function readSessionCookie(cookieHeader: string | undefined): string | null {
+  if (!cookieHeader) return null;
+  for (const part of cookieHeader.split(";")) {
+    const [key, ...rest] = part.trim().split("=");
+    if (key === SESSION_COOKIE) return decodeURIComponent(rest.join("="));
+  }
+  return null;
 }
 
 io.on("connection", (socket) => {
@@ -102,6 +123,23 @@ io.on("connection", (socket) => {
     broadcastState(roomCode);
   });
 
+  // Hosts never go through joinRoom (that creates a Player). Instead they
+  // authenticate with their existing login cookie and prove they own the
+  // session, so startGame/beginQuestion/advance/hostJudge below can tell a
+  // host socket apart from a player socket (no playerId set).
+  socket.on("hostJoin", ({ roomCode }, ack) => {
+    const token = readSessionCookie(socket.handshake.headers.cookie);
+    const session = token ? verifySessionToken(token, config.jwtSecret) : null;
+    const gameSession = gameManager.get(roomCode);
+    if (!session || !gameSession || gameSession.hostId !== session.userId) {
+      ack({ success: false, error: "not authorized" });
+      return;
+    }
+    socket.data.roomCode = roomCode;
+    socket.join(roomCode);
+    ack({ success: true, data: gameSession });
+  });
+
   socket.on("disconnect", () => {
     const { roomCode, playerId } = socket.data;
     if (!roomCode || !playerId) return;
@@ -110,16 +148,16 @@ io.on("connection", (socket) => {
   });
 
   socket.on("startGame", () => {
-    const { roomCode } = socket.data;
-    if (!roomCode) return;
+    const { roomCode, playerId } = socket.data;
+    if (!roomCode || playerId) return;
     const result = gameManager.dispatch(roomCode, { type: "START_GAME", at: Date.now() });
     if (!result.success) socket.emit("error", result.error);
     else broadcastState(roomCode);
   });
 
   socket.on("beginQuestion", () => {
-    const { roomCode } = socket.data;
-    if (!roomCode) return;
+    const { roomCode, playerId } = socket.data;
+    if (!roomCode || playerId) return;
     const result = gameManager.dispatch(roomCode, { type: "BEGIN_QUESTION", at: Date.now() });
     if (!result.success) socket.emit("error", result.error);
     else broadcastState(roomCode);
@@ -140,34 +178,39 @@ io.on("connection", (socket) => {
   socket.on("submitAnswer", async ({ text }) => {
     const { roomCode, playerId } = socket.data;
     if (!roomCode || !playerId) return;
-    const session = gameManager.get(roomCode);
-    const item = session?.playlist[session.currentQuestionIndex];
-    if (!item) return;
+    try {
+      const session = gameManager.get(roomCode);
+      const item = session?.playlist[session.currentQuestionIndex];
+      if (!item) return;
 
-    const track = await prisma.track.findUnique({ where: { id: item.trackId } });
-    if (!track) return;
+      const track = await prisma.track.findUnique({ where: { id: item.trackId } });
+      if (!track) return;
 
-    const { verdict } = matchTrackAnswer(text, track);
-    const result = gameManager.dispatch(roomCode, {
-      type: "SUBMIT_ANSWER",
-      contestantId: playerId,
-      verdict,
-    });
-    if (!result.success) socket.emit("error", result.error);
-    else broadcastState(roomCode);
+      const { verdict } = matchTrackAnswer(text, track);
+      const result = gameManager.dispatch(roomCode, {
+        type: "SUBMIT_ANSWER",
+        contestantId: playerId,
+        verdict,
+      });
+      if (!result.success) socket.emit("error", result.error);
+      else broadcastState(roomCode);
+    } catch (err) {
+      console.error(err);
+      socket.emit("error", "internal error");
+    }
   });
 
   socket.on("hostJudge", ({ contestantId, correct }) => {
-    const { roomCode } = socket.data;
-    if (!roomCode) return;
+    const { roomCode, playerId } = socket.data;
+    if (!roomCode || playerId) return;
     const result = gameManager.dispatch(roomCode, { type: "HOST_JUDGE", contestantId, correct });
     if (!result.success) socket.emit("error", result.error);
     else broadcastState(roomCode);
   });
 
   socket.on("advance", () => {
-    const { roomCode } = socket.data;
-    if (!roomCode) return;
+    const { roomCode, playerId } = socket.data;
+    if (!roomCode || playerId) return;
     const result = gameManager.dispatch(roomCode, { type: "ADVANCE" });
     if (!result.success) socket.emit("error", result.error);
     else broadcastState(roomCode);
