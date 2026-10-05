@@ -11,7 +11,7 @@ import type {
   ServerToClientEvents,
   SocketData,
 } from "@quiz/shared";
-import { err, ok } from "@quiz/shared";
+import { CLIP_DURATION_MS, err, ok } from "@quiz/shared";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { type NextFunction, type Request, type Response } from "express";
@@ -58,7 +58,7 @@ app.post("/rooms", requireAuth, async (req, res) => {
 
   const playlist = await prisma.playlist.findUnique({
     where: { id: parsed.data.playlistId },
-    include: { items: { orderBy: { order: "asc" } } },
+    include: { items: { include: { track: true }, orderBy: { order: "asc" } } },
   });
   if (!playlist || playlist.ownerId !== req.userId) {
     res.status(404).json({ error: "playlist not found" });
@@ -69,11 +69,13 @@ app.post("/rooms", requireAuth, async (req, res) => {
     return;
   }
 
+  // The clip range lives on the Track now (chosen once, at library-add
+  // time), not on the PlaylistItem - every item just inherits its track's clip.
   const playlistItems: PlaylistItem[] = playlist.items.map((item) => ({
     id: item.id,
     trackId: item.trackId,
-    clipStartMs: item.clipStartMs,
-    clipEndMs: item.clipEndMs,
+    clipStartMs: item.track.clipStartMs,
+    clipEndMs: item.track.clipStartMs + CLIP_DURATION_MS,
     basePoints: item.basePoints,
   }));
 

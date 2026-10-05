@@ -30,6 +30,7 @@ export interface TrackSummary {
   title: string;
   artist: string;
   durationMs: number;
+  clipStartMs: number;
   url: string;
 }
 
@@ -42,8 +43,6 @@ export interface PlaylistSummary {
 export interface PlaylistItemSummary {
   id: string;
   trackId: string;
-  clipStartMs: number;
-  clipEndMs: number;
   basePoints: number;
 }
 
@@ -51,7 +50,7 @@ export interface PlaylistDetail extends PlaylistSummary {
   items: (PlaylistItemSummary & { track: TrackSummary })[];
 }
 
-function readAudioDurationMs(file: File): Promise<number> {
+export function readAudioDurationMs(file: File): Promise<number> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const audio = new Audio();
@@ -82,27 +81,32 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ filename, contentType }),
     }),
-  finalizeTrack: (storageKey: string, durationMs: number) =>
-    request<TrackSummary>("/tracks/finalize", {
-      method: "POST",
-      body: JSON.stringify({ storageKey, durationMs }),
-    }),
-  uploadTrackFile: async (file: File): Promise<TrackSummary> => {
-    const { storageKey, uploadUrl } = await api.requestUploadUrl(file.name, file.type || "audio/mpeg");
-    const putRes = await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type || "audio/mpeg" } });
-    if (!putRes.ok) throw new ApiError(putRes.status, "upload to storage failed");
-    const durationMs = await readAudioDurationMs(file);
-    return api.finalizeTrack(storageKey, durationMs);
+  uploadToStorage: async (uploadUrl: string, file: File): Promise<void> => {
+    const res = await fetch(uploadUrl, {
+      method: "PUT",
+      body: file,
+      headers: { "Content-Type": file.type || "audio/mpeg" },
+    });
+    if (!res.ok) throw new ApiError(res.status, "upload to storage failed");
   },
+  /** Reads ID3 tags off the uploaded object without creating a Track yet -
+   * lets the UI show "here's what we found" before the user confirms. */
+  inspectTrack: (storageKey: string) =>
+    request<{ title?: string; artist?: string }>("/tracks/inspect", {
+      method: "POST",
+      body: JSON.stringify({ storageKey }),
+    }),
+  finalizeTrack: (data: { storageKey: string; durationMs: number; title: string; artist: string; clipStartMs: number }) =>
+    request<TrackSummary>("/tracks/finalize", { method: "POST", body: JSON.stringify(data) }),
+  deleteTrack: (id: string) => request<void>(`/tracks/${id}`, { method: "DELETE" }),
 
   playlists: () => request<PlaylistSummary[]>("/playlists"),
   playlist: (id: string) => request<PlaylistDetail>(`/playlists/${id}`),
   createPlaylist: (name: string) =>
     request<PlaylistSummary>("/playlists", { method: "POST", body: JSON.stringify({ name }) }),
-  addPlaylistItem: (
-    playlistId: string,
-    item: { trackId: string; clipStartMs: number; clipEndMs: number; basePoints: number },
-  ) =>
+  // No clip range here - it's fixed per-track at library-add time now, not
+  // re-chosen per playlist (see CLAUDE.md).
+  addPlaylistItem: (playlistId: string, item: { trackId: string; basePoints: number }) =>
     request<PlaylistItemSummary>(`/playlists/${playlistId}/items`, {
       method: "POST",
       body: JSON.stringify(item),

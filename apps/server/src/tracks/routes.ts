@@ -26,11 +26,30 @@ tracksRouter.post("/upload-url", async (req, res) => {
   res.json({ storageKey, uploadUrl });
 });
 
+const inspectSchema = z.object({
+  storageKey: z.string().min(1),
+});
+
+// Reads ID3 tags off the just-uploaded object WITHOUT creating a Track -
+// lets the UI show "here's what we found, edit before adding to the
+// library" (see CLAUDE.md). Nothing is persisted here.
+tracksRouter.post("/inspect", async (req, res) => {
+  const parsed = inspectSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "invalid input" });
+    return;
+  }
+  const fileBuffer = await getObjectBuffer(parsed.data.storageKey);
+  const metadata = extractTrackMetadata(fileBuffer);
+  res.json({ title: metadata.title, artist: metadata.artist });
+});
+
 const finalizeSchema = z.object({
   storageKey: z.string().min(1),
   durationMs: z.number().int().positive(),
   title: z.string().optional(),
   artist: z.string().optional(),
+  clipStartMs: z.number().int().nonnegative().default(0),
 });
 
 tracksRouter.post("/finalize", async (req, res) => {
@@ -39,7 +58,7 @@ tracksRouter.post("/finalize", async (req, res) => {
     res.status(400).json({ error: "invalid input" });
     return;
   }
-  const { storageKey, durationMs, title, artist } = parsed.data;
+  const { storageKey, durationMs, title, artist, clipStartMs } = parsed.data;
 
   const fileBuffer = await getObjectBuffer(storageKey);
   const metadata = extractTrackMetadata(fileBuffer);
@@ -58,6 +77,7 @@ tracksRouter.post("/finalize", async (req, res) => {
       durationMs,
       title: title ?? metadata.title ?? "Untitled",
       artist: artist ?? metadata.artist ?? "Unknown artist",
+      clipStartMs,
       posterUrl,
     },
   });

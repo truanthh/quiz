@@ -1,3 +1,10 @@
+/**
+ * Every clip played in a game is exactly this long (matches the 3
+ * hardcoded reveal phases' total: 1s + 3s + 10s). Fixed once per track at
+ * library-add time (`Track.clipStartMs`), not re-chosen per playlist.
+ */
+export const CLIP_DURATION_MS = 14000;
+
 export type GamePhase =
   | "lobby"
   | "countdown_to_start"
@@ -23,6 +30,8 @@ export interface Track {
   artist: string;
   storageKey: string;
   durationMs: number;
+  /** Start of the fixed `CLIP_DURATION_MS`-long clip, chosen once at upload time. */
+  clipStartMs: number;
   posterUrl?: string;
 }
 

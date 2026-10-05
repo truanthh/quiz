@@ -40,19 +40,15 @@ playlistsRouter.get("/:id", async (req, res) => {
 
 const addItemSchema = z.object({
   trackId: z.string().min(1),
-  clipStartMs: z.number().int().nonnegative(),
-  clipEndMs: z.number().int().positive(),
   basePoints: z.number().int().positive().default(100),
 });
 
+// No clip range here on purpose: it's fixed per-track at library-add time
+// (Track.clipStartMs), not re-chosen per playlist - see CLAUDE.md.
 playlistsRouter.post("/:id/items", async (req, res) => {
   const parsed = addItemSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "invalid input" });
-    return;
-  }
-  if (parsed.data.clipEndMs <= parsed.data.clipStartMs) {
-    res.status(400).json({ error: "clipEndMs must be after clipStartMs" });
     return;
   }
 

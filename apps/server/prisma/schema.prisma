@@ -24,6 +24,10 @@ model Track {
   artist        String
   storageKey    String         @unique
   durationMs    Int
+  // Start of the fixed 14s clip used everywhere this track is played
+  // (see the 3 reveal phases in apps/web - their total is 14000ms). Chosen
+  // once when the track is added to the library, not re-chosen per playlist.
+  clipStartMs   Int            @default(0)
   posterUrl     String?
   createdAt     DateTime       @default(now())
   playlistItems PlaylistItem[]
@@ -43,15 +47,13 @@ model Playlist {
 }
 
 model PlaylistItem {
-  id          String   @id @default(cuid())
-  playlistId  String
-  playlist    Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
-  trackId     String
-  track       Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
-  order       Int
-  clipStartMs Int
-  clipEndMs   Int
-  basePoints  Int      @default(100)
+  id         String   @id @default(cuid())
+  playlistId String
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  trackId    String
+  track      Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  order      Int
+  basePoints Int      @default(100)
 
   @@index([playlistId])
 }
