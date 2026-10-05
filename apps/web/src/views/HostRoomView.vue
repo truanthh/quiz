@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { AnswerField, GameSession } from "@quiz/shared";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { api, type TrackSummary } from "../lib/api";
 import { createSocket } from "../lib/socket";
 
 const props = defineProps<{ roomCode: string }>();
@@ -27,9 +28,13 @@ const titlePoints = ref(50);
 // timestamp, same math as ScreenView's audio-driven bar would produce.
 const playheadMs = ref(0);
 let rafHandle: number | null = null;
+const tracksById = ref<Map<string, TrackSummary>>(new Map());
 
 const currentItem = computed(() =>
   session.value ? session.value.playlist[session.value.currentQuestionIndex] : null,
+);
+const currentTrack = computed(() =>
+  currentItem.value ? tracksById.value.get(currentItem.value.trackId) : null,
 );
 const players = computed(() => (session.value ? Object.values(session.value.players) : []));
 const sortedByScore = computed(() => [...players.value].sort((a, b) => b.score - a.score));
@@ -90,7 +95,14 @@ function judge(playerId: string, field: AnswerField, correct: boolean) {
   socket.emit("judgeFieldAnswer", { playerId, field, correct, points });
 }
 
-onMounted(() => {
+onMounted(async () => {
+  try {
+    const tracks = await api.tracks();
+    tracksById.value = new Map(tracks.map((t) => [t.id, t]));
+  } catch (e) {
+    console.error("failed to load tracks", e);
+  }
+
   socket.connect();
   socket.on("hostState", (s) => (session.value = s));
   socket.on("error", (message) => (error.value = message));
@@ -109,13 +121,47 @@ onUnmounted(() => {
 <template>
   <main class="wrap">
     <h1>Комната <span class="code">{{ roomCode }}</span></h1>
-    <p class="hint">Большой экран: /screen/{{ roomCode }}</p>
+    <p class="hint">
+      Игроки и большой экран подключаются на сайте по коду {{ roomCode }} (экран там выбирается отдельной
+      кнопкой).
+    </p>
     <p v-if="error" class="error">{{ error }}</p>
 
     <template v-if="session">
-      <button v-if="session.phase === 'lobby'" class="big" @click="socket.emit('startGame')">
-        Начать игру
-      </button>
+      <div class="row">
+        <p class="screen-status" :class="{ connected: session.screenConnected }">
+          {{ session.screenConnected ? "🟢 Экран подключён" : "🔴 Экран не подключён" }}
+        </p>
+        <button
+          v-if="session.phase === 'lobby' && session.screenConnected"
+          class="danger small"
+          @click="socket.emit('kickScreen')"
+        >
+          Отключить
+        </button>
+      </div>
+
+      <template v-if="session.phase === 'lobby'">
+        <button class="big" :disabled="!session.screenConnected" @click="socket.emit('startGame')">
+          Начать игру
+        </button>
+        <p v-if="!session.screenConnected" class="hint">
+          На большом экране откройте сайт, введите код {{ roomCode }} и выберите «Это большой экран».
+        </p>
+
+        <section class="lobby-players">
+          <h2>Игроки ({{ players.length }})</h2>
+          <ul>
+            <li v-for="p in players" :key="p.id" class="lobby-player">
+              <span>{{ p.avatarId }} {{ p.nickname }}</span>
+              <button class="danger small" @click="socket.emit('kickPlayer', { playerId: p.id })">
+                Кикнуть
+              </button>
+            </li>
+            <li v-if="players.length === 0" class="hint">Пока никто не зашёл…</li>
+          </ul>
+        </section>
+      </template>
 
       <template v-if="session.phase === 'question_active'">
         <section class="nav">
@@ -156,6 +202,7 @@ onUnmounted(() => {
             :style="{ left: (p.toMs / TOTAL_MS) * 100 + '%' }"
           ></div>
         </div>
+        <p v-if="currentTrack" class="answer-key">{{ currentTrack.artist }} — {{ currentTrack.title }}</p>
 
         <section class="answers">
           <h2>Ответы</h2>
@@ -238,6 +285,42 @@ onUnmounted(() => {
   color: #9aa0ad;
   font-size: 13px;
 }
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.screen-status {
+  font-size: 14px;
+  color: #ff6b6b;
+}
+.screen-status.connected {
+  color: #3ddc84;
+}
+.lobby-players ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.lobby-player {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: #242637;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+.danger {
+  background: #7d2f3a;
+}
+.danger.small {
+  padding: 4px 10px;
+  font-size: 13px;
+}
 .error {
   color: #ff6b6b;
 }
@@ -300,6 +383,11 @@ button:disabled {
   bottom: 0;
   width: 2px;
   background: #1b1d2a;
+}
+.answer-key {
+  text-align: center;
+  font-weight: bold;
+  color: #3ddc84;
 }
 .answers {
   display: flex;

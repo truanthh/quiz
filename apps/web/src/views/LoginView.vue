@@ -19,7 +19,7 @@ async function submit() {
     } else {
       await api.register(email.value, password.value);
     }
-    router.push("/");
+    router.push("/host");
   } catch (e) {
     error.value = e instanceof ApiError ? e.message : "something went wrong";
   } finally {
@@ -48,7 +48,7 @@ async function submit() {
     <button class="link" @click="mode = mode === 'login' ? 'register' : 'login'">
       {{ mode === "login" ? "Need an account? Register" : "Have an account? Log in" }}
     </button>
-    <RouterLink class="link" to="/play">Join as a player instead →</RouterLink>
+    <RouterLink class="link" to="/">Join as a player instead →</RouterLink>
   </main>
 </template>
 

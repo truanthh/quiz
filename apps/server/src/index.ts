@@ -140,6 +140,26 @@ io.on("connection", (socket) => {
     broadcastState(roomCode);
   });
 
+  // Resumes an existing player after a reload - the client persists
+  // {roomCode, playerId} locally and calls this instead of joinRoom, so a
+  // refresh mid-game doesn't create a duplicate Player or get refused for
+  // "game has already started".
+  socket.on("rejoinRoom", ({ roomCode, playerId }, ack) => {
+    const session = gameManager.get(roomCode);
+    if (!session || !session.players[playerId]) {
+      ack({ success: false, error: "session not found" });
+      return;
+    }
+    socket.data.roomCode = roomCode;
+    socket.data.playerId = playerId;
+    socket.join(roomCode);
+    gameManager.setPlayerConnected(roomCode, playerId, true);
+    broadcastState(roomCode);
+    const fresh = gameManager.get(roomCode)!;
+    const myAnswers = fresh.answersByQuestion[fresh.currentQuestionIndex]?.[playerId] ?? {};
+    ack({ success: true, data: { session: toPublicGameSession(fresh), myAnswers } });
+  });
+
   // Hosts never go through joinRoom (that creates a Player). Instead they
   // authenticate with their existing login cookie and prove they own the
   // session, so the host-only events below can tell a host socket apart
@@ -172,7 +192,9 @@ io.on("connection", (socket) => {
     socket.data.roomCode = roomCode;
     socket.data.role = "screen";
     socket.join(roomCode);
-    ack({ success: true, data: toPublicGameSession(gameSession) });
+    gameManager.addScreen(roomCode, socket.id);
+    ack({ success: true, data: toPublicGameSession(gameManager.get(roomCode)!) });
+    broadcastState(roomCode);
   });
 
   // Host or screen only: resolves the current question's playable clip via
@@ -200,9 +222,10 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    const { roomCode, playerId } = socket.data;
-    if (!roomCode || !playerId) return;
-    gameManager.setPlayerConnected(roomCode, playerId, false);
+    const { roomCode, playerId, role } = socket.data;
+    if (!roomCode) return;
+    if (playerId) gameManager.setPlayerConnected(roomCode, playerId, false);
+    if (role === "screen") gameManager.removeScreen(roomCode, socket.id);
     broadcastState(roomCode);
   });
 
@@ -251,6 +274,39 @@ io.on("connection", (socket) => {
     const result = gameManager.finishGame(roomCode);
     if (!result.success) socket.emit("error", result.error);
     else broadcastState(roomCode);
+  });
+
+  socket.on("kickPlayer", async ({ playerId }) => {
+    const { roomCode, role } = socket.data;
+    if (!roomCode || role !== "host") return;
+    const result = gameManager.removePlayer(roomCode, playerId);
+    if (!result.success) {
+      socket.emit("error", result.error);
+      return;
+    }
+    io.to(roomCode).emit("kicked", { playerId });
+    broadcastState(roomCode);
+    // Actually drop their connection, not just the Player record, so they
+    // stop receiving state broadcasts and a stale rejoinRoom doesn't resurrect them.
+    for (const s of await io.in(roomCode).fetchSockets()) {
+      if (s.data.playerId === playerId) s.disconnect(true);
+    }
+  });
+
+  socket.on("kickScreen", async () => {
+    const { roomCode, role } = socket.data;
+    if (!roomCode || role !== "host") return;
+    const session = gameManager.get(roomCode);
+    if (!session || session.phase !== "lobby") {
+      socket.emit("error", "can only disconnect the screen before the game starts");
+      return;
+    }
+    // No GameManager call needed here: disconnecting the socket fires the
+    // same "disconnect" handler below that a real disconnect would, which
+    // already calls removeScreen + broadcastState.
+    for (const s of await io.in(roomCode).fetchSockets()) {
+      if (s.data.role === "screen") s.disconnect(true);
+    }
   });
 
   socket.on("beginQuestion", () => {

@@ -38,6 +38,7 @@ function baseSession(overrides: Partial<GameSession> = {}): GameSession {
     lockedOutIds: [],
     wagers: {},
     audioPlaying: false,
+    screenConnected: true,
     activePhaseIndex: null,
     activePhaseStartedAt: null,
     answersByQuestion: {},
@@ -64,6 +65,10 @@ describe("startGame", () => {
 
   it("refuses an empty playlist", () => {
     expect(startGame(baseSession({ playlist: [] })).success).toBe(false);
+  });
+
+  it("refuses to start without a screen connected", () => {
+    expect(startGame(baseSession({ screenConnected: false })).success).toBe(false);
   });
 });
 
@@ -116,6 +121,23 @@ describe("submitFieldAnswer + judgeFieldAnswer", () => {
       judged: "pending",
       awardedPoints: 0,
     });
+  });
+
+  it("refuses to submit the same field twice, even before it's judged", () => {
+    const withAnswer = expectOk(submitFieldAnswer(active, "p1", "artist", "Daft Punk"));
+    expect(submitFieldAnswer(withAnswer, "p1", "artist", "someone else").success).toBe(false);
+  });
+
+  it("still refuses after the field has been judged", () => {
+    const withAnswer = expectOk(submitFieldAnswer(active, "p1", "artist", "Daft Punk"));
+    const judged = expectOk(judgeFieldAnswer(withAnswer, "p1", "artist", true, 50));
+    expect(submitFieldAnswer(judged, "p1", "artist", "trying again").success).toBe(false);
+  });
+
+  it("the other field and other players can still submit independently", () => {
+    const withArtist = expectOk(submitFieldAnswer(active, "p1", "artist", "Daft Punk"));
+    expect(submitFieldAnswer(withArtist, "p1", "title", "One More Time").success).toBe(true);
+    expect(submitFieldAnswer(withArtist, "p2", "artist", "Daft Punk").success).toBe(true);
   });
 
   it("awards points on accept and applies the score delta", () => {

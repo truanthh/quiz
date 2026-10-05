@@ -11,6 +11,10 @@ import { type AnswerField, type GameSession, type OperationResult, err, ok } fro
 export function startGame(session: GameSession): OperationResult<GameSession> {
   if (session.phase !== "lobby") return err("game has already started");
   if (session.playlist.length === 0) return err("playlist has no tracks");
+  // The whole game revolves around the screen - it's what plays audio and
+  // what everyone actually watches - so starting without one connected
+  // would just confuse everyone.
+  if (!session.screenConnected) return err("screen is not connected");
   return ok({
     ...session,
     phase: "question_active",
@@ -46,6 +50,10 @@ export function submitFieldAnswer(
   const qIndex = session.currentQuestionIndex;
   const forQuestion = session.answersByQuestion[qIndex] ?? {};
   const forPlayer = forQuestion[playerId] ?? {};
+  // Enforced here, not just hidden in the UI, so a player can't bypass the
+  // lock (e.g. via devtools) and quietly overwrite an answer the host has
+  // already judged - judgeFieldAnswer's score delta would go stale.
+  if (forPlayer[field]) return err("this field was already submitted");
 
   return ok({
     ...session,

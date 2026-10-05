@@ -35,6 +35,10 @@ const DEFAULT_SETTINGS: GameSettings = {
  */
 export class GameManager {
   private sessions = new Map<string, GameSession>();
+  // Multiple screen sockets could in principle be open for one room (e.g. a
+  // host who leaves an old /screen tab open); only drop to "disconnected"
+  // once none are left, not on the first one to go.
+  private screenSocketsByRoom = new Map<string, Set<string>>();
 
   createSession(
     hostId: string,
@@ -61,6 +65,7 @@ export class GameManager {
       lockedOutIds: [],
       wagers: {},
       audioPlaying: false,
+      screenConnected: false,
       activePhaseIndex: null,
       activePhaseStartedAt: null,
       answersByQuestion: {},
@@ -81,13 +86,32 @@ export class GameManager {
     if (!session) return err("room not found");
     if (session.phase !== "lobby") return err("game has already started");
 
+    const nickname = player.nickname.trim();
+    const taken = Object.values(session.players).some(
+      (p) => p.nickname.toLowerCase() === nickname.toLowerCase(),
+    );
+    if (taken) return err("nickname already taken");
+
     const next: GameSession = {
       ...session,
       players: {
         ...session.players,
-        [player.id]: { ...player, score: 0, connected: true },
+        [player.id]: { ...player, nickname, score: 0, connected: true },
       },
     };
+    this.sessions.set(roomCode, next);
+    return ok(next);
+  }
+
+  removePlayer(roomCode: string, playerId: string): OperationResult<GameSession> {
+    const session = this.sessions.get(roomCode);
+    if (!session) return err("room not found");
+    if (session.phase !== "lobby") return err("can only remove a player before the game starts");
+    if (!session.players[playerId]) return err("player not found");
+
+    const players = { ...session.players };
+    delete players[playerId];
+    const next = { ...session, players };
     this.sessions.set(roomCode, next);
     return ok(next);
   }
@@ -116,6 +140,30 @@ export class GameManager {
       result.data.phase === "question_playing" ? result.data : { ...result.data, audioPlaying: false };
     this.sessions.set(roomCode, next);
     return ok(next);
+  }
+
+  addScreen(roomCode: string, socketId: string): void {
+    let sockets = this.screenSocketsByRoom.get(roomCode);
+    if (!sockets) {
+      sockets = new Set();
+      this.screenSocketsByRoom.set(roomCode, sockets);
+    }
+    sockets.add(socketId);
+    this.syncScreenConnected(roomCode);
+  }
+
+  removeScreen(roomCode: string, socketId: string): void {
+    this.screenSocketsByRoom.get(roomCode)?.delete(socketId);
+    this.syncScreenConnected(roomCode);
+  }
+
+  private syncScreenConnected(roomCode: string): void {
+    const session = this.sessions.get(roomCode);
+    if (!session) return;
+    const connected = (this.screenSocketsByRoom.get(roomCode)?.size ?? 0) > 0;
+    if (session.screenConnected !== connected) {
+      this.sessions.set(roomCode, { ...session, screenConnected: connected });
+    }
   }
 
   setAudioPlaying(roomCode: string, playing: boolean): void {

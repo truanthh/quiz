@@ -29,7 +29,7 @@ onMounted(async () => {
     await refreshLists();
     if (tracks.value.length > 0) newItemTrackId.value = tracks.value[0].id;
   } catch {
-    router.push("/login");
+    router.push("/host/login");
   }
 });
 
@@ -51,7 +51,7 @@ async function uploadFile(e: Event) {
 
 async function logout() {
   await api.logout();
-  router.push("/login");
+  router.push("/host/login");
 }
 
 async function createPlaylist() {
@@ -187,7 +187,7 @@ async function createRoom(playlistId: string) {
       </ul>
     </section>
 
-    <RouterLink class="link" to="/play">Open player join screen →</RouterLink>
+    <RouterLink class="link" to="/">Open player join screen →</RouterLink>
   </main>
 </template>
 

@@ -1,4 +1,4 @@
-import type { AnswerField, AnswerVerdict, GameSession } from "./domain.js";
+import type { AnswerField, AnswerVerdict, FieldAnswer, GameSession } from "./domain.js";
 import type { OperationResult } from "./result.js";
 
 /**
@@ -46,17 +46,34 @@ export interface ClipInfo {
   clipEndMs: number;
 }
 
+export interface RejoinRoomResult {
+  session: PublicGameSession;
+  /** This player's own answers for the current question, if any were
+   * already submitted before the reload - lets the client restore the
+   * "already answered, can't change it" lock instead of re-prompting. */
+  myAnswers: Partial<Record<AnswerField, FieldAnswer>>;
+}
+
 export interface ServerToClientEvents {
   state: (session: PublicGameSession) => void;
   /** Host-only: the full session, including other players' free-text answers. */
   hostState: (session: GameSession) => void;
   error: (message: string) => void;
+  /** Broadcast to the room; each player's client checks if it's their own
+   * id and, if so, clears its saved session and bails out to the join form. */
+  kicked: (payload: { playerId: string }) => void;
 }
 
 export interface ClientToServerEvents {
   joinRoom: (
     payload: JoinRoomPayload,
     ack: (result: OperationResult<{ playerId: string }>) => void,
+  ) => void;
+  /** Resumes an existing player after a page reload/reconnect - unlike
+   * joinRoom, doesn't create a new Player or check the nickname is free. */
+  rejoinRoom: (
+    payload: { roomCode: string; playerId: string },
+    ack: (result: OperationResult<RejoinRoomResult>) => void,
   ) => void;
   hostJoin: (
     payload: { roomCode: string },
@@ -82,6 +99,10 @@ export interface ClientToServerEvents {
   /** Host-only: accept/reject one player's one field, awarding its points. */
   judgeFieldAnswer: (payload: JudgeFieldAnswerPayload) => void;
   finishGame: () => void;
+  /** Host-only, lobby only: removes a player from the room and disconnects their socket. */
+  kickPlayer: (payload: { playerId: string }) => void;
+  /** Host-only, lobby only: disconnects whatever screen socket(s) are connected. */
+  kickScreen: () => void;
 
   // Older buzz-based flow (see GamePhase.question_active's doc comment) -
   // kept wired to the old FSM for a possible future bonus-question mode, not

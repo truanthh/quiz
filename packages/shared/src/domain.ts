@@ -99,6 +99,13 @@ export interface GameSession {
    */
   audioPlaying: boolean;
   /**
+   * Whether at least one `/screen/:roomCode` client is currently connected.
+   * The whole game is built around the screen (that's what plays audio and
+   * is what everyone in the room actually watches), so starting without one
+   * connected is refused - the host dashboard shows this so they know why.
+   */
+  screenConnected: boolean;
+  /**
    * Which of the (currently hardcoded, client-side) reveal phases the host
    * has selected for the current question - null when nothing is playing.
    * The screen watches this to know what to seek/play to; it's just an
