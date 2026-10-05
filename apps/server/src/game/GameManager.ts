@@ -7,6 +7,7 @@ import {
   err,
   ok,
 } from "@quiz/shared";
+import * as freeTextGame from "./freeTextGame.js";
 import { transition } from "./transition.js";
 
 const ROOM_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I
@@ -59,6 +60,10 @@ export class GameManager {
       buzzedAt: null,
       lockedOutIds: [],
       wagers: {},
+      audioPlaying: false,
+      activePhaseIndex: null,
+      activePhaseStartedAt: null,
+      answersByQuestion: {},
     };
     this.sessions.set(roomCode, session);
     return session;
@@ -102,8 +107,71 @@ export class GameManager {
     if (!session) return err("room not found");
 
     const result = transition(session, event);
+    if (!result.success) return result;
+
+    // Leaving question_playing (e.g. a BUZZ) always stops the clip, even if
+    // the host's own "stop" message is slow or gets lost - belt and suspenders
+    // alongside HostRoomView pausing its <audio> element locally.
+    const next =
+      result.data.phase === "question_playing" ? result.data : { ...result.data, audioPlaying: false };
+    this.sessions.set(roomCode, next);
+    return ok(next);
+  }
+
+  setAudioPlaying(roomCode: string, playing: boolean): void {
+    const session = this.sessions.get(roomCode);
+    if (!session) return;
+    this.sessions.set(roomCode, { ...session, audioPlaying: playing });
+  }
+
+  setActivePhase(roomCode: string, index: number | null): void {
+    const session = this.sessions.get(roomCode);
+    if (!session) return;
+    this.sessions.set(roomCode, freeTextGame.setActivePhase(session, index));
+  }
+
+  private applyFreeText(
+    roomCode: string,
+    fn: (session: GameSession) => OperationResult<GameSession>,
+  ): OperationResult<GameSession> {
+    const session = this.sessions.get(roomCode);
+    if (!session) return err("room not found");
+    const result = fn(session);
     if (result.success) this.sessions.set(roomCode, result.data);
     return result;
+  }
+
+  startFreeTextGame(roomCode: string): OperationResult<GameSession> {
+    return this.applyFreeText(roomCode, freeTextGame.startGame);
+  }
+
+  gotoQuestion(roomCode: string, index: number): OperationResult<GameSession> {
+    return this.applyFreeText(roomCode, (s) => freeTextGame.gotoQuestion(s, index));
+  }
+
+  submitFieldAnswer(
+    roomCode: string,
+    playerId: string,
+    field: Parameters<typeof freeTextGame.submitFieldAnswer>[2],
+    text: string,
+  ): OperationResult<GameSession> {
+    return this.applyFreeText(roomCode, (s) => freeTextGame.submitFieldAnswer(s, playerId, field, text));
+  }
+
+  judgeFieldAnswer(
+    roomCode: string,
+    playerId: string,
+    field: Parameters<typeof freeTextGame.judgeFieldAnswer>[2],
+    correct: boolean,
+    points: number,
+  ): OperationResult<GameSession> {
+    return this.applyFreeText(roomCode, (s) =>
+      freeTextGame.judgeFieldAnswer(s, playerId, field, correct, points),
+    );
+  }
+
+  finishGame(roomCode: string): OperationResult<GameSession> {
+    return this.applyFreeText(roomCode, freeTextGame.finishGame);
   }
 
   deleteSession(roomCode: string): void {

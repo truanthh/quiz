@@ -86,6 +86,28 @@ async function addItem() {
   }
 }
 
+async function deletePlaylist(id: string) {
+  if (!confirm("Delete this playlist and all its tracks?")) return;
+  error.value = "";
+  try {
+    await api.deletePlaylist(id);
+    if (openPlaylist.value?.id === id) openPlaylist.value = null;
+    await refreshLists();
+  } catch (e) {
+    error.value = e instanceof ApiError ? e.message : "failed to delete playlist";
+  }
+}
+
+async function removeItem(playlistId: string, itemId: string) {
+  error.value = "";
+  try {
+    await api.deletePlaylistItem(playlistId, itemId);
+    await openDetail(playlistId);
+  } catch (e) {
+    error.value = e instanceof ApiError ? e.message : "failed to remove track";
+  }
+}
+
 async function createRoom(playlistId: string) {
   error.value = "";
   try {
@@ -136,13 +158,17 @@ async function createRoom(playlistId: string) {
             <strong>{{ p.name }}</strong>
             <button @click="openDetail(p.id)">Edit</button>
             <button @click="createRoom(p.id)">Create room</button>
+            <button class="danger" @click="deletePlaylist(p.id)">Delete</button>
           </div>
 
           <div v-if="openPlaylist?.id === p.id" class="detail">
             <ul>
-              <li v-for="item in openPlaylist.items" :key="item.id">
-                {{ item.track.title }} — {{ item.track.artist }} · {{ item.clipStartMs }}-{{ item.clipEndMs }}ms
-                · {{ item.basePoints }}pts
+              <li v-for="item in openPlaylist.items" :key="item.id" class="item-row">
+                <span>
+                  {{ item.track.title }} — {{ item.track.artist }} · {{ item.clipStartMs }}-{{ item.clipEndMs }}ms
+                  · {{ item.basePoints }}pts
+                </span>
+                <button class="danger small" @click="removeItem(openPlaylist!.id, item.id)">Remove</button>
               </li>
               <li v-if="openPlaylist.items.length === 0" class="hint">No tracks yet.</li>
             </ul>
@@ -232,6 +258,19 @@ button {
   border: none;
   background: #5865f2;
   color: white;
+}
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.danger {
+  background: #7d2f3a;
+}
+.danger.small {
+  padding: 4px 8px;
+  font-size: 12px;
 }
 .hint {
   color: #9aa0ad;

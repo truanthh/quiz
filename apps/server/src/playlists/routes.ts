@@ -74,6 +74,16 @@ playlistsRouter.post("/:id/items", async (req, res) => {
   res.status(201).json(item);
 });
 
+playlistsRouter.delete("/:id", async (req, res) => {
+  const playlist = await prisma.playlist.findUnique({ where: { id: req.params.id } });
+  if (!playlist || playlist.ownerId !== req.userId) {
+    res.status(404).json({ error: "playlist not found" });
+    return;
+  }
+  await prisma.playlist.delete({ where: { id: playlist.id } });
+  res.status(204).end();
+});
+
 playlistsRouter.delete("/:playlistId/items/:itemId", async (req, res) => {
   const item = await prisma.playlistItem.findUnique({
     where: { id: req.params.itemId },

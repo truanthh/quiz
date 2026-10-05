@@ -1,30 +1,26 @@
 <script setup lang="ts">
-import type { GameSession } from "@quiz/shared";
+import type { PublicGameSession } from "@quiz/shared";
 import { computed, onUnmounted, ref } from "vue";
 import { createSocket } from "../lib/socket";
 
-const AVATARS = ["🐵", "🐱", "🐸", "🦊", "🐼", "🐧"];
+const AVATARS = ["🐵", "🐱", "🐸", "🦊", "🐼", "🐧", "🦁", "🐻", "🐨", "🐯"];
 
 const roomCode = ref("");
 const nickname = ref("");
-const avatarId = ref(AVATARS[0]);
+const avatarId = ref(AVATARS[Math.floor(Math.random() * AVATARS.length)]);
 const joined = ref(false);
 const joinError = ref("");
 const gameError = ref("");
 const playerId = ref("");
-const session = ref<GameSession | null>(null);
-const answerText = ref("");
-const wagerAmount = ref(0);
+const session = ref<PublicGameSession | null>(null);
+const artistGuess = ref("");
+const titleGuess = ref("");
+const artistSubmitted = ref(false);
+const titleSubmitted = ref(false);
 
 const socket = createSocket();
 
 const me = computed(() => (session.value && playerId.value ? session.value.players[playerId.value] : null));
-const isActiveAnswerer = computed(() => session.value?.activeAnswererId === playerId.value);
-const isLockedOut = computed(() => session.value?.lockedOutIds.includes(playerId.value) ?? false);
-const activeAnswererNickname = computed(() => {
-  const id = session.value?.activeAnswererId;
-  return id ? session.value?.players[id]?.nickname ?? id : null;
-});
 const sortedByScore = computed(() =>
   session.value ? Object.values(session.value.players).sort((a, b) => b.score - a.score) : [],
 );
@@ -33,7 +29,17 @@ function join() {
   if (!roomCode.value.trim() || !nickname.value.trim()) return;
   joinError.value = "";
   socket.connect();
-  socket.on("state", (s) => (session.value = s));
+  socket.on("state", (s) => {
+    // A new question means our own "submitted" flags (local-only - we don't
+    // get told our own guess's judged status, see docs/plan.md) are stale.
+    if (session.value && s.currentQuestionIndex !== session.value.currentQuestionIndex) {
+      artistGuess.value = "";
+      titleGuess.value = "";
+      artistSubmitted.value = false;
+      titleSubmitted.value = false;
+    }
+    session.value = s;
+  });
   socket.on("error", (message) => (gameError.value = message));
   socket.emit(
     "joinRoom",
@@ -50,18 +56,16 @@ function join() {
   );
 }
 
-function buzz() {
-  socket.emit("buzz");
+function submitArtist() {
+  if (!artistGuess.value.trim()) return;
+  socket.emit("submitFieldAnswer", { field: "artist", text: artistGuess.value.trim() });
+  artistSubmitted.value = true;
 }
 
-function submitAnswer() {
-  if (!answerText.value.trim()) return;
-  socket.emit("submitAnswer", { text: answerText.value.trim() });
-  answerText.value = "";
-}
-
-function submitWager() {
-  socket.emit("submitWager", { amount: Number(wagerAmount.value) });
+function submitTitle() {
+  if (!titleGuess.value.trim()) return;
+  socket.emit("submitFieldAnswer", { field: "title", text: titleGuess.value.trim() });
+  titleSubmitted.value = true;
 }
 
 onUnmounted(() => {
@@ -72,73 +76,48 @@ onUnmounted(() => {
 <template>
   <main class="wrap">
     <template v-if="!joined">
-      <h1>Join a game</h1>
+      <h1>Войти в игру</h1>
       <form @submit.prevent="join">
         <label>
-          Room code
+          Код комнаты
           <input v-model="roomCode" placeholder="ABCDE" maxlength="5" required />
         </label>
         <label>
-          Nickname
+          Ник
           <input v-model="nickname" required />
         </label>
-        <label>
-          Avatar
-          <select v-model="avatarId">
-            <option v-for="a in AVATARS" :key="a" :value="a">{{ a }}</option>
-          </select>
-        </label>
+        <p class="hint">Твой аватар: {{ avatarId }}</p>
         <p v-if="joinError" class="error">{{ joinError }}</p>
-        <button type="submit">Join</button>
+        <button type="submit">Войти</button>
       </form>
     </template>
 
     <template v-else-if="session">
       <h1>{{ avatarId }} {{ nickname }} — {{ me?.score ?? 0 }}pts</h1>
       <p v-if="gameError" class="error">{{ gameError }}</p>
-      <p class="phase">Phase: <strong>{{ session.phase }}</strong></p>
 
-      <section v-if="session.phase === 'lobby' || session.phase === 'countdown_to_start'">
-        <p class="hint">Get ready…</p>
+      <section v-if="session.phase === 'lobby'">
+        <p class="hint">Ждём начала игры…</p>
       </section>
 
-      <section v-if="session.phase === 'question_playing'">
-        <button v-if="!isLockedOut" class="buzz" @click="buzz">BUZZ</button>
-        <p v-else class="hint">You already missed this one — someone else's turn.</p>
-      </section>
+      <section v-if="session.phase === 'question_active'" class="guesses">
+        <p class="hint">Вопрос {{ session.currentQuestionIndex + 1 }}</p>
 
-      <section v-if="session.phase === 'answer_window'">
-        <template v-if="isActiveAnswerer">
-          <form @submit.prevent="submitAnswer" class="row">
-            <input v-model="answerText" placeholder="Track title or artist" autofocus />
-            <button type="submit">Submit</button>
-          </form>
-        </template>
-        <p v-else class="hint">{{ activeAnswererNickname }} is answering…</p>
-      </section>
-
-      <section v-if="session.phase === 'reveal' || session.phase === 'leaderboard'">
-        <h2>Leaderboard</h2>
-        <ol>
-          <li v-for="p in sortedByScore" :key="p.id" :class="{ me: p.id === playerId }">
-            {{ p.nickname }} — {{ p.score }}
-          </li>
-        </ol>
-      </section>
-
-      <section v-if="session.phase === 'wager_input'">
-        <form @submit.prevent="submitWager" class="row" v-if="!(playerId in session.wagers)">
-          <label>
-            Wager (max {{ me?.score ?? 0 }})
-            <input v-model.number="wagerAmount" type="number" min="0" :max="me?.score ?? 0" />
-          </label>
-          <button type="submit">Lock in wager</button>
+        <form @submit.prevent="submitArtist" class="guess-row">
+          <input v-model="artistGuess" placeholder="Артист" />
+          <button type="submit">{{ artistSubmitted ? "Изменить" : "Отправить" }}</button>
         </form>
-        <p v-else class="hint">Wager locked in. Waiting for everyone else…</p>
+
+        <form @submit.prevent="submitTitle" class="guess-row">
+          <input v-model="titleGuess" placeholder="Название трека" />
+          <button type="submit">{{ titleSubmitted ? "Изменить" : "Отправить" }}</button>
+        </form>
+
+        <p class="hint small">Ведущий проверяет ответы сам — следи за своим счётом выше.</p>
       </section>
 
       <section v-if="session.phase === 'finished'">
-        <h2>Final scores</h2>
+        <h2>Итоговый счёт</h2>
         <ol>
           <li v-for="p in sortedByScore" :key="p.id" :class="{ me: p.id === playerId }">
             {{ p.nickname }} — {{ p.score }}
@@ -186,20 +165,16 @@ button {
   background: #5865f2;
   color: white;
 }
-.buzz {
-  font-size: 28px;
-  padding: 24px;
-  border-radius: 50%;
-  width: 160px;
-  height: 160px;
-  background: #ff5a5a;
-  margin: 0 auto;
-}
-.row {
+.guesses {
   display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+}
+.guess-row {
+  flex-direction: row;
+}
+.guess-row input {
+  flex: 1;
 }
 ol {
   list-style: none;
@@ -211,6 +186,9 @@ ol {
 }
 .hint {
   color: #9aa0ad;
+}
+.hint.small {
+  font-size: 12px;
 }
 .error {
   color: #ff6b6b;

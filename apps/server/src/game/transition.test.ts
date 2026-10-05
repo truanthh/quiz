@@ -30,6 +30,10 @@ function baseSession(overrides: Partial<GameSession> = {}): GameSession {
     buzzedAt: null,
     lockedOutIds: [],
     wagers: {},
+    audioPlaying: false,
+    activePhaseIndex: null,
+    activePhaseStartedAt: null,
+    answersByQuestion: {},
     ...overrides,
   };
 }

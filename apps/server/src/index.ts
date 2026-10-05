@@ -4,11 +4,14 @@ import { randomUUID } from "node:crypto";
 import { createServer } from "node:http";
 import type {
   ClientToServerEvents,
+  GameSession,
   InterServerEvents,
   PlaylistItem,
+  PublicGameSession,
   ServerToClientEvents,
   SocketData,
 } from "@quiz/shared";
+import { err, ok } from "@quiz/shared";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { type NextFunction, type Request, type Response } from "express";
@@ -20,6 +23,7 @@ import { config } from "./config.js";
 import { prisma } from "./db/prisma.js";
 import { GameManager } from "./game/GameManager.js";
 import { playlistsRouter } from "./playlists/routes.js";
+import { publicUrlFor } from "./storage/presign.js";
 import { matchTrackAnswer } from "./tracks/matchTrackAnswer.js";
 import { tracksRouter } from "./tracks/routes.js";
 import { z } from "zod";
@@ -94,9 +98,22 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEve
 
 const gameManager = new GameManager();
 
+const HOST_ROOM = (roomCode: string) => `${roomCode}:host`;
+
+function toPublicGameSession(session: GameSession): PublicGameSession {
+  const { answersByQuestion, ...rest } = session;
+  return rest;
+}
+
+// Everyone in the room (players, screen, host) gets the stripped session;
+// only the host also gets the full one (with other players' free-text
+// guesses) over a second, host-only Socket.IO room - so a player reading
+// their own socket traffic never sees anyone else's answers.
 function broadcastState(roomCode: string) {
   const session = gameManager.get(roomCode);
-  if (session) io.to(roomCode).emit("state", session);
+  if (!session) return;
+  io.to(roomCode).emit("state", toPublicGameSession(session));
+  io.to(HOST_ROOM(roomCode)).emit("hostState", session);
 }
 
 function readSessionCookie(cookieHeader: string | undefined): string | null {
@@ -125,8 +142,8 @@ io.on("connection", (socket) => {
 
   // Hosts never go through joinRoom (that creates a Player). Instead they
   // authenticate with their existing login cookie and prove they own the
-  // session, so startGame/beginQuestion/advance/hostJudge below can tell a
-  // host socket apart from a player socket (no playerId set).
+  // session, so the host-only events below can tell a host socket apart
+  // from a player or screen socket (role !== "host").
   socket.on("hostJoin", ({ roomCode }, ack) => {
     const token = readSessionCookie(socket.handshake.headers.cookie);
     const session = token ? verifySessionToken(token, config.jwtSecret) : null;
@@ -136,8 +153,50 @@ io.on("connection", (socket) => {
       return;
     }
     socket.data.roomCode = roomCode;
+    socket.data.role = "host";
     socket.join(roomCode);
+    socket.join(HOST_ROOM(roomCode));
     ack({ success: true, data: gameSession });
+  });
+
+  // The shared big-screen view: no login, no Player, just the room code -
+  // same trust level as a player joining by code (anyone physically in the
+  // room who can see the screen). Never joins the host-only room, so it
+  // never receives other players' free-text guesses.
+  socket.on("screenJoin", ({ roomCode }, ack) => {
+    const gameSession = gameManager.get(roomCode);
+    if (!gameSession) {
+      ack({ success: false, error: "room not found" });
+      return;
+    }
+    socket.data.roomCode = roomCode;
+    socket.data.role = "screen";
+    socket.join(roomCode);
+    ack({ success: true, data: toPublicGameSession(gameSession) });
+  });
+
+  // Host or screen only: resolves the current question's playable clip via
+  // a private ack reply (never a room broadcast), so it can't reach players.
+  socket.on("getCurrentClip", async (ack) => {
+    const { roomCode, role } = socket.data;
+    if (!roomCode || (role !== "host" && role !== "screen")) {
+      ack(err("not authorized"));
+      return;
+    }
+    const session = gameManager.get(roomCode);
+    const item = session?.playlist[session.currentQuestionIndex];
+    if (!item) {
+      ack(err("no active question"));
+      return;
+    }
+    const track = await prisma.track.findUnique({ where: { id: item.trackId } });
+    if (!track) {
+      ack(err("track not found"));
+      return;
+    }
+    ack(
+      ok({ url: publicUrlFor(track.storageKey), clipStartMs: item.clipStartMs, clipEndMs: item.clipEndMs }),
+    );
   });
 
   socket.on("disconnect", () => {
@@ -148,9 +207,48 @@ io.on("connection", (socket) => {
   });
 
   socket.on("startGame", () => {
+    const { roomCode, role } = socket.data;
+    if (!roomCode || role !== "host") return;
+    const result = gameManager.startFreeTextGame(roomCode);
+    if (!result.success) socket.emit("error", result.error);
+    else broadcastState(roomCode);
+  });
+
+  socket.on("gotoQuestion", ({ index }) => {
+    const { roomCode, role } = socket.data;
+    if (!roomCode || role !== "host") return;
+    const result = gameManager.gotoQuestion(roomCode, index);
+    if (!result.success) socket.emit("error", result.error);
+    else broadcastState(roomCode);
+  });
+
+  socket.on("setActivePhase", ({ index }) => {
+    const { roomCode, role } = socket.data;
+    if (!roomCode || role !== "host") return;
+    gameManager.setActivePhase(roomCode, index);
+    broadcastState(roomCode);
+  });
+
+  socket.on("submitFieldAnswer", ({ field, text }) => {
     const { roomCode, playerId } = socket.data;
-    if (!roomCode || playerId) return;
-    const result = gameManager.dispatch(roomCode, { type: "START_GAME", at: Date.now() });
+    if (!roomCode || !playerId) return;
+    const result = gameManager.submitFieldAnswer(roomCode, playerId, field, text);
+    if (!result.success) socket.emit("error", result.error);
+    else broadcastState(roomCode);
+  });
+
+  socket.on("judgeFieldAnswer", ({ playerId, field, correct, points }) => {
+    const { roomCode, role } = socket.data;
+    if (!roomCode || role !== "host") return;
+    const result = gameManager.judgeFieldAnswer(roomCode, playerId, field, correct, points);
+    if (!result.success) socket.emit("error", result.error);
+    else broadcastState(roomCode);
+  });
+
+  socket.on("finishGame", () => {
+    const { roomCode, role } = socket.data;
+    if (!roomCode || role !== "host") return;
+    const result = gameManager.finishGame(roomCode);
     if (!result.success) socket.emit("error", result.error);
     else broadcastState(roomCode);
   });
@@ -226,6 +324,15 @@ io.on("connection", (socket) => {
     });
     if (!result.success) socket.emit("error", result.error);
     else broadcastState(roomCode);
+  });
+
+  // Screen-only: it's the one actually playing the clip now, this just
+  // mirrors that playback state to everyone else's phones.
+  socket.on("setAudioPlaying", ({ playing }) => {
+    const { roomCode, role } = socket.data;
+    if (!roomCode || role !== "screen") return;
+    gameManager.setAudioPlaying(roomCode, playing);
+    broadcastState(roomCode);
   });
 });
 

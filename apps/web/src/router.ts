@@ -3,6 +3,7 @@ import DashboardView from "./views/DashboardView.vue";
 import HostRoomView from "./views/HostRoomView.vue";
 import LoginView from "./views/LoginView.vue";
 import PlayerView from "./views/PlayerView.vue";
+import ScreenView from "./views/ScreenView.vue";
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -10,6 +11,7 @@ export const router = createRouter({
     { path: "/login", component: LoginView },
     { path: "/", component: DashboardView },
     { path: "/host/:roomCode", component: HostRoomView, props: true },
+    { path: "/screen/:roomCode", component: ScreenView, props: true },
     { path: "/play", component: PlayerView },
   ],
 });

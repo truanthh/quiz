@@ -107,6 +107,9 @@ export const api = {
       method: "POST",
       body: JSON.stringify(item),
     }),
+  deletePlaylist: (id: string) => request<void>(`/playlists/${id}`, { method: "DELETE" }),
+  deletePlaylistItem: (playlistId: string, itemId: string) =>
+    request<void>(`/playlists/${playlistId}/items/${itemId}`, { method: "DELETE" }),
 
   createRoom: (playlistId: string) =>
     request<{ roomCode: string }>("/rooms", {
