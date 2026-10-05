@@ -4,146 +4,150 @@ TypeScript, Express + Socket.IO, Prisma/Postgres для персистентны
 S3-совместимое хранилище для аудио. Запускается через `tsx watch
 src/index.ts` (см. `npm run dev --workspace=@quiz/server`).
 
-## Машина состояний раунда — `src/game/transition.ts`
+**Для пошагового сценария «что летит куда» — см. `flows.md`. Этот файл —
+по какому модулю что лежит, не порядок событий.**
 
-Чистая функция `transition(session: GameSession, event: GameEvent):
-OperationResult<GameSession>`. Не делает side-эффектов, не трогает БД — всю
-мутацию состояния делает `GameManager`, вызывая эту функцию и сохраняя
-результат.
+## Две игровые машины — важно не перепутать
 
-Фазы и переходы:
+- **`src/game/transition.ts`** — старая buzz-машина (lobby → countdown →
+  question_playing → buzz → answer_window → reveal → leaderboard → ... →
+  wager_input → finished). Чистая функция, протестирована (10 тестов),
+  **но недостижима из текущего UI**: `startGame` ведёт в `question_active`,
+  не в `countdown_to_start`, которого ждёт эта машина. Оставлена как
+  задел под будущий бонусный вопрос с buzz'ом (см. `plan.md`), не удалена.
+- **`src/game/freeTextGame.ts`** — **текущий, реально используемый** режим.
+  Не единая FSM с одним типом события, а набор отдельных чистых функций:
+  - `startGame(session)` — `lobby` → `question_active`, index 0. Откажет,
+    если плейлист пуст **или `!session.screenConnected`**.
+  - `gotoQuestion(session, index)` — произвольный переход между вопросами
+    в любую сторону (не одностороннее `ADVANCE`), сбрасывает
+    `activePhaseIndex`/`activePhaseStartedAt`.
+  - `setActivePhase(session, index)` — не `OperationResult`, просто
+    возвращает новую сессию (нет условий провала). Обновляет
+    `activePhaseStartedAt` на **каждый** вызов, даже с тем же `index`, —
+    это осознанно, см. `shared.md`.
+  - `submitFieldAnswer(session, playerId, field, text)` — откажет, если
+    поле для этого игрока на этом вопросе **уже было отправлено** (не
+    только судимо — именно отправлено). Это серверная проверка, не
+    декоративная: UI тоже прячет форму после отправки, но без этой
+    проверки в чистой функции кто угодно мог бы переотправить через
+    devtools.
+  - `judgeFieldAnswer(session, playerId, field, correct, points)` —
+    откатывает предыдущее начисление (`fieldAnswer.awardedPoints`) перед
+    применением нового, так что повторное судейство в любую сторону даёт
+    корректный итог, а не накапливает дельты.
+  - `finishGame(session)` — `question_active` → `finished`.
 
-```
-lobby
-  --START_GAME--> countdown_to_start
-  --BEGIN_QUESTION--> question_playing
-  --BUZZ--> answer_window
-  --SUBMIT_ANSWER(accept|review|reject) / HOST_JUDGE--> reveal
-  --ADVANCE--> leaderboard
-  --ADVANCE--> countdown_to_start (следующий вопрос)
-            | wager_input (если плейлист кончился и finalWagerEnabled)
-            | finished
-wager_input
-  --SUBMIT_WAGER (все проставили)--> countdown_to_start (isFinalRound=true)
-```
+  Тесты — `freeTextGame.test.ts` (21 тест).
 
-Важные правила, которые легко упустить при чтении кода бегло:
-
-- **Скоростной бонус** считается от `questionStartedAt`/`buzzedAt`, не от
-  времени ответа — приз падает линейно к `SPEED_AWARD_FLOOR_RATIO` (30%) от
-  `basePoints` к концу `questionWindowMs`.
-- **Lockout**: неверный ответ добавляет контестанта в `lockedOutIds` для
-  текущего вопроса и возвращает фазу в `question_playing` (кто-то другой
-  может нажать buzz), если не все уже заблокированы и это не финальный
-  раунд — тогда сразу `reveal`.
-- **Финальный раунд** переиспользует ставку (`wagers[contestantId]`) как
-  величину приза/штрафа вместо `basePoints`/`wrongAnswerPenalty`.
-- **`pendingReview`**: `SUBMIT_ANSWER` с вердиктом `"review"` не завершает
-  вопрос — ставит `pendingReview: true` и ждёт `HOST_JUDGE` от ведущего.
-- В team mode (`settings.teamMode`) `contestantIds()`/`contestantScore()`/
-  `applyDelta()` резолвят через `session.teams`, а не `session.players` —
-  но **ничего в `index.ts`/`GameManager` сейчас не умеет создавать команды
-  или назначать туда игрока** (см. `plan.md`), так что практически это
-  всегда solo-режим.
+`GameManager` вызывает ОБЕ машины (`dispatch()` — старую, `startFreeTextGame`/
+`gotoQuestion`/`submitFieldAnswer`/`judgeFieldAnswer`/`finishGame` — новую)
+и персистирует результат одинаково — через `this.sessions.set(roomCode, ...)`.
 
 ## `GameManager.ts`
 
 In-memory реестр: `Map<roomCode, GameSession>`. Один процесс Node держит
 много сессий одновременно, без шардирования между процессами (нет
 `@socket.io/redis-adapter`). Код комнаты — 5 символов из алфавита без
-0/O/1/I (`ROOM_CODE_ALPHABET`), чтобы не путать на слух/глаз на экране.
+0/O/1/I.
 
-`addPlayer()` отказывает, если `session.phase !== "lobby"` — поэтому игрок,
-который переподключается через `joinRoom` после старта игры, получит
-`"game has already started"` вместо присоединения. Это одно из мест, где
-отсутствие reconnect-flow (см. `plan.md`) проявляется напрямую.
+Помимо игровых машин, держит побочное состояние, не относящееся ни к одной
+из них:
 
-## `src/auth/*`
+- `addPlayer()` — **отказывает на дубликат ника** (без учёта регистра и
+  пробелов) и если `phase !== "lobby"`.
+- `removePlayer()` — кик, работает **только в `lobby`**.
+- `screenSocketsByRoom: Map<roomCode, Set<socketId>>` — отдельная карта
+  (не часть `GameSession`), через `addScreen()`/`removeScreen()`.
+  `session.screenConnected` синхронизируется по размеру этого сета — так
+  несколько открытых вкладок `/screen` на одну комнату не считаются
+  «отключением», пока жива хоть одна.
+- `setAudioPlaying()` — просто ставит поле, без валидации (кто вызывает —
+  решает `index.ts` через роль сокета).
+- `dispatch()` (старая машина) дополнительно гасит `audioPlaying` при
+  выходе из `question_playing` — артефакт одно-устройственной версии до
+  разделения host/screen, актуален только если buzz-режим когда-нибудь
+  снова станет достижим.
 
-Email+password, bcrypt (`password.ts`), JWT в httpOnly cookie
-(`session.ts` — `signSessionToken`/`verifySessionToken`, `SESSION_COOKIE =
-"session"`). `middleware.ts` → `requireAuth` читает cookie, кладёт
-`req.userId`. Роуты: `POST /auth/register|login`, `POST /auth/logout`,
-`GET /auth/me`.
+Тесты — `GameManager.test.ts` (8 тестов: дубликаты ников, трекинг экрана,
+кик).
 
-Реально проверено curl'ом против живого Postgres: регистрация записывает
-`User` в БД, повторный логин с неверным паролем отдаёт 401, `/auth/me`
-отражает текущую сессию.
+## `src/auth/*`, `src/storage/*`, `src/tracks/*`, `src/playlists/*`
 
-## `src/storage/*` — S3
+Не менялись с прошлой ревизии документации по сути:
 
-- `s3Client.ts` — `createS3Client()` требует `S3_ACCESS_KEY_ID`/
-  `S3_SECRET_ACCESS_KEY`, иначе бросает (это и уронило процесс до того, как
-  появился централизованный error-handling — см. ниже). `forcePathStyle:
-  true` нужен для любого не-AWS S3 (R2, MinIO, моки).
-  **Важная настройка:** `requestChecksumCalculation`/
-  `responseChecksumValidation: "WHEN_REQUIRED"` — без неё AWS SDK v3
-  (начиная где-то с v3.729) по умолчанию считает flexible checksums на
-  каждом S3-запросе, что ломается на любой не-AWS реализации с неочевидной
-  ошибкой (`BucketAlreadyOwnedByYou` на операции, которая вообще не создаёт
-  бакет — так это и было обнаружено).
-- `presign.ts` — `createUploadUrl` (presigned PUT, TTL 300с), `getObjectBuffer`
-  (нужен `tracks/finalize.ts` для чтения ID3-тегов), `uploadBuffer` (для
-  обложки, извлечённой из ID3), `publicUrlFor` (голый `S3_PUBLIC_URL + key`,
-  без подписи — требует, чтобы объект был публично читаем).
-
-Локальная разработка: `adobe/s3mock` (см. `docker-compose.yml`), поднимается
-через `docker compose up -d s3mock`, бакет создаётся один раз через
-`apps/server/scripts/bootstrapS3.ts`. Этот мок разрешает анонимные GET/PUT
-и CORS из коробки — никакой дополнительной настройки политик не нужно (было
-проверено: `PutBucketCors`/`PutBucketPolicy` у него не реализованы и просто
-кидают мусорные ошибки, но они и не требуются).
-
-**Прод (Cloudflare R2/AWS S3) никогда не проверялся** — только локальный мок.
-
-## `src/tracks/*`
-
-- `extractMetadata.ts` — вытаскивает title/artist/обложку из ID3-тегов
-  (`node-id3`). Протестировано через `NodeID3.create`-roundtrip, а с недавних
-  пор ещё и вручную — против настоящего загруженного в S3-мок файла.
-- `matchTrackAnswer.ts` — fuzzy-match ответа против title/artist (см.
-  `shared.md`).
-- `routes.ts` — `POST /tracks/upload-url` (выдаёт presigned PUT),
-  `POST /tracks/finalize` (читает объект из S3, извлекает метаданные,
-  создаёт `Track` в БД), `GET /tracks` (список своих треков),
-  `DELETE /tracks/:id`. И `finalize`, и список **теперь дополнительно
-  отдают поле `url`** (`publicUrlFor(storageKey)`) — раньше его не было
-  вообще, и клиент не мог ничего воспроизвести.
-
-## `src/playlists/*`
-
-CRUD плейлистов (`POST/GET /playlists`, `GET /playlists/:id` со
-вложенными `items.track`) и их items (`POST /playlists/:id/items` —
-`trackId`, `clipStartMs`, `clipEndMs`, `basePoints`; `DELETE
-/playlists/:playlistId/items/:itemId`). `order` выставляется по счётчику
-существующих items при добавлении.
+- `auth/*` — email+password, bcrypt, JWT в httpOnly cookie. Проверено
+  против живого Postgres.
+- `storage/*` — presigned S3 PUT/GET. **Важная настройка**:
+  `requestChecksumCalculation`/`responseChecksumValidation: "WHEN_REQUIRED"`
+  в `s3Client.ts` — без неё AWS SDK v3 по умолчанию ломает совместимость
+  с любой не-AWS реализацией (R2/MinIO/моки). Локально — `adobe/s3mock`
+  (см. `docker-compose.yml`), бакет создаётся один раз через
+  `scripts/bootstrapS3.ts`.
+- `tracks/*` — ID3-экстракция при загрузке, `GET /tracks` и
+  `POST /tracks/finalize` отдают дополнительное поле `url`
+  (`publicUrlFor(storageKey)`) — без него у `/host` не было бы что
+  показать в аудио-плеере библиотеки. `matchTrackAnswer.ts` всё ещё
+  существует и протестирован, но в живом потоке не используется (решение
+  принимает ведущий, не код — см. выше).
+- `playlists/*` — CRUD плейлистов и items, включая `DELETE /playlists/:id`
+  (целиком) и `DELETE /playlists/:playlistId/items/:itemId` (один трек).
 
 ## `src/index.ts` — HTTP + Socket.IO wiring
 
-- Собирает все роутеры (`/auth`, `/tracks`, `/playlists`) плюс `POST /rooms`
-  (создаёт `GameSession` из сохранённого плейлиста через `GameManager`).
-- **Централизованный error-handling** (`express-async-errors` +
-  финальный 4-арг. error-middleware). До этого любая ошибка внутри `async`
-  route-хендлера — например, вызов `/tracks/upload-url` без настроенного
-  S3 — **роняла весь процесс Node**, а не только отдельный запрос:
-  `GameSession` живёт in-memory на процесс, значит это убивало все
-  одновременно идущие игры во всех комнатах. Воспроизведено и подтверждено
-  исправленным. Асинхронный socket-хендлер `submitAnswer` обёрнут в
-  отдельный try/catch по той же причине — Express-мидлвары на Socket.IO
-  не действуют.
-- Socket-события: `joinRoom` (создаёт `Player`), **`hostJoin`**
-  (аутентификация по cookie, проверка `session.hostId === userId`, не
-  создаёт `Player` — см. `shared.md`), `startGame`/`beginQuestion`/
-  `advance`/`hostJudge` (теперь отказывают любому сокету с выставленным
-  `playerId`, то есть игроку, а не ведущему), `buzz`/`submitAnswer`/
-  `submitWager` (только для сокетов с `playerId`).
-- `disconnect` помечает игрока `connected: false`, но **не удаляет и не
-  освобождает слот** — нет grace-периода/reconnect (см. `plan.md`).
+### HTTP
+
+`/auth`, `/tracks`, `/playlists` (роутеры), плюс `POST /rooms` — создаёт
+`GameSession` из сохранённого плейлиста через `GameManager.createSession()`.
+
+Централизованный error-handling (`express-async-errors` + финальный
+4-арг. middleware) — без него любая ошибка в `async`-хендлере (например,
+вызов S3 без настроенных кредов) роняла **весь процесс**, а не только
+запрос — это убивало бы все одновременно идущие игры во всех комнатах.
+
+### Socket.IO — три Socket.IO-«комнаты» на одну игровую комнату
+
+| Socket.IO room | Кто вступает | Что рассылается |
+|---|---|---|
+| `roomCode` | игроки (`joinRoom`/`rejoinRoom`), хост (`hostJoin`), экран (`screenJoin`) | `state` — `PublicGameSession`, без `answersByQuestion` |
+| `${roomCode}:host` | только хост | `hostState` — полный `GameSession` |
+| (нет комнаты) | — | `getCurrentClip` — не broadcast, приватный ack только для `role === "host" \| "screen"` |
+
+`broadcastState(roomCode)` — единая функция, шлёт и то, и то за один вызов
+(`toPublicGameSession()` просто вырезает `answersByQuestion`).
+
+Контроль доступа к хендлерам — через `socket.data`:
+- `!roomCode` → сокет вообще не подключён ни к одной комнате, игнор.
+- `playerId` есть → это игрок (гвард вида `if (!roomCode || !playerId)
+  return;`).
+- `role === "host"` → хост-only события (`startGame`, `gotoQuestion`,
+  `setActivePhase`, `judgeFieldAnswer`, `finishGame`, `kickPlayer`,
+  `kickScreen`).
+- `role === "screen"` → только `setAudioPlaying` (экран — единственный,
+  кто реально проигрывает звук, значит только он отвечает за этот флаг).
+
+`kickPlayer`/`kickScreen` — находят реальные сокеты через
+`io.in(roomCode).fetchSockets()` и зовут `.disconnect(true)` — кик рвёт
+транспортное соединение, не только запись в `GameSession`. Для игрока
+дополнительно шлётся `kicked({ playerId })` всем в комнате (каждый клиент
+сам проверяет, его ли это касается). Для экрана отдельного события не
+нужно — его естественный `disconnect`-хендлер сам вызовет `removeScreen()`.
+
+`getCurrentClip` — `async`-хендлер, читает `Track` из Prisma по
+`trackId` текущего вопроса и отвечает `publicUrlFor(storageKey)` **только
+через ack**, никогда через `io.to(roomCode).emit(...)` — иначе URL (а
+значит и ответ на вопрос) улетел бы и игрокам.
+
+Нижний блок хендлеров (`beginQuestion`, `buzz`, `submitAnswer`,
+`hostJudge`, `advance`, `submitWager`) — всё ещё вызывают
+`gameManager.dispatch()` (старую FSM), но никогда не достигаются из
+текущего UI (см. выше, GamePhase).
 
 ## Тесты
 
-22 юнит-теста (`vitest`), покрывают: `transition.ts` (10), fuzzy-match (3),
-ID3-экстракцию (3), bcrypt/пароли (3), JWT-сессии (3). HTTP/Socket-слой
-проверен вручную curl'ом и скриптованным `socket.io-client`-прогоном полного
-игрового цикла против живого сервера+Postgres+S3-мока — не покрыт
-автоматическими тестами.
+48 юнит-тестов (`vitest`): `transition.ts` (10, мёртвый путь, но зелёный),
+`freeTextGame.ts` (21), `GameManager.ts` (8), fuzzy-match (3), ID3 (3),
+bcrypt/пароли (3), JWT-сессии (3). Live-проверка HTTP/Socket-слоя (создание
+комнаты, джойн, кик, реконнект, судейство, навигация по вопросам) делалась
+вручную скриптами на `socket.io-client` против живого
+сервера+Postgres+S3-мока — не покрыта автотестами.
