@@ -5,6 +5,27 @@
  */
 export const CLIP_DURATION_MS = 14000;
 
+/** Lobby caps, excluding the host - 16 connected units total at most. */
+export const MAX_PLAYERS = 8;
+export const MAX_SCREENS = 8;
+
+/**
+ * A fixed palette for telling multiple simultaneously-connected `/screen`
+ * clients apart - one color per connected screen (host dashboard + the
+ * screen's own top-left corner badge). Exactly MAX_SCREENS entries, so a
+ * full room never has two screens sharing a color.
+ */
+export const SCREEN_COLORS = [
+  "#ff5a5a",
+  "#3ddc84",
+  "#4da3ff",
+  "#ffb84d",
+  "#c77dff",
+  "#4dd9c7",
+  "#ffe066",
+  "#ff7eb9",
+] as const;
+
 export type GamePhase =
   | "lobby"
   | "countdown_to_start"
@@ -58,6 +79,17 @@ export interface Team {
   score: number;
 }
 
+/**
+ * A connected `/screen/:roomCode` client, keyed by its own socket id (a
+ * screen has no persistent identity across reconnects - unlike Player, it's
+ * just "whatever is connected right now"). `color` is assigned on join and
+ * is how the host (and the screen itself) tells multiple screens apart.
+ */
+export interface ScreenClient {
+  id: string;
+  color: string;
+}
+
 export interface GameSettings {
   teamMode: boolean;
   wrongAnswerPenalty: number;
@@ -108,12 +140,12 @@ export interface GameSession {
    */
   audioPlaying: boolean;
   /**
-   * Whether at least one `/screen/:roomCode` client is currently connected.
-   * The whole game is built around the screen (that's what plays audio and
-   * is what everyone in the room actually watches), so starting without one
-   * connected is refused - the host dashboard shows this so they know why.
+   * Every currently-connected `/screen/:roomCode` client, keyed by socket
+   * id. The whole game is built around the screen (that's what plays audio
+   * and is what everyone in the room actually watches), so starting with
+   * this empty is refused. Capped at MAX_SCREENS.
    */
-  screenConnected: boolean;
+  screens: Record<string, ScreenClient>;
   /**
    * Which of the (currently hardcoded, client-side) reveal phases the host
    * has selected for the current question - null when nothing is playing.

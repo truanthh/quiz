@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AnswerField, GameSession } from "@quiz/shared";
+import { MAX_PLAYERS, MAX_SCREENS, type AnswerField, type GameSession } from "@quiz/shared";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { api, type TrackSummary } from "../lib/api";
 import { createSocket } from "../lib/socket";
@@ -37,6 +37,7 @@ const currentTrack = computed(() =>
   currentItem.value ? tracksById.value.get(currentItem.value.trackId) : null,
 );
 const players = computed(() => (session.value ? Object.values(session.value.players) : []));
+const screens = computed(() => (session.value ? Object.values(session.value.screens) : []));
 const sortedByScore = computed(() => [...players.value].sort((a, b) => b.score - a.score));
 const currentAnswers = computed(
   () => session.value?.answersByQuestion[session.value.currentQuestionIndex] ?? {},
@@ -128,29 +129,29 @@ onUnmounted(() => {
     <p v-if="error" class="error">{{ error }}</p>
 
     <template v-if="session">
-      <div class="row">
-        <p class="screen-status" :class="{ connected: session.screenConnected }">
-          {{ session.screenConnected ? "🟢 Экран подключён" : "🔴 Экран не подключён" }}
-        </p>
-        <button
-          v-if="session.phase === 'lobby' && session.screenConnected"
-          class="danger small"
-          @click="socket.emit('kickScreen')"
-        >
-          Отключить
-        </button>
-      </div>
-
       <template v-if="session.phase === 'lobby'">
-        <button class="big" :disabled="!session.screenConnected" @click="socket.emit('startGame')">
+        <section class="lobby-screens">
+          <h2>Экраны ({{ screens.length }}/{{ MAX_SCREENS }})</h2>
+          <ul>
+            <li v-for="s in screens" :key="s.id" class="lobby-screen">
+              <span class="color-dot" :style="{ backgroundColor: s.color }"></span>
+              <span class="screen-label">Экран</span>
+              <button class="danger small" @click="socket.emit('kickScreen', { screenId: s.id })">
+                Кикнуть
+              </button>
+            </li>
+            <li v-if="screens.length === 0" class="hint">
+              На большом экране откройте сайт, введите код {{ roomCode }} и выберите «Это большой экран».
+            </li>
+          </ul>
+        </section>
+
+        <button class="big" :disabled="screens.length === 0" @click="socket.emit('startGame')">
           Начать игру
         </button>
-        <p v-if="!session.screenConnected" class="hint">
-          На большом экране откройте сайт, введите код {{ roomCode }} и выберите «Это большой экран».
-        </p>
 
         <section class="lobby-players">
-          <h2>Игроки ({{ players.length }})</h2>
+          <h2>Игроки ({{ players.length }}/{{ MAX_PLAYERS }})</h2>
           <ul>
             <li v-for="p in players" :key="p.id" class="lobby-player">
               <span>{{ p.avatarId }} {{ p.nickname }}</span>
@@ -291,28 +292,35 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 8px;
 }
-.screen-status {
-  font-size: 14px;
-  color: #ff6b6b;
-}
-.screen-status.connected {
-  color: #3ddc84;
-}
-.lobby-players ul {
+.lobby-players ul,
+.lobby-screens ul {
   list-style: none;
   padding: 0;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-.lobby-player {
+.lobby-player,
+.lobby-screen {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
   background: #242637;
   border-radius: 6px;
   padding: 8px 12px;
+}
+.lobby-player {
+  justify-content: space-between;
+}
+.lobby-screen .screen-label {
+  flex: 1;
+}
+.color-dot {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.6);
 }
 .danger {
   background: #7d2f3a;

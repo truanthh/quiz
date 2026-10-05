@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { ClipInfo, OperationResult, PublicGameSession } from "@quiz/shared";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { useRouter } from "vue-router";
 import { createSocket } from "../lib/socket";
 
 const props = defineProps<{ roomCode: string }>();
+const router = useRouter();
 
 // Same hardcoded reveal phases as the host's control panel, offsets from
 // clipStartMs ("пусть это пока будет" - see docs/plan.md for a real
@@ -17,6 +19,7 @@ const PHASES = [
 const TOTAL_MS = PHASES[PHASES.length - 1].toMs;
 
 const session = ref<PublicGameSession | null>(null);
+const myColor = ref<string | null>(null);
 const error = ref("");
 const socket = createSocket();
 const audioEl = ref<HTMLAudioElement | null>(null);
@@ -128,9 +131,17 @@ onMounted(() => {
   socket.connect();
   socket.on("state", (s) => (session.value = s));
   socket.on("error", (message) => (error.value = message));
+  // Covers both an explicit kick and any other disconnect (network drop,
+  // server restart) - either way there's nothing useful to show, so bounce
+  // back to the entry screen rather than sit on a frozen, disconnected page.
+  socket.on("disconnect", () => router.push("/"));
   socket.emit("screenJoin", { roomCode: props.roomCode }, (result) => {
-    if (result.success) session.value = result.data;
-    else error.value = result.error;
+    if (result.success) {
+      session.value = result.data.session;
+      myColor.value = result.data.color;
+    } else {
+      error.value = result.error;
+    }
   });
 });
 
@@ -142,6 +153,8 @@ onUnmounted(() => {
 
 <template>
   <main class="wrap">
+    <div v-if="myColor" class="my-color-badge" :style="{ backgroundColor: myColor }"></div>
+
     <button v-if="!audioUnlocked" class="unlock" @click="unlockAudio">Нажмите, чтобы включить звук</button>
 
     <p v-if="error" class="error">{{ error }}</p>
@@ -187,6 +200,16 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 32px;
+}
+.my-color-badge {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 .unlock {
   padding: 16px 24px;

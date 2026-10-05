@@ -79,10 +79,12 @@ export interface ClientToServerEvents {
     payload: { roomCode: string },
     ack: (result: OperationResult<GameSession>) => void,
   ) => void;
-  /** Read-only big-screen client - no player, no auth, just the room code. */
+  /** Read-only big-screen client - no player, no auth, just the room code.
+   * Capped at MAX_SCREENS; refuses once full. `color` is this screen's own
+   * assigned color (also visible to everyone via session.screens). */
   screenJoin: (
     payload: { roomCode: string },
-    ack: (result: OperationResult<PublicGameSession>) => void,
+    ack: (result: OperationResult<{ session: PublicGameSession; color: string }>) => void,
   ) => void;
   /** Host or screen only: the current question's playable clip. Answered via
    * ack rather than broadcast, specifically so it never reaches players. */
@@ -101,8 +103,8 @@ export interface ClientToServerEvents {
   finishGame: () => void;
   /** Host-only, lobby only: removes a player from the room and disconnects their socket. */
   kickPlayer: (payload: { playerId: string }) => void;
-  /** Host-only, lobby only: disconnects whatever screen socket(s) are connected. */
-  kickScreen: () => void;
+  /** Host-only, lobby only: disconnects one specific screen (by its id). */
+  kickScreen: (payload: { screenId: string }) => void;
 
   // Older buzz-based flow (see GamePhase.question_active's doc comment) -
   // kept wired to the old FSM for a possible future bonus-question mode, not

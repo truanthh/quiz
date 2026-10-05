@@ -4,6 +4,9 @@ import {
   type GameSettings,
   type OperationResult,
   type PlaylistItem,
+  MAX_PLAYERS,
+  MAX_SCREENS,
+  SCREEN_COLORS,
   err,
   ok,
 } from "@quiz/shared";
@@ -35,10 +38,6 @@ const DEFAULT_SETTINGS: GameSettings = {
  */
 export class GameManager {
   private sessions = new Map<string, GameSession>();
-  // Multiple screen sockets could in principle be open for one room (e.g. a
-  // host who leaves an old /screen tab open); only drop to "disconnected"
-  // once none are left, not on the first one to go.
-  private screenSocketsByRoom = new Map<string, Set<string>>();
 
   createSession(
     hostId: string,
@@ -65,7 +64,7 @@ export class GameManager {
       lockedOutIds: [],
       wagers: {},
       audioPlaying: false,
-      screenConnected: false,
+      screens: {},
       activePhaseIndex: null,
       activePhaseStartedAt: null,
       answersByQuestion: {},
@@ -85,6 +84,9 @@ export class GameManager {
     const session = this.sessions.get(roomCode);
     if (!session) return err("room not found");
     if (session.phase !== "lobby") return err("game has already started");
+    if (Object.keys(session.players).length >= MAX_PLAYERS) {
+      return err(`room is full (max ${MAX_PLAYERS} players)`);
+    }
 
     const nickname = player.nickname.trim();
     const taken = Object.values(session.players).some(
@@ -142,28 +144,34 @@ export class GameManager {
     return ok(next);
   }
 
-  addScreen(roomCode: string, socketId: string): void {
-    let sockets = this.screenSocketsByRoom.get(roomCode);
-    if (!sockets) {
-      sockets = new Set();
-      this.screenSocketsByRoom.set(roomCode, sockets);
+  // A screen has no persistent identity across reconnects (unlike Player) -
+  // it's keyed by its own socket id, which is also its "kick target" id.
+  addScreen(roomCode: string, socketId: string): OperationResult<{ session: GameSession; color: string }> {
+    const session = this.sessions.get(roomCode);
+    if (!session) return err("room not found");
+    if (Object.keys(session.screens).length >= MAX_SCREENS) {
+      return err(`room is full (max ${MAX_SCREENS} screens)`);
     }
-    sockets.add(socketId);
-    this.syncScreenConnected(roomCode);
+
+    const usedColors = new Set(Object.values(session.screens).map((s) => s.color));
+    const color =
+      SCREEN_COLORS.find((c) => !usedColors.has(c)) ??
+      SCREEN_COLORS[Math.floor(Math.random() * SCREEN_COLORS.length)];
+
+    const next: GameSession = {
+      ...session,
+      screens: { ...session.screens, [socketId]: { id: socketId, color } },
+    };
+    this.sessions.set(roomCode, next);
+    return ok({ session: next, color });
   }
 
   removeScreen(roomCode: string, socketId: string): void {
-    this.screenSocketsByRoom.get(roomCode)?.delete(socketId);
-    this.syncScreenConnected(roomCode);
-  }
-
-  private syncScreenConnected(roomCode: string): void {
     const session = this.sessions.get(roomCode);
-    if (!session) return;
-    const connected = (this.screenSocketsByRoom.get(roomCode)?.size ?? 0) > 0;
-    if (session.screenConnected !== connected) {
-      this.sessions.set(roomCode, { ...session, screenConnected: connected });
-    }
+    if (!session || !session.screens[socketId]) return;
+    const screens = { ...session.screens };
+    delete screens[socketId];
+    this.sessions.set(roomCode, { ...session, screens });
   }
 
   setAudioPlaying(roomCode: string, playing: boolean): void {

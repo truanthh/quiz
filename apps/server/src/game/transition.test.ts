@@ -31,7 +31,7 @@ function baseSession(overrides: Partial<GameSession> = {}): GameSession {
     lockedOutIds: [],
     wagers: {},
     audioPlaying: false,
-    screenConnected: true,
+    screens: { "screen-1": { id: "screen-1", color: "#ff5a5a" } },
     activePhaseIndex: null,
     activePhaseStartedAt: null,
     answersByQuestion: {},

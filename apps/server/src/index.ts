@@ -184,18 +184,17 @@ io.on("connection", (socket) => {
   // The shared big-screen view: no login, no Player, just the room code -
   // same trust level as a player joining by code (anyone physically in the
   // room who can see the screen). Never joins the host-only room, so it
-  // never receives other players' free-text guesses.
+  // never receives other players' free-text guesses. Capped at MAX_SCREENS.
   socket.on("screenJoin", ({ roomCode }, ack) => {
-    const gameSession = gameManager.get(roomCode);
-    if (!gameSession) {
-      ack({ success: false, error: "room not found" });
+    const result = gameManager.addScreen(roomCode, socket.id);
+    if (!result.success) {
+      ack({ success: false, error: result.error });
       return;
     }
     socket.data.roomCode = roomCode;
     socket.data.role = "screen";
     socket.join(roomCode);
-    gameManager.addScreen(roomCode, socket.id);
-    ack({ success: true, data: toPublicGameSession(gameManager.get(roomCode)!) });
+    ack({ success: true, data: { session: toPublicGameSession(result.data.session), color: result.data.color } });
     broadcastState(roomCode);
   });
 
@@ -295,19 +294,19 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("kickScreen", async () => {
+  socket.on("kickScreen", async ({ screenId }) => {
     const { roomCode, role } = socket.data;
     if (!roomCode || role !== "host") return;
     const session = gameManager.get(roomCode);
     if (!session || session.phase !== "lobby") {
-      socket.emit("error", "can only disconnect the screen before the game starts");
+      socket.emit("error", "can only disconnect a screen before the game starts");
       return;
     }
     // No GameManager call needed here: disconnecting the socket fires the
     // same "disconnect" handler below that a real disconnect would, which
     // already calls removeScreen + broadcastState.
     for (const s of await io.in(roomCode).fetchSockets()) {
-      if (s.data.role === "screen") s.disconnect(true);
+      if (s.id === screenId && s.data.role === "screen") s.disconnect(true);
     }
   });
 

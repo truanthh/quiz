@@ -49,22 +49,36 @@ describe("removePlayer", () => {
   });
 });
 
-describe("screen connection tracking", () => {
-  it("starts disconnected, connects on the first screen", () => {
+describe("screens", () => {
+  it("starts empty, adds a screen with an assigned color", () => {
     const { gm, roomCode } = setUp();
-    expect(gm.get(roomCode)!.screenConnected).toBe(false);
-    gm.addScreen(roomCode, "socket-1");
-    expect(gm.get(roomCode)!.screenConnected).toBe(true);
+    expect(Object.keys(gm.get(roomCode)!.screens)).toHaveLength(0);
+    const result = gm.addScreen(roomCode, "socket-1");
+    if (!result.success) throw new Error("expected success");
+    expect(result.data.color).toMatch(/^#/);
+    expect(gm.get(roomCode)!.screens["socket-1"]).toEqual({ id: "socket-1", color: result.data.color });
   });
 
-  it("stays connected while any screen socket remains", () => {
+  it("gives each simultaneously-connected screen a distinct color", () => {
+    const { gm, roomCode } = setUp();
+    gm.addScreen(roomCode, "socket-1");
+    gm.addScreen(roomCode, "socket-2");
+    const screens = Object.values(gm.get(roomCode)!.screens);
+    expect(screens[0]!.color).not.toBe(screens[1]!.color);
+  });
+
+  it("removing one screen leaves the others connected", () => {
     const { gm, roomCode } = setUp();
     gm.addScreen(roomCode, "socket-1");
     gm.addScreen(roomCode, "socket-2");
     gm.removeScreen(roomCode, "socket-1");
-    expect(gm.get(roomCode)!.screenConnected).toBe(true);
-    gm.removeScreen(roomCode, "socket-2");
-    expect(gm.get(roomCode)!.screenConnected).toBe(false);
+    expect(Object.keys(gm.get(roomCode)!.screens)).toEqual(["socket-2"]);
+  });
+
+  it("refuses past the 8-screen cap", () => {
+    const { gm, roomCode } = setUp();
+    for (let i = 0; i < 8; i++) expect(gm.addScreen(roomCode, `socket-${i}`).success).toBe(true);
+    expect(gm.addScreen(roomCode, "socket-9").success).toBe(false);
   });
 
   it("startFreeTextGame refuses to start without a screen connected", () => {
@@ -72,5 +86,17 @@ describe("screen connection tracking", () => {
     expect(gm.startFreeTextGame(roomCode).success).toBe(false);
     gm.addScreen(roomCode, "socket-1");
     expect(gm.startFreeTextGame(roomCode).success).toBe(true);
+  });
+});
+
+describe("addPlayer cap", () => {
+  it("refuses past the 8-player cap", () => {
+    const { gm, roomCode } = setUp();
+    for (let i = 0; i < 8; i++) {
+      expect(gm.addPlayer(roomCode, { id: `p${i}`, nickname: `Player${i}`, avatarId: "a" }).success).toBe(
+        true,
+      );
+    }
+    expect(gm.addPlayer(roomCode, { id: "p9", nickname: "OneTooMany", avatarId: "a" }).success).toBe(false);
   });
 });

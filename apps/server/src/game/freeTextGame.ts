@@ -14,7 +14,7 @@ export function startGame(session: GameSession): OperationResult<GameSession> {
   // The whole game revolves around the screen - it's what plays audio and
   // what everyone actually watches - so starting without one connected
   // would just confuse everyone.
-  if (!session.screenConnected) return err("screen is not connected");
+  if (Object.keys(session.screens).length === 0) return err("screen is not connected");
   return ok({
     ...session,
     phase: "question_active",

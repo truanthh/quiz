@@ -38,7 +38,7 @@ function baseSession(overrides: Partial<GameSession> = {}): GameSession {
     lockedOutIds: [],
     wagers: {},
     audioPlaying: false,
-    screenConnected: true,
+    screens: { "screen-1": { id: "screen-1", color: "#ff5a5a" } },
     activePhaseIndex: null,
     activePhaseStartedAt: null,
     answersByQuestion: {},
@@ -68,7 +68,7 @@ describe("startGame", () => {
   });
 
   it("refuses to start without a screen connected", () => {
-    expect(startGame(baseSession({ screenConnected: false })).success).toBe(false);
+    expect(startGame(baseSession({ screens: {} })).success).toBe(false);
   });
 });
 
