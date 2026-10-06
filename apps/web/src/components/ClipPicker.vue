@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { CLIP_DURATION_MS } from "@quiz/shared";
-import { computed, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import WaveSurfer from "wavesurfer.js";
+import RegionsPlugin, { type Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
 
 const props = defineProps<{
   /** Full length of the track, ms. */
   durationMs: number;
   /** Current clip start, ms (v-model). */
   modelValue: number;
-  /** Where to read audio from for the "listen" button - a blob: URL for a
-   * not-yet-uploaded File, or the track's real URL once it's in the library. */
+  /** Where to read audio from for the waveform + "listen" button - a blob:
+   * URL for a not-yet-uploaded File, or the track's real URL once it's in
+   * the library. */
   previewUrl?: string;
 }>();
 const emit = defineEmits<{ "update:modelValue": [number] }>();
@@ -17,23 +20,15 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-// The window is always exactly CLIP_DURATION_MS wide - dragging either edge
-// moves the whole window, it never resizes.
+// The window is always exactly CLIP_DURATION_MS wide - dragging the region
+// moves the whole window, it never resizes (resize is disabled below).
 const maxStart = computed(() => Math.max(0, props.durationMs - CLIP_DURATION_MS));
 
 const start = computed({
   get: () => clamp(props.modelValue, 0, maxStart.value),
   set: (value: number) => emit("update:modelValue", clamp(value, 0, maxStart.value)),
 });
-const end = computed({
-  get: () => Math.min(start.value + CLIP_DURATION_MS, props.durationMs),
-  set: (value: number) => emit("update:modelValue", clamp(value - CLIP_DURATION_MS, 0, maxStart.value)),
-});
-
-const startPercent = computed(() => (props.durationMs > 0 ? (start.value / props.durationMs) * 100 : 0));
-const windowPercent = computed(() =>
-  props.durationMs > 0 ? (CLIP_DURATION_MS / props.durationMs) * 100 : 100,
-);
+const end = computed(() => Math.min(start.value + CLIP_DURATION_MS, props.durationMs));
 
 function formatTime(ms: number): string {
   const totalSeconds = Math.round(ms / 1000);
@@ -42,41 +37,95 @@ function formatTime(ms: number): string {
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
-const audioEl = ref<HTMLAudioElement | null>(null);
+const waveformEl = ref<HTMLDivElement | null>(null);
 const previewing = ref(false);
+const ready = ref(false);
 
-function togglePreview() {
-  const audio = audioEl.value;
-  if (!audio || !props.previewUrl) return;
-  if (previewing.value) {
-    audio.pause();
-    return;
-  }
-  if (audio.src !== props.previewUrl) audio.src = props.previewUrl;
-  audio.currentTime = start.value / 1000;
-  audio.play().catch((e) => console.error("preview playback blocked:", e));
-  previewing.value = true;
+let wavesurfer: WaveSurfer | null = null;
+let regions: RegionsPlugin | null = null;
+let clipRegion: Region | null = null;
+
+function destroyWave() {
+  ready.value = false;
+  previewing.value = false;
+  clipRegion = null;
+  regions = null;
+  wavesurfer?.destroy();
+  wavesurfer = null;
 }
 
-function onTimeUpdate() {
-  const audio = audioEl.value;
-  if (audio && audio.currentTime * 1000 >= end.value) audio.pause();
+function initWave(url: string) {
+  destroyWave();
+  const container = waveformEl.value;
+  if (!container) return;
+
+  wavesurfer = WaveSurfer.create({
+    container,
+    url,
+    height: 72,
+    waveColor: "#4a4d6a",
+    progressColor: "#5865f2",
+    cursorColor: "#e4e6f5",
+    barWidth: 2,
+    barGap: 1,
+    barRadius: 2,
+  });
+  regions = wavesurfer.registerPlugin(RegionsPlugin.create());
+
+  wavesurfer.on("play", () => (previewing.value = true));
+  wavesurfer.on("pause", () => (previewing.value = false));
+  wavesurfer.on("finish", () => (previewing.value = false));
+
+  wavesurfer.on("ready", () => {
+    if (!regions) return;
+    clipRegion = regions.addRegion({
+      start: start.value / 1000,
+      end: end.value / 1000,
+      color: "rgba(88, 101, 242, 0.35)",
+      drag: true,
+      resize: false,
+    });
+    ready.value = true;
+  });
+
+  regions.on("region-update", (region) => {
+    if (region === clipRegion) start.value = region.start * 1000;
+  });
+}
+
+onMounted(() => {
+  if (props.previewUrl) initWave(props.previewUrl);
+});
+
+watch(
+  () => props.previewUrl,
+  (url) => {
+    if (url) initWave(url);
+    else destroyWave();
+  },
+);
+
+onBeforeUnmount(destroyWave);
+
+function togglePreview() {
+  if (!wavesurfer || !clipRegion) return;
+  if (previewing.value) {
+    wavesurfer.pause();
+    return;
+  }
+  clipRegion.play(true);
 }
 </script>
 
 <template>
   <div class="clip-picker">
-    <div class="clip-track">
-      <div class="clip-window" :style="{ left: startPercent + '%', width: windowPercent + '%' }"></div>
-      <input type="range" class="clip-range" :min="0" :max="durationMs" :step="100" v-model.number="start" />
-      <input type="range" class="clip-range" :min="0" :max="durationMs" :step="100" v-model.number="end" />
-    </div>
+    <div ref="waveformEl" class="waveform" :class="{ loading: !ready }"></div>
     <div class="clip-footer">
       <button
         type="button"
         class="preview-toggle"
         :class="{ playing: previewing }"
-        :disabled="!previewUrl"
+        :disabled="!ready"
         :aria-label="previewing ? 'Стоп' : 'Прослушать отрезок'"
         @click="togglePreview"
       >
@@ -88,7 +137,6 @@ function onTimeUpdate() {
         <span class="clip-total">из {{ formatTime(durationMs) }}</span>
       </div>
     </div>
-    <audio ref="audioEl" @timeupdate="onTimeUpdate" @pause="previewing = false" @ended="previewing = false"></audio>
   </div>
 </template>
 
@@ -98,66 +146,13 @@ function onTimeUpdate() {
   flex-direction: column;
   gap: 8px;
 }
-.clip-track {
-  position: relative;
-  height: 36px;
+.waveform {
+  border-radius: 8px;
+  overflow: hidden;
+  background: #20212e;
 }
-.clip-track::before {
-  content: "";
-  position: absolute;
-  top: 16px;
-  left: 0;
-  right: 0;
-  height: 4px;
-  border-radius: 2px;
-  background: #30324a;
-}
-.clip-window {
-  position: absolute;
-  top: 16px;
-  height: 4px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, #5865f2, #7b5cf5);
-}
-.clip-range {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  margin: 0;
-  background: transparent;
-  pointer-events: none;
-  -webkit-appearance: none;
-  appearance: none;
-}
-.clip-range::-webkit-slider-runnable-track {
-  background: transparent;
-}
-.clip-range::-webkit-slider-thumb {
-  pointer-events: auto;
-  -webkit-appearance: none;
-  appearance: none;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: white;
-  border: 3px solid #5865f2;
-  cursor: pointer;
-  margin-top: 7px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-}
-.clip-range::-moz-range-track {
-  background: transparent;
-  border: none;
-}
-.clip-range::-moz-range-thumb {
-  pointer-events: auto;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: white;
-  border: 3px solid #5865f2;
-  cursor: pointer;
+.waveform.loading {
+  min-height: 72px;
 }
 .clip-footer {
   display: flex;
