@@ -65,14 +65,15 @@ function initWave(url: string) {
     height: 72,
     waveColor: "#4a4d6a",
     progressColor: "#5865f2",
-    cursorColor: "#e4e6f5",
     barWidth: 2,
     barGap: 1,
     barRadius: 2,
     // The only thing draggable here is the clip region below - a seekable
-    // cursor on top of it would be a second, confusingly independent
-    // drag handle.
+    // cursor on top of it would be a second, confusingly independent drag
+    // handle, so both the click/drag interaction and the cursor line
+    // itself are switched off.
     interact: false,
+    cursorWidth: 0,
   });
   regions = wavesurfer.registerPlugin(RegionsPlugin.create());
 
@@ -97,7 +98,16 @@ function initWave(url: string) {
   });
 
   regions.on("region-update", (region) => {
-    if (region === clipRegion) start.value = region.start * 1000;
+    if (region !== clipRegion) return;
+    start.value = region.start * 1000;
+    // wavesurfer clamps each edge independently, so dragging past either
+    // end of the track shrinks the region instead of stopping it - force
+    // it back to our own (always-exactly-14s) start/end on every tick.
+    const clampedStart = start.value / 1000;
+    const clampedEnd = end.value / 1000;
+    if (region.start !== clampedStart || region.end !== clampedEnd) {
+      region.setOptions({ start: clampedStart, end: clampedEnd });
+    }
   });
 }
 
