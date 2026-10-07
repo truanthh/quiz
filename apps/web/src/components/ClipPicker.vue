@@ -99,14 +99,22 @@ function initWave(url: string) {
 
   regions.on("region-update", (region) => {
     if (region !== clipRegion) return;
-    start.value = region.start * 1000;
+    // Clamp straight off region.start, not off our own start.value/end.value -
+    // emitting update:modelValue updates the parent's prop asynchronously
+    // (through Vue's render scheduler), so reading it back in the same tick
+    // returns the previous, stale value. Doing that here made every tick
+    // snap the region back one step behind the mouse, which is why the drag
+    // felt like it was dragging through molasses.
+    const clampedStartMs = clamp(region.start * 1000, 0, maxStart.value);
+    emit("update:modelValue", clampedStartMs);
+
     // wavesurfer clamps each edge independently, so dragging past either
     // end of the track shrinks the region instead of stopping it - force
-    // it back to our own (always-exactly-14s) start/end on every tick.
-    const clampedStart = start.value / 1000;
-    const clampedEnd = end.value / 1000;
-    if (region.start !== clampedStart || region.end !== clampedEnd) {
-      region.setOptions({ start: clampedStart, end: clampedEnd });
+    // it back to exactly CLIP_DURATION_MS wide on every tick.
+    const clampedStartSec = clampedStartMs / 1000;
+    const clampedEndSec = Math.min(clampedStartSec + CLIP_DURATION_MS / 1000, props.durationMs / 1000);
+    if (region.start !== clampedStartSec || region.end !== clampedEndSec) {
+      region.setOptions({ start: clampedStartSec, end: clampedEndSec });
     }
   });
 }
