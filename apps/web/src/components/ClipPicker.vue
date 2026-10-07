@@ -69,6 +69,10 @@ function initWave(url: string) {
     barWidth: 2,
     barGap: 1,
     barRadius: 2,
+    // The only thing draggable here is the clip region below - a seekable
+    // cursor on top of it would be a second, confusingly independent
+    // drag handle.
+    interact: false,
   });
   regions = wavesurfer.registerPlugin(RegionsPlugin.create());
 
@@ -81,10 +85,14 @@ function initWave(url: string) {
     clipRegion = regions.addRegion({
       start: start.value / 1000,
       end: end.value / 1000,
-      color: "rgba(88, 101, 242, 0.35)",
+      color: "rgba(88, 101, 242, 0.5)",
       drag: true,
       resize: false,
     });
+    if (clipRegion.element) {
+      clipRegion.element.style.border = "2px solid #8b93ff";
+      clipRegion.element.style.boxShadow = "inset 0 0 0 1px rgba(255, 255, 255, 0.25)";
+    }
     ready.value = true;
   });
 
